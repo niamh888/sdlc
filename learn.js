@@ -1,4 +1,14 @@
-var phases = [
+// ============================================================
+// learn.js  —  Learn page: phase cards, filter, progress tracker
+// ============================================================
+
+// ---------- DATA ----------
+// An array of objects — one object per IEC 62304 process area.
+// Storing content in a data structure (rather than hardcoding HTML)
+// means the DOM is built programmatically. Add a new phase here
+// and the card appears automatically — no HTML changes needed.
+
+const phases = [
   {
     id: 'planning',
     clause: 'Clause 5.1',
@@ -181,15 +191,27 @@ var phases = [
   }
 ];
 
-var studiedPhases = new Set();
-var activeFilter = 'all';
+// ---------- STATE ----------
+// A Set is like an array but guarantees uniqueness — perfect for tracking
+// which phase IDs the user has marked as studied (no duplicates possible).
+const studiedPhases = new Set();
 
+// Tracks the currently active filter so applyFilter() always knows
+// which button to highlight when the grid re-renders.
+let activeFilter = 'all';
+
+// ---------- RENDER ----------
+// Builds all 12 phase cards from the phases array and inserts them
+// into the #phases-grid div. Called once on page load.
 function renderPhases() {
-  var grid = document.getElementById('phases-grid');
+  const grid = document.getElementById('phases-grid');
   grid.innerHTML = '';
 
+  // forEach iterates over the array. `phase` is the current object.
   phases.forEach(function (phase) {
-    var card = document.createElement('div');
+
+    // createElement creates a DOM element in memory — not yet on the page.
+    const card = document.createElement('div');
     card.className = 'phase-card';
     card.id = 'phase-' + phase.id;
 
@@ -197,16 +219,19 @@ function renderPhases() {
       card.classList.add('studied');
     }
 
-    var classBadges = phase.classes
+    // map transforms each class letter into an HTML badge string,
+    // then join combines the array into one string.
+    const classBadges = phase.classes
       .map(function (c) { return '<span class="class-badge ' + c + '">Class ' + c + '</span>'; })
       .join('');
 
-    var detailItems = phase.details
+    const detailItems = phase.details
       .map(function (d) { return '<li>' + d + '</li>'; })
       .join('');
 
-    var isStudied = studiedPhases.has(phase.id);
+    const isStudied = studiedPhases.has(phase.id);
 
+    // innerHTML sets the card's content all at once from a template string.
     card.innerHTML =
       '<div class="phase-header" data-id="' + phase.id + '">' +
         '<span class="phase-icon">' + phase.icon + '</span>' +
@@ -226,6 +251,7 @@ function renderPhases() {
         '</button>' +
       '</div>';
 
+    // appendChild adds the finished card into the live DOM.
     grid.appendChild(card);
   });
 
@@ -233,16 +259,25 @@ function renderPhases() {
   applyFilter(activeFilter);
   updateProgress();
 
+  // EVENT DELEGATION — one listener on the grid handles clicks for ALL cards.
+  // The alternative would be attaching a separate listener to each of the 12
+  // cards. Delegation is more efficient and works even for cards added later.
   grid.addEventListener('click', handleCardClick);
 }
 
+// ---------- CLICK HANDLER (event delegation) ----------
+// e.target is the exact element the user clicked. closest() walks UP the DOM
+// tree from that element looking for the first ancestor matching the selector.
+// This lets us identify which "zone" of the card was clicked.
 function handleCardClick(e) {
-  var studiedBtn = e.target.closest('.mark-studied-btn');
-  var header = e.target.closest('.phase-header');
+  const studiedBtn = e.target.closest('.mark-studied-btn');
+  const header = e.target.closest('.phase-header');
 
   if (studiedBtn) {
+    // data-id is set on the button in the HTML template above.
+    // dataset.id reads it as a JavaScript property.
     markStudied(studiedBtn.dataset.id);
-    return;
+    return; // early return stops the header toggle from also firing
   }
 
   if (header) {
@@ -250,24 +285,29 @@ function handleCardClick(e) {
   }
 }
 
+// ---------- TOGGLE EXPAND / COLLAPSE ----------
 function togglePhaseCard(id) {
-  var card = document.getElementById('phase-' + id);
+  const card = document.getElementById('phase-' + id);
   if (card) {
+    // classList.toggle adds the class if absent, removes it if present.
+    // CSS hides/shows .phase-details based on whether .expanded is present.
     card.classList.toggle('expanded');
   }
 }
 
+// ---------- MARK AS STUDIED ----------
 function markStudied(id) {
+  // Guard: if already studied, do nothing.
   if (studiedPhases.has(id)) return;
 
   studiedPhases.add(id);
 
-  var card = document.getElementById('phase-' + id);
+  const card = document.getElementById('phase-' + id);
   if (!card) return;
 
   card.classList.add('studied');
 
-  var btn = card.querySelector('.mark-studied-btn');
+  const btn = card.querySelector('.mark-studied-btn');
   if (btn) {
     btn.textContent = '✓ Studied';
     btn.disabled = true;
@@ -276,35 +316,50 @@ function markStudied(id) {
   updateProgress();
 }
 
+// ---------- FILTER BY SAFETY CLASS ----------
+// Shows only cards that apply to the selected safety class.
+// Class C software must comply with all 12 process areas.
+// Class A only needs the subset marked classes: ['A', ...].
 function applyFilter(classFilter) {
   activeFilter = classFilter;
 
+  // Highlight the active filter button.
   document.querySelectorAll('.filter-btn').forEach(function (btn) {
+    // toggle with a boolean: adds 'active' if condition is true, removes if false.
     btn.classList.toggle('active', btn.dataset.filter === classFilter);
   });
 
   phases.forEach(function (phase) {
-    var card = document.getElementById('phase-' + phase.id);
+    const card = document.getElementById('phase-' + phase.id);
     if (!card) return;
-    var visible = classFilter === 'all' || phase.classes.indexOf(classFilter) !== -1;
+
+    // indexOf returns -1 if the value is not in the array.
+    const visible = classFilter === 'all' || phase.classes.indexOf(classFilter) !== -1;
     card.classList.toggle('hidden', !visible);
   });
 }
 
+// ---------- PROGRESS BAR ----------
 function updateProgress() {
-  var count = studiedPhases.size;
-  var total = phases.length;
-  var pct = total > 0 ? (count / total) * 100 : 0;
+  const count = studiedPhases.size;
+  const total = phases.length;
+  const pct = total > 0 ? (count / total) * 100 : 0;
 
   document.getElementById('progress-count').textContent = count;
+
+  // style.width sets an inline CSS property on the element directly.
   document.getElementById('progress-bar').style.width = pct + '%';
 
-  var container = document.querySelector('.progress-bar-container');
+  // Keep the ARIA attribute in sync for screen readers.
+  const container = document.querySelector('.progress-bar-container');
   if (container) {
     container.setAttribute('aria-valuenow', Math.round(pct));
   }
 }
 
+// ---------- INIT ----------
+// DOMContentLoaded fires when the HTML is fully parsed but before images load.
+// Wrapping all setup here ensures getElementById etc. find their targets.
 document.addEventListener('DOMContentLoaded', function () {
   renderPhases();
 

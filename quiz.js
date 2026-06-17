@@ -1,4 +1,13 @@
-var questions = [
+// ============================================================
+// quiz.js  —  Quiz page: shuffle, timer, scoring, results
+// ============================================================
+
+// ---------- DATA ----------
+// 15 question objects. Each holds the question string, four option strings,
+// the index of the correct answer (0-based), and an explanation shown after
+// the user answers.
+
+const questions = [
   {
     q: 'What are the three software safety classes defined in IEC 62304?',
     options: ['Class 1, Class 2, Class 3', 'Class A, Class B, Class C', 'Low, Medium, High', 'Minor, Serious, Critical'],
@@ -91,26 +100,35 @@ var questions = [
   }
 ];
 
-var quizState = {
-  shuffled: [],
-  currentIndex: 0,
-  score: 0,
-  answered: false,
-  timerId: null,
-  timeLeft: 30
+// ---------- STATE ----------
+// One object holds everything the quiz needs to track. Keeping it together
+// makes resetQuiz() trivial — just overwrite these properties and start fresh.
+const quizState = {
+  shuffled: [],       // questions in random order for this attempt
+  currentIndex: 0,    // which question we're on (0-based)
+  score: 0,           // number of correct answers so far
+  answered: false,    // prevents double-answering the same question
+  timerId: null,      // reference returned by setInterval — needed to cancel it
+  timeLeft: 30        // seconds remaining for the current question
 };
 
+// ---------- SHUFFLE ----------
+// Fisher-Yates shuffle: walks backwards through a copy of the array,
+// swapping each element with a randomly chosen earlier element.
+// Result: every permutation is equally likely — a fair shuffle.
 function shuffleArray(arr) {
-  var copy = arr.slice();
-  for (var i = copy.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var temp = copy[i];
-    copy[i] = copy[j];
-    copy[j] = temp;
+  const copy = arr.slice(); // slice() with no arguments copies the whole array
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    // Destructuring swap — swaps copy[i] and copy[j] without a temp variable.
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
 
+// ---------- SCREEN SWITCHING ----------
+// The three quiz screens (start / active / results) share the same space.
+// Only the one with class 'active' is displayed (see CSS).
 function showQuizScreen(id) {
   document.querySelectorAll('.quiz-screen').forEach(function (screen) {
     screen.classList.remove('active');
@@ -118,6 +136,7 @@ function showQuizScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
+// ---------- START ----------
 function startQuiz() {
   quizState.shuffled = shuffleArray(questions);
   quizState.currentIndex = 0;
@@ -128,26 +147,32 @@ function startQuiz() {
   showQuestion();
 }
 
+// ---------- SHOW QUESTION ----------
 function showQuestion() {
-  clearTimer();
+  clearTimer(); // cancel any timer still running from the previous question
 
-  var q = quizState.shuffled[quizState.currentIndex];
-  var total = quizState.shuffled.length;
-  var idx = quizState.currentIndex;
+  const q = quizState.shuffled[quizState.currentIndex];
+  const total = quizState.shuffled.length;
+  const idx = quizState.currentIndex;
 
   quizState.answered = false;
 
   document.getElementById('question-counter').textContent = 'Question ' + (idx + 1) + ' of ' + total;
+
+  // Progress bar width as a percentage of questions completed so far.
   document.getElementById('quiz-progress-bar').style.width = ((idx / total) * 100) + '%';
   document.getElementById('question-text').textContent = q.q;
 
-  var optionsGrid = document.getElementById('options-grid');
+  // Build answer buttons from the options array.
+  const optionsGrid = document.getElementById('options-grid');
   optionsGrid.innerHTML = '';
 
   q.options.forEach(function (opt, i) {
-    var btn = document.createElement('button');
+    const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
+    // Each button captures its own index `i` via closure — when clicked,
+    // selectAnswer knows which option was chosen.
     btn.addEventListener('click', function () { selectAnswer(i); });
     optionsGrid.appendChild(btn);
   });
@@ -157,40 +182,47 @@ function showQuestion() {
   startTimer();
 }
 
+// ---------- SELECT ANSWER ----------
 function selectAnswer(selectedIndex) {
+  // Guard against clicking after time has already expired.
   if (quizState.answered) return;
   quizState.answered = true;
   clearTimer();
 
-  var q = quizState.shuffled[quizState.currentIndex];
-  var isCorrect = selectedIndex === q.correct;
+  const q = quizState.shuffled[quizState.currentIndex];
+  const isCorrect = selectedIndex === q.correct;
 
   if (isCorrect) quizState.score++;
 
+  // Reveal which answer was correct and mark the user's wrong choice red.
   document.querySelectorAll('.option-btn').forEach(function (btn, i) {
     btn.disabled = true;
     if (i === q.correct) btn.classList.add('correct');
     else if (i === selectedIndex) btn.classList.add('incorrect');
   });
 
-  showFeedback(isCorrect ? 'correct' : 'incorrect', q.explanation, q.options[q.correct]);
+  showFeedback(isCorrect ? 'correct' : 'incorrect', q.explanation);
 }
 
-function showFeedback(result, explanation, correctAnswer) {
-  var feedbackEl = document.getElementById('question-feedback');
-  var feedbackText = document.getElementById('feedback-text');
-  var nextBtn = document.getElementById('next-question');
+// ---------- FEEDBACK PANEL ----------
+function showFeedback(result, explanation) {
+  const feedbackEl = document.getElementById('question-feedback');
+  const feedbackText = document.getElementById('feedback-text');
+  const nextBtn = document.getElementById('next-question');
 
-  var prefix = result === 'correct' ? '✓ Correct. ' : '✗ Incorrect. ';
+  const prefix = result === 'correct' ? '✓ Correct. ' : '✗ Incorrect. ';
   feedbackText.textContent = prefix + explanation;
   feedbackText.style.color = result === 'correct' ? 'var(--success)' : 'var(--danger)';
 
-  var isLast = quizState.currentIndex === quizState.shuffled.length - 1;
+  // Change the button label on the last question.
+  const isLast = quizState.currentIndex === quizState.shuffled.length - 1;
   nextBtn.textContent = isLast ? 'See Results' : 'Next Question';
 
+  // Adding 'visible' triggers the CSS display:flex on the feedback panel.
   feedbackEl.classList.add('visible');
 }
 
+// ---------- NEXT QUESTION ----------
 function nextQuestion() {
   quizState.currentIndex++;
 
@@ -201,11 +233,12 @@ function nextQuestion() {
   }
 }
 
+// ---------- RESULTS ----------
 function showResults() {
-  var score = quizState.score;
-  var total = quizState.shuffled.length;
-  var pct = Math.round((score / total) * 100);
-  var passed = pct >= 70;
+  const score = quizState.score;
+  const total = quizState.shuffled.length;
+  const pct = Math.round((score / total) * 100);
+  const passed = pct >= 70; // 70% pass mark
 
   showQuizScreen('quiz-results');
 
@@ -217,6 +250,7 @@ function showResults() {
     ? 'Excellent work! You scored ' + pct + '%, demonstrating solid knowledge of IEC 62304 lifecycle processes.'
     : 'You scored ' + pct + '%. Review the Learn section and focus on areas where you lost marks, then try again.';
 
+  // Build the three breakdown cells (correct / incorrect / percentage) dynamically.
   document.getElementById('results-breakdown').innerHTML =
     '<div class="breakdown-item">' +
       '<span class="breakdown-value" style="color:var(--success)">' + score + '</span>' +
@@ -232,11 +266,15 @@ function showResults() {
     '</div>';
 }
 
+// ---------- RESET ----------
 function resetQuiz() {
   clearTimer();
   showQuizScreen('quiz-start');
 }
 
+// ---------- TIMER ----------
+// setInterval calls its callback every 1000ms (1 second) and returns an ID.
+// We store that ID in quizState.timerId so we can cancel it with clearInterval.
 function startTimer() {
   quizState.timeLeft = 30;
   updateTimerDisplay();
@@ -260,37 +298,42 @@ function clearTimer() {
 }
 
 function updateTimerDisplay() {
-  var display = document.getElementById('timer-display');
-  var container = document.getElementById('quiz-timer');
-  var t = quizState.timeLeft;
+  const display = document.getElementById('timer-display');
+  const container = document.getElementById('quiz-timer');
+  const t = quizState.timeLeft;
 
   display.textContent = t;
-  container.classList.remove('warning', 'danger');
 
+  // Remove both warning classes first, then re-apply the correct one.
+  container.classList.remove('warning', 'danger');
   if (t <= 10 && t > 5) container.classList.add('warning');
   if (t <= 5) container.classList.add('danger');
 }
 
+// ---------- TIMEOUT ----------
+// Called when the 30 seconds expire without the user selecting an answer.
 function handleTimeout() {
   if (quizState.answered) return;
   quizState.answered = true;
 
-  var q = quizState.shuffled[quizState.currentIndex];
+  const q = quizState.shuffled[quizState.currentIndex];
 
+  // Reveal the correct answer even though the user didn't click it.
   document.querySelectorAll('.option-btn').forEach(function (btn, i) {
     btn.disabled = true;
     if (i === q.correct) btn.classList.add('correct');
   });
 
-  var feedbackText = document.getElementById('feedback-text');
+  const feedbackText = document.getElementById('feedback-text');
   feedbackText.textContent = '⏱ Time\'s up. The correct answer was: "' + q.options[q.correct] + '". ' + q.explanation;
   feedbackText.style.color = 'var(--warning)';
 
-  var isLast = quizState.currentIndex === quizState.shuffled.length - 1;
+  const isLast = quizState.currentIndex === quizState.shuffled.length - 1;
   document.getElementById('next-question').textContent = isLast ? 'See Results' : 'Next Question';
   document.getElementById('question-feedback').classList.add('visible');
 }
 
+// ---------- INIT ----------
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('begin-quiz').addEventListener('click', startQuiz);
   document.getElementById('next-question').addEventListener('click', nextQuestion);

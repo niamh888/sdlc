@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC 62304 SDLC Training | Learn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="learn.html">Learn</a>
+        <a class="nav-link" href="quiz.html">Quiz</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Lifecycle Process Areas</h1>
+        <p>IEC 62304 organises software development into defined process areas across Clauses 4&ndash;9. Click any card to expand its requirements. Filter by safety class to focus on what applies to your software.</p>
+      </div>
+
+      <div class="learn-controls">
+        <div class="progress-tracker">
+          <span class="progress-label">Study progress: <strong id="progress-count">0</strong> of <strong id="progress-total">0</strong> phases</span>
+          <div class="progress-bar-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+        </div>
+        <div class="filter-group" role="group" aria-label="Filter by safety class">
+          <span class="filter-label">Filter by class:</span>
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="A">Class A</button>
+          <button class="filter-btn" data-filter="B">Class B</button>
+          <button class="filter-btn" data-filter="C">Class C</button>
+        </div>
+      </div>
+
+      <div class="phases-grid" id="phases-grid">
+        <!-- Rendered by learn.js from the phases data array -->
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only</p>
+    </div>
+  </footer>
+
+  <script src="nav.js"></script>
+  <script src="learn.js"></script>
+</body>
+</html>

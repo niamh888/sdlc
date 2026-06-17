@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC 62304 SDLC Training | Contact</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="learn.html">Learn</a>
+        <a class="nav-link" href="quiz.html">Quiz</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Get in Touch</h1>
+        <p>Questions about the course content, suggestions for improvement, or feedback on your learning experience? We would love to hear from you.</p>
+      </div>
+
+      <div class="contact-layout">
+
+        <div class="contact-info">
+          <h2>Why contact us?</h2>
+          <ul class="contact-reasons">
+            <li>Report an error in the course content</li>
+            <li>Suggest additional topics or questions</li>
+            <li>Request training for your organisation</li>
+            <li>Share your learning experience</li>
+          </ul>
+          <div class="contact-detail">
+            <strong>Standard covered:</strong> IEC 62304:2006 + Amendment 1:2015
+          </div>
+        </div>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="form-group">
+            <label for="name">Full Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name">
+            <span class="field-error" id="name-error" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email">
+            <span class="field-error" id="email-error" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label for="role">Your Role</label>
+            <select id="role" name="role">
+              <option value="">Select your role&hellip;</option>
+              <option value="developer">Software Developer</option>
+              <option value="qa">Quality Engineer</option>
+              <option value="regulatory">Regulatory Affairs</option>
+              <option value="manager">Project Manager</option>
+              <option value="student">Student</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea id="message" name="message" rows="5" placeholder="Your message..."></textarea>
+            <span class="field-error" id="message-error" role="alert"></span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+        </form>
+
+        <div id="form-success" class="form-success hidden">
+          <div class="success-icon">&#10003;</div>
+          <h2>Message Sent!</h2>
+          <p>Thank you for your feedback. We will review your message and respond where appropriate.</p>
+          <button class="btn btn-secondary" id="send-another">Send another message</button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only</p>
+    </div>
+  </footer>
+
+  <script src="nav.js"></script>
+  <script src="contact.js"></script>
+</body>
+</html>

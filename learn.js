@@ -232,18 +232,24 @@ function renderPhases() {
     const isStudied = studiedPhases.has(phase.id);
 
     // innerHTML sets the card's content all at once from a template string.
+    // role="button" + tabindex="0" make the header keyboard-focusable and announced
+    // as interactive by screen readers. aria-expanded tracks open/closed state.
+    // aria-controls links the header to the details panel it reveals.
     card.innerHTML =
-      '<div class="phase-header" data-id="' + phase.id + '">' +
-        '<span class="phase-icon">' + phase.icon + '</span>' +
+      '<div class="phase-header" data-id="' + phase.id + '"' +
+          ' role="button" tabindex="0"' +
+          ' aria-expanded="false"' +
+          ' aria-controls="phase-details-' + phase.id + '">' +
+        '<span class="phase-icon" aria-hidden="true">' + phase.icon + '</span>' +
         '<div class="phase-meta">' +
           '<span class="phase-clause">' + phase.clause + '</span>' +
           '<div class="phase-title">' + phase.title + '</div>' +
           '<div class="phase-summary">' + phase.summary + '</div>' +
           '<div class="phase-classes">' + classBadges + '</div>' +
         '</div>' +
-        '<span class="phase-chevron">▼</span>' +
+        '<span class="phase-chevron" aria-hidden="true">▼</span>' +
       '</div>' +
-      '<div class="phase-details"><ul>' + detailItems + '</ul></div>' +
+      '<div class="phase-details" id="phase-details-' + phase.id + '"><ul>' + detailItems + '</ul></div>' +
       '<div class="phase-footer">' +
         '<span class="studied-badge">✓ Studied</span>' +
         '<button class="btn btn-secondary mark-studied-btn" data-id="' + phase.id + '"' + (isStudied ? ' disabled' : '') + '>' +
@@ -263,6 +269,17 @@ function renderPhases() {
   // The alternative would be attaching a separate listener to each of the 12
   // cards. Delegation is more efficient and works even for cards added later.
   grid.addEventListener('click', handleCardClick);
+
+  // Keyboard delegation — Enter and Space activate the focused header, matching
+  // the native button behaviour that sighted keyboard users expect.
+  grid.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const header = e.target.closest('.phase-header');
+    if (header) {
+      e.preventDefault(); // stop Space from scrolling the page
+      togglePhaseCard(header.dataset.id);
+    }
+  });
 }
 
 // ---------- CLICK HANDLER (event delegation) ----------
@@ -292,6 +309,12 @@ function togglePhaseCard(id) {
     // classList.toggle adds the class if absent, removes it if present.
     // CSS hides/shows .phase-details based on whether .expanded is present.
     card.classList.toggle('expanded');
+
+    // Keep aria-expanded in sync so screen readers announce the new state.
+    const header = card.querySelector('.phase-header');
+    if (header) {
+      header.setAttribute('aria-expanded', card.classList.contains('expanded') ? 'true' : 'false');
+    }
   }
 }
 

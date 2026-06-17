@@ -7,11 +7,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo">
-        <span class="logo-icon">&#9877;</span>
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
         <div class="logo-text">
           <span class="logo-title">IEC 62304 Training</span>
           <span class="logo-sub">Medical Device Software Lifecycle</span>
@@ -26,7 +27,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
 
       <div class="page-header">
@@ -51,13 +52,13 @@
 
         <form id="contact-form" class="contact-form" novalidate>
           <div class="form-group">
-            <label for="name">Full Name <span class="required">*</span></label>
-            <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name">
+            <label for="name">Full Name <span class="required" aria-hidden="true">*</span></label>
+            <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name" aria-required="true">
             <span class="field-error" id="name-error" role="alert"></span>
           </div>
           <div class="form-group">
-            <label for="email">Email Address <span class="required">*</span></label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email">
+            <label for="email">Email Address <span class="required" aria-hidden="true">*</span></label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" aria-required="true">
             <span class="field-error" id="email-error" role="alert"></span>
           </div>
           <div class="form-group">
@@ -73,8 +74,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="message">Message <span class="required">*</span></label>
-            <textarea id="message" name="message" rows="5" placeholder="Your message..."></textarea>
+            <label for="message">Message <span class="required" aria-hidden="true">*</span></label>
+            <textarea id="message" name="message" rows="5" placeholder="Your message..." aria-required="true"></textarea>
             <span class="field-error" id="message-error" role="alert"></span>
           </div>
           <button type="submit" class="btn btn-primary btn-full">Send Message</button>
@@ -93,7 +94,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only</p>
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
     </div>
   </footer>
 

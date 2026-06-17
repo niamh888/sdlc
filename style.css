@@ -180,6 +180,18 @@ a {
   width: 100%;
 }
 
+.btn-success {
+  background: var(--success-light);
+  color: white;
+  border-color: var(--success-light);
+}
+
+.btn-success:hover {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
 /* ===== PAGE HEADER ===== */
 
 .page-header {
@@ -420,6 +432,12 @@ a {
   user-select: none;
 }
 
+.phase-header:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
 .phase-icon {
   font-size: 1.8rem;
   flex-shrink: 0;
@@ -545,6 +563,16 @@ a {
   color: var(--success);
   border-color: #a9dfbf;
   cursor: default;
+}
+
+/* ===== QUIZ: NAME FIELD ===== */
+
+/* Constrains the name input to match the quiz-rules width and left-aligns
+   the label, overriding the quiz-intro's centred text alignment. */
+.quiz-name-group {
+  max-width: 360px;
+  margin: 0 auto 24px;
+  text-align: left;
 }
 
 /* ===== QUIZ: LAYOUT ===== */
@@ -936,7 +964,8 @@ a {
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
+  outline: 3px solid var(--accent-light);
+  outline-offset: 1px;
   border-color: var(--accent);
   background: var(--bg-white);
 }
@@ -992,16 +1021,57 @@ a {
 
 .site-footer {
   background: var(--primary);
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.75);
   padding: 20px 0;
   font-size: 0.82rem;
   text-align: center;
+}
+
+.site-footer a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.site-footer a:hover {
+  color: white;
 }
 
 /* ===== UTILITIES ===== */
 
 .hidden {
   display: none !important;
+}
+
+/* Visually hidden but still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link — invisible until focused by keyboard, then slides in at the top. */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 200;
+  text-decoration: none;
+  border-bottom-right-radius: var(--radius);
+  transition: top 0.1s;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -1066,6 +1136,156 @@ a {
   }
 }
 
+/* ===== CERTIFICATE ===== */
+
+/* Hidden on screen — only rendered during window.print(). */
+#certificate {
+  display: none;
+}
+
+.cert-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: white;
+}
+
+.cert-inner {
+  border: 4px solid var(--primary);
+  padding: 56px 72px;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  position: relative;
+  background: white;
+}
+
+/* Decorative inset line inside the outer border. */
+.cert-inner::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid var(--accent-light);
+  pointer-events: none;
+}
+
+.cert-logo-icon {
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 4px;
+  color: var(--primary);
+}
+
+.cert-site-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+.cert-heading {
+  font-size: 1.5rem;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cert-presented {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cert-name {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-style: italic;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.cert-completed {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cert-course-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.cert-standard {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.cert-meta {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-bottom: 20px;
+}
+
+.cert-meta-label {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.cert-meta-value {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.cert-disclaimer {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ===== PRINT ===== */
+
+@media print {
+  /* Force background colours and borders to render in print/PDF output. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide everything except the certificate. */
+  .site-header,
+  main,
+  .site-footer,
+  .skip-link {
+    display: none !important;
+  }
+
+  #certificate {
+    display: block !important;
+  }
+}
+
 @media (max-width: 480px) {
   .hero-stats {
     flex-direction: column;
@@ -1086,5 +1306,10 @@ a {
 
   main {
     padding: 32px 0;
+  }
+
+  .results-breakdown {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

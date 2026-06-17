@@ -7,11 +7,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo">
-        <span class="logo-icon">&#9877;</span>
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
         <div class="logo-text">
           <span class="logo-title">IEC 62304 Training</span>
           <span class="logo-sub">Medical Device Software Lifecycle</span>
@@ -26,20 +27,28 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
 
       <!-- Start screen -->
       <div id="quiz-start" class="quiz-screen active">
         <div class="quiz-intro">
           <h1>Knowledge Assessment</h1>
-          <p>Test your understanding of IEC 62304 with 15 multiple-choice questions. You have <strong>30 seconds</strong> per question. A score of <strong>70% or higher</strong> is a pass.</p>
+          <p>Test your understanding of IEC 62304 with 15 multiple-choice questions. You have <strong>30 seconds</strong> per question. A score of <strong>80% or higher</strong> earns a certificate.</p>
           <ul class="quiz-rules">
             <li>15 questions, 4 options each</li>
             <li>30 seconds per question</li>
             <li>Immediate feedback after each answer</li>
             <li>Questions presented in random order</li>
+            <li>Score 80% or higher to download a certificate</li>
           </ul>
+          <div class="quiz-name-group">
+            <div class="form-group">
+              <label for="participant-name">Your name <span class="required" aria-hidden="true">*</span></label>
+              <input type="text" id="participant-name" placeholder="Enter your full name" autocomplete="name" aria-required="true">
+              <span class="field-error" id="participant-name-error" role="alert"></span>
+            </div>
+          </div>
           <button class="btn btn-primary btn-large" id="begin-quiz">Begin Assessment</button>
         </div>
       </div>
@@ -54,9 +63,11 @@
             </div>
           </div>
           <div class="quiz-timer" id="quiz-timer">
-            <span>&#9203;</span>
+            <span aria-hidden="true">&#9203;</span>
             <span id="timer-display">30</span>s
           </div>
+          <!-- Announces time warnings to screen readers without visual display. -->
+          <span id="timer-announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></span>
         </div>
 
         <div class="question-card">
@@ -70,6 +81,8 @@
           <p class="feedback-text" id="feedback-text"></p>
           <button class="btn btn-primary" id="next-question">Next Question</button>
         </div>
+        <!-- Always-present live region that receives feedback text so screen readers announce it. -->
+        <div id="quiz-feedback-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
       </div>
 
       <!-- Results screen -->
@@ -86,6 +99,7 @@
           <div class="results-actions">
             <button class="btn btn-primary btn-large" id="retry-quiz">Try Again</button>
             <a class="btn btn-secondary" href="learn.html">Review Content</a>
+            <button class="btn btn-success btn-large hidden" id="download-cert">Download Certificate</button>
           </div>
         </div>
       </div>
@@ -95,9 +109,44 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only</p>
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
     </div>
   </footer>
+
+  <!-- Certificate — hidden on screen, shown only during window.print(). -->
+  <!-- Populated by quiz.js when the user achieves 80% or higher. -->
+  <div id="certificate" aria-hidden="true">
+    <div class="cert-page">
+      <div class="cert-inner">
+        <span class="cert-logo-icon" aria-hidden="true">⚕</span>
+        <p class="cert-site-name">IEC 62304 Essentials</p>
+        <h1 class="cert-heading">Certificate of Completion</h1>
+        <p class="cert-presented">This certifies that</p>
+        <p class="cert-name" id="cert-name"></p>
+        <p class="cert-completed">has successfully completed</p>
+        <p class="cert-course-name">IEC 62304 Essentials</p>
+        <p class="cert-standard">
+          An introduction to IEC 62304:2006+AMD1:2015<br>
+          Medical device software &mdash; Software life cycle processes
+        </p>
+        <div class="cert-meta">
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Score</span>
+            <span class="cert-meta-value" id="cert-score"></span>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Pass Mark</span>
+            <span class="cert-meta-value">80%</span>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Date</span>
+            <span class="cert-meta-value" id="cert-date"></span>
+          </div>
+        </div>
+        <p class="cert-disclaimer">For educational purposes only &mdash; Based on IEC 62304:2006+AMD1:2015</p>
+      </div>
+    </div>
+  </div>
 
   <script src="nav.js"></script>
   <script src="quiz.js"></script>

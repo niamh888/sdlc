@@ -104,12 +104,13 @@ const questions = [
 // One object holds everything the quiz needs to track. Keeping it together
 // makes resetQuiz() trivial — just overwrite these properties and start fresh.
 const quizState = {
-  shuffled: [],       // questions in random order for this attempt
-  currentIndex: 0,    // which question we're on (0-based)
-  score: 0,           // number of correct answers so far
-  answered: false,    // prevents double-answering the same question
-  timerId: null,      // reference returned by setInterval — needed to cancel it
-  timeLeft: 30        // seconds remaining for the current question
+  shuffled: [],           // questions in random order for this attempt
+  currentIndex: 0,        // which question we're on (0-based)
+  score: 0,               // number of correct answers so far
+  answered: false,        // prevents double-answering the same question
+  timerId: null,          // reference returned by setInterval — needed to cancel it
+  timeLeft: 30,           // seconds remaining for the current question
+  participantName: ''     // entered on the start screen; used on the certificate
 };
 
 // ---------- SHUFFLE ----------
@@ -138,6 +139,19 @@ function showQuizScreen(id) {
 
 // ---------- START ----------
 function startQuiz() {
+  // Require a name before starting — it appears on the certificate.
+  const nameInput = document.getElementById('participant-name');
+  const nameError = document.getElementById('participant-name-error');
+  const name = nameInput ? nameInput.value.trim() : '';
+
+  if (!name) {
+    if (nameError) nameError.textContent = 'Please enter your name to begin.';
+    if (nameInput) nameInput.focus();
+    return;
+  }
+  if (nameError) nameError.textContent = '';
+
+  quizState.participantName = name;
   quizState.shuffled = shuffleArray(questions);
   quizState.currentIndex = 0;
   quizState.score = 0;
@@ -209,9 +223,12 @@ function showFeedback(result, explanation) {
   const feedbackEl = document.getElementById('question-feedback');
   const feedbackText = document.getElementById('feedback-text');
   const nextBtn = document.getElementById('next-question');
+  const liveRegion = document.getElementById('quiz-feedback-live');
 
   const prefix = result === 'correct' ? '✓ Correct. ' : '✗ Incorrect. ';
-  feedbackText.textContent = prefix + explanation;
+  const fullText = prefix + explanation;
+
+  feedbackText.textContent = fullText;
   feedbackText.style.color = result === 'correct' ? 'var(--success)' : 'var(--danger)';
 
   // Change the button label on the last question.
@@ -220,6 +237,10 @@ function showFeedback(result, explanation) {
 
   // Adding 'visible' triggers the CSS display:flex on the feedback panel.
   feedbackEl.classList.add('visible');
+
+  // Mirror the text into the always-visible live region. Screen readers announce
+  // changes to live regions reliably regardless of the visual element's display state.
+  if (liveRegion) liveRegion.textContent = fullText;
 }
 
 // ---------- NEXT QUESTION ----------
@@ -238,7 +259,7 @@ function showResults() {
   const score = quizState.score;
   const total = quizState.shuffled.length;
   const pct = Math.round((score / total) * 100);
-  const passed = pct >= 70; // 70% pass mark
+  const passed = pct >= 80; // 80% required for a certificate
 
   showQuizScreen('quiz-results');
 
@@ -264,11 +285,38 @@ function showResults() {
       '<span class="breakdown-value">' + pct + '%</span>' +
       '<span class="breakdown-label">Score</span>' +
     '</div>';
+
+  // Show or hide the certificate download button based on whether the user passed.
+  const certBtn = document.getElementById('download-cert');
+  if (passed) {
+    populateCertificate(score, total, pct);
+    if (certBtn) certBtn.classList.remove('hidden');
+  } else {
+    if (certBtn) certBtn.classList.add('hidden');
+  }
+}
+
+// ---------- CERTIFICATE ----------
+function populateCertificate(score, total, pct) {
+  const dateStr = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  const nameEl  = document.getElementById('cert-name');
+  const scoreEl = document.getElementById('cert-score');
+  const dateEl  = document.getElementById('cert-date');
+
+  if (nameEl)  nameEl.textContent  = quizState.participantName;
+  if (scoreEl) scoreEl.textContent = score + ' / ' + total + ' (' + pct + '%)';
+  if (dateEl)  dateEl.textContent  = dateStr;
 }
 
 // ---------- RESET ----------
 function resetQuiz() {
   clearTimer();
+  // Clear any name validation error but keep the name value — no need to retype on retry.
+  const nameError = document.getElementById('participant-name-error');
+  if (nameError) nameError.textContent = '';
   showQuizScreen('quiz-start');
 }
 
@@ -300,6 +348,7 @@ function clearTimer() {
 function updateTimerDisplay() {
   const display = document.getElementById('timer-display');
   const container = document.getElementById('quiz-timer');
+  const announcement = document.getElementById('timer-announcement');
   const t = quizState.timeLeft;
 
   display.textContent = t;
@@ -308,6 +357,15 @@ function updateTimerDisplay() {
   container.classList.remove('warning', 'danger');
   if (t <= 10 && t > 5) container.classList.add('warning');
   if (t <= 5) container.classList.add('danger');
+
+  // Announce threshold moments to screen readers via the assertive live region.
+  // Only announce at the exact threshold seconds to avoid constant interruptions.
+  if (announcement) {
+    if (t === 10) announcement.textContent = '10 seconds remaining';
+    else if (t === 5)  announcement.textContent = '5 seconds remaining';
+    else if (t === 0)  announcement.textContent = "Time's up";
+    else announcement.textContent = '';
+  }
 }
 
 // ---------- TIMEOUT ----------
@@ -325,12 +383,16 @@ function handleTimeout() {
   });
 
   const feedbackText = document.getElementById('feedback-text');
-  feedbackText.textContent = '⏱ Time\'s up. The correct answer was: "' + q.options[q.correct] + '". ' + q.explanation;
+  const timeoutText = 'Time\'s up. The correct answer was: "' + q.options[q.correct] + '". ' + q.explanation;
+  feedbackText.textContent = '⏱ ' + timeoutText;
   feedbackText.style.color = 'var(--warning)';
 
   const isLast = quizState.currentIndex === quizState.shuffled.length - 1;
   document.getElementById('next-question').textContent = isLast ? 'See Results' : 'Next Question';
   document.getElementById('question-feedback').classList.add('visible');
+
+  const liveRegion = document.getElementById('quiz-feedback-live');
+  if (liveRegion) liveRegion.textContent = timeoutText;
 }
 
 // ---------- INIT ----------
@@ -338,4 +400,9 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('begin-quiz').addEventListener('click', startQuiz);
   document.getElementById('next-question').addEventListener('click', nextQuestion);
   document.getElementById('retry-quiz').addEventListener('click', resetQuiz);
+  document.getElementById('download-cert').addEventListener('click', function () {
+    // window.print() triggers the browser print dialog. With @media print CSS
+    // hiding everything except #certificate, the user saves it as a PDF.
+    window.print();
+  });
 });

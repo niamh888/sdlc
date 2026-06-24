@@ -89,9 +89,9 @@ Page-specific JavaScript:
 2. **Countdown timer** — a 30-second `setInterval` per question. The timer turns amber at 10 seconds and red at 5. If it expires, the correct answer is revealed automatically and the question is marked wrong.
 3. **Results rendering** — the final screen is populated dynamically from the quiz state object, showing personalised pass/fail messaging and a score breakdown grid.
 
-**Data model:** 15 questions defined as an array of objects in `quiz.js`. Each object holds the question string, four option strings, the index of the correct answer, and an explanation. The array is shuffled with a Fisher-Yates shuffle on each new quiz attempt so questions appear in a different order every time.
+**Data model:** Two arrays of 15 question objects in `quiz.js` — `introQuestions` (overview-level) and `advancedQuestions` (clause-referenced, requiring in-depth knowledge of specific §references and Amendment 1 changes). Each object holds the question string, four option strings, the index of the correct answer (0-based), and an explanation. `getQuestions()` reads the training level from `localStorage` and returns the appropriate array. The selected array is shuffled with a Fisher-Yates shuffle on each attempt so questions appear in a different order every time.
 
-**Pass mark:** 80% (12 of 15 correct). Passing earns a certificate that is populated with the participant's name, score, date, and the training level (Introductory or Advanced) read from `localStorage`.
+**Pass mark:** 80% (12 of 15 correct). Passing earns a certificate populated with the participant's name, score, date, and the training level (Introductory or Advanced) read from `localStorage`. A level notice on the start screen shows the learner which question set they are about to sit, with a link to the Learn page if they want to switch level before starting.
 
 ---
 
@@ -154,7 +154,7 @@ Each page script is self-contained. There is no shared global state between page
 Key patterns used:
 - **Event delegation** (`learn.js`) — one `click` listener on the card grid handles expand, collapse, and mark-as-studied for all 13 cards
 - **In-place DOM update** (`learn.js`) — the level toggle replaces only the `<li>` bullet elements inside each card's existing `<ul>`, rather than rebuilding the whole grid, so expanded/collapsed state and studied progress are preserved across level changes
-- **`localStorage` for cross-page state** (`learn.js` / `quiz.js`) — the training level chosen on the Learn page is saved to `localStorage` so the Quiz page can read it when printing the certificate; the two pages share no JavaScript and communicate only through this browser storage key
+- **`localStorage` for cross-page state** (`learn.js` / `quiz.js`) — the training level chosen on the Learn page is saved to `localStorage` so the Quiz page can read it to select the correct question set, display the level notice on the start screen, and populate the certificate; the two pages share no JavaScript and communicate only through this browser storage key
 - **State object** (`quiz.js`) — all quiz state (current index, score, timer ID, time remaining) is held in one `quizState` object, making it easy to reset cleanly
 - **Validator functions** (`contact.js`) — each field has its own pure validation function that takes a string and returns an error message or an empty string. This keeps validation logic separate from DOM interaction
 

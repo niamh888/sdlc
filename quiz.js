@@ -3,11 +3,13 @@
 // ============================================================
 
 // ---------- DATA ----------
-// 15 question objects. Each holds the question string, four option strings,
-// the index of the correct answer (0-based), and an explanation shown after
-// the user answers.
+// Two question sets — one per training level. Each question holds the question
+// string, four option strings, the index of the correct answer (0-based), and
+// an explanation shown after the user answers.
+// getQuestions() selects the right set based on the level stored in localStorage.
 
-const questions = [
+// INTRODUCTORY — overview-level questions suitable for first-time learners.
+const introQuestions = [
   {
     q: 'What are the three software safety classes defined in IEC 62304?',
     options: ['Class 1, Class 2, Class 3', 'Class A, Class B, Class C', 'Low, Medium, High', 'Minor, Serious, Critical'],
@@ -100,6 +102,176 @@ const questions = [
   }
 ];
 
+// ADVANCED — clause-referenced questions requiring in-depth knowledge of
+// IEC 62304:2006+AMD1:2015, including Amendment 1 changes and audit context.
+const advancedQuestions = [
+  {
+    q: 'Under Amendment 1, what condition must be established by the risk management process before a software item may be classified as Class A?',
+    options: [
+      'The software item has no user interface',
+      'The risk management process determines the software item cannot contribute to a hazardous situation',
+      'The software item runs on Class I medical hardware only',
+      'The software item was developed before the current regulatory framework applied'
+    ],
+    correct: 1,
+    explanation: 'Amendment 1 revised §4.3 so that Class A requires the product/system risk management process to explicitly determine that the software item cannot contribute to a hazardous situation. It is not sufficient to assume low risk based on functionality — the risk analysis must make this determination.'
+  },
+  {
+    q: 'Under §4.3 (Amendment 1), if a software item is the sole control measure preventing serious injury or death, which safety class must it be assigned?',
+    options: ['Class A', 'Class B', 'Class C', 'The class is determined by the hardware platform it runs on'],
+    correct: 2,
+    explanation: 'Amendment 1\'s revised §4.3 states that a software item that is the sole control measure preventing serious injury or death must be Class C, regardless of other risk controls elsewhere in the device. This reflects the sole-reliance principle from ISO 14971.'
+  },
+  {
+    q: 'Amendment 1 introduced a clarified distinction between two key terms. Which pairing is correct?',
+    options: [
+      'HAZARD = the circumstances of exposure; HAZARDOUS SITUATION = the potential source of harm',
+      'HAZARD = a software defect; HAZARDOUS SITUATION = a defect that reaches a released product',
+      'HAZARD = the potential source of harm; HAZARDOUS SITUATION = the circumstances where a person is exposed to that hazard',
+      'HAZARD and HAZARDOUS SITUATION are defined as synonymous in Amendment 1'
+    ],
+    correct: 2,
+    explanation: 'Amendment 1 clarified: a HAZARD is a potential source of harm (e.g., incorrect dose calculation), while a HAZARDOUS SITUATION is the circumstance in which a person is exposed to that hazard (e.g., patient receives an incorrect dose). Software failure modes must be linked to hazardous situations, not just to abstract hazards.'
+  },
+  {
+    q: 'IEC 62304 §5.3 requires SOUP to be documented in the architectural design. Which set of information is required as a minimum?',
+    options: [
+      'The SOUP\'s complete source code and build scripts',
+      'Title, manufacturer, version identifier, intended use, functional requirements it must meet, and its required operating environment',
+      'The SOUP\'s CE marking certificate or FDA 510(k) clearance number',
+      'The SOUP\'s full validation test history and a list of all known anomalies'
+    ],
+    correct: 1,
+    explanation: '§5.3 requires SOUP to be identified by: name/title, manufacturer, version or revision identifier, intended use within the system, the functional and performance requirements it must meet, and the hardware/software environment it requires. This information is needed to evaluate SOUP as a configuration item and to assess whether its known anomalies are relevant.'
+  },
+  {
+    q: 'A configuration management record identifies a SOUP component as "latest stable release." Does this satisfy IEC 62304 §8?',
+    options: [
+      'Yes, if the SOUP vendor provides regular security updates',
+      'Yes, for Class A and B software only',
+      'No — SOUP must be identified by an exact version or revision identifier',
+      'No — SOUP must not be used unless the full source code is available for review'
+    ],
+    correct: 2,
+    explanation: '§8 requires all SOUP items to be under configuration management with an exact version or revision identifier recorded. "Latest" or "current" is not acceptable because it prevents the manufacturer from reproducing the exact configuration used in any released product — a requirement that may need to be met years later during a regulatory investigation.'
+  },
+  {
+    q: 'After release, the manufacturer discovers a known anomaly in a SOUP component. What does IEC 62304 §7 require?',
+    options: [
+      'Immediately withdraw the product from the market pending investigation',
+      'Evaluate whether the anomaly could contribute to a hazardous situation in the intended use environment and document the assessment with a conclusion',
+      'Notify the SOUP vendor and await a patch before taking any further action',
+      'Issue a corrective software update within 30 days of discovery'
+    ],
+    correct: 1,
+    explanation: '§7 requires that for each known anomaly in a SOUP item, the manufacturer assesses whether it could contribute to a hazardous situation in the intended use environment and documents the conclusion. Market withdrawal is only required if the risk assessment determines that the risk is unacceptable and cannot be mitigated otherwise.'
+  },
+  {
+    q: 'A Class C software item implements a risk control measure identified in the ISO 14971 risk management file. Which IEC 62304 clause governs the requirement to verify its effectiveness?',
+    options: [
+      'Clause 5.7 — Software System Testing',
+      'Clause 5.8 — Software Release',
+      'Clause 7 — Software Risk Management',
+      'Clause 9 — Problem Resolution'
+    ],
+    correct: 2,
+    explanation: 'Clause 7 requires that software items implementing risk control measures are verified as effective. The verification evidence must feed into the ISO 14971 risk management file to demonstrate that the control measure functions as intended. System testing (§5.7) provides the test evidence, but the requirement to verify effectiveness is a §7 obligation.'
+  },
+  {
+    q: 'Under §5.8, under what condition may a manufacturer release software that has unresolved known anomalies?',
+    options: [
+      'Never — all anomalies must be resolved before release is permitted',
+      'Only for Class A software where no injury is possible',
+      'When each open anomaly has been evaluated for safety impact and the decision to release has been made by appropriate authority and documented',
+      'Only when the anomalies are user interface issues with no functional impact'
+    ],
+    correct: 2,
+    explanation: '§5.8 does not require zero open anomalies at release. It requires that all known anomalies are evaluated for patient safety impact, and that the decision to release with open items is made by appropriate authority with the rationale documented. This is a common area of confusion in regulatory submissions.'
+  },
+  {
+    q: 'During a §5.5 unit verification activity for Class C software, a defect is found and silently fixed by the developer without logging a problem report. Is this acceptable under IEC 62304?',
+    options: [
+      'Yes, if the fix is verified and the unit re-tested successfully',
+      'Yes, if the defect was found before the unit was formally baselined',
+      'No — all anomalies found during verification must be documented through the Clause 9 problem resolution process',
+      'No — but only if the defect affected a safety-related software item'
+    ],
+    correct: 2,
+    explanation: 'Clause 9 requires all problems to be logged regardless of when they are found. Silent fixes — even those re-verified successfully — bypass the required safety impact assessment and root cause analysis. Undocumented fixes are one of the most common critical findings in notified body audits of Class C software.'
+  },
+  {
+    q: 'What specific addition did Amendment 1 make to the requirements of §5.1 Software Development Planning?',
+    options: [
+      'It added a requirement to specify the waterfall lifecycle model as the default',
+      'It removed the requirement to reference ISO 13485 in the plan',
+      'It added an explicit requirement to address cybersecurity in the software development plan',
+      'It added a requirement to produce a separate test plan for each software item'
+    ],
+    correct: 2,
+    explanation: 'Amendment 1 added cybersecurity as a topic that must be explicitly addressed in the software development plan, including how security requirements are identified, allocated to software items, implemented, and verified. The original 2006 standard had no explicit cybersecurity planning requirement.'
+  },
+  {
+    q: 'A software engineer proposes using a static analysis tool to extract comments from completed code and format them as the "detailed design" documentation for Class C. What is the correct assessment?',
+    options: [
+      'Acceptable, provided the static analysis tool is listed in the software development plan',
+      'Acceptable for Class B but not Class C',
+      'Not acceptable — detailed design must describe intended behaviour before implementation, not document what was built after the fact',
+      'Acceptable if the output is reviewed and approved by a second engineer'
+    ],
+    correct: 2,
+    explanation: '§5.4 detailed design must be specified before implementation begins — it is the basis for implementation, not a retrospective description of it. Extracting documentation from existing code reverses the required sequence, does not demonstrate planned design intent, and has been highlighted in the IEC 62304 2nd edition design specification as a known misuse that the revision aims to address.'
+  },
+  {
+    q: 'Under §6, a change request is received to add a new clinical feature to released Class C software. Which development activities are required?',
+    options: [
+      'The maintenance process only — new features are categorised as maintenance activities',
+      'A brief impact assessment followed by direct implementation and regression testing',
+      'The full §5 development activities appropriate for the safety class of the affected software items, including requirements, design, testing, and risk management',
+      'The change must be rejected — new features require a new regulatory submission before implementation'
+    ],
+    correct: 2,
+    explanation: '§6 requires that changes to released software that affect safety-related software items re-apply the relevant §5 development activities at the depth appropriate for the safety class. Adding new features is not a pure maintenance activity — it requires requirements analysis, design, risk management, and testing to be applied to the new and affected software items.'
+  },
+  {
+    q: 'Which of the following correctly defines "legacy software" as introduced in §4.4 (Amendment 1)?',
+    options: [
+      'Software that was developed more than 10 years before the current review',
+      'Software that was deployed and in use before IEC 62304 was applied to it',
+      'Software that was developed for a previous device version and reused without modification',
+      'Software that has not been validated for the current intended use of the device'
+    ],
+    correct: 1,
+    explanation: '§4.4 (added in Amendment 1) defines legacy software as software already deployed and in use before IEC 62304 was applied. Such software can be brought into compliance by documenting its development history, evaluating it against the standard\'s requirements, and addressing identified gaps — full retrospective development documentation is not required.'
+  },
+  {
+    q: 'Under §9, a problem is investigated and determined not to be a software defect. What does IEC 62304 require?',
+    options: [
+      'Nothing — only confirmed defects need to be formally recorded',
+      'Record the problem and the rationale for the "not a defect" conclusion',
+      'Record it only if found in a safety-related software item',
+      'Escalate to the risk management team for independent review'
+    ],
+    correct: 1,
+    explanation: 'Clause 9 requires all problems to be logged, including those ultimately determined not to be defects. The record must include the rationale for closure. Undocumented investigations — even for non-defects — are a common critical finding during regulatory audits because they leave gaps in the objective evidence trail.'
+  },
+  {
+    q: 'A bidirectional traceability matrix is required under IEC 62304. What must it trace in both directions?',
+    options: [
+      'Source code commits to developer names, and developer names to their qualifications',
+      'Software requirements to system requirements, and software requirements to test cases',
+      'Risk control measures to test cases only',
+      'Software items to their assigned safety class, and safety classes to the risk management file'
+    ],
+    correct: 1,
+    explanation: '§5.2 and §5.7 together require bidirectional traceability: each software requirement must trace up to a system requirement (ensuring nothing is implemented without a system-level justification) and down to a test case (ensuring everything required is tested). Gaps in either direction are a common finding in technical file reviews.'
+  }
+];
+
+// Returns the appropriate question set based on the training level stored in localStorage.
+function getQuestions() {
+  return localStorage.getItem('62304_trainingLevel') === 'advanced' ? advancedQuestions : introQuestions;
+}
+
 // ---------- STATE ----------
 // One object holds everything the quiz needs to track. Keeping it together
 // makes resetQuiz() trivial — just overwrite these properties and start fresh.
@@ -152,7 +324,8 @@ function startQuiz() {
   if (nameError) nameError.textContent = '';
 
   quizState.participantName = name;
-  quizState.shuffled = shuffleArray(questions);
+  // getQuestions() picks introQuestions or advancedQuestions based on localStorage.
+  quizState.shuffled = shuffleArray(getQuestions());
   quizState.currentIndex = 0;
   quizState.score = 0;
   quizState.answered = false;
@@ -419,6 +592,16 @@ function handleTimeout() {
 
 // ---------- INIT ----------
 document.addEventListener('DOMContentLoaded', function () {
+  // Show the current training level on the start screen so the learner knows
+  // which question set they are about to sit before they begin.
+  const levelNotice = document.getElementById('quiz-level-notice');
+  if (levelNotice) {
+    const isAdvanced = localStorage.getItem('62304_trainingLevel') === 'advanced';
+    levelNotice.innerHTML = isAdvanced
+      ? '<span class="level-notice-badge level-notice-advanced">Advanced assessment</span> Questions are clause-referenced and test in-depth knowledge of IEC 62304:2006+AMD1:2015.'
+      : '<span class="level-notice-badge level-notice-intro">Introductory assessment</span> Questions cover the core concepts of IEC 62304. Switch to Advanced on the <a href="learn.html">Learn page</a> for a more challenging assessment.';
+  }
+
   document.getElementById('begin-quiz').addEventListener('click', startQuiz);
   document.getElementById('next-question').addEventListener('click', nextQuestion);
   document.getElementById('retry-quiz').addEventListener('click', resetQuiz);

@@ -693,6 +693,41 @@ a {
   cursor: default;
 }
 
+/* ===== QUIZ: LEVEL NOTICE ===== */
+
+.quiz-level-notice {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 auto 24px;
+  max-width: 360px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.level-notice-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.level-notice-intro {
+  background: #eaf3fb;
+  color: #1a5fa0;
+}
+
+.level-notice-advanced {
+  background: #eaf7f0;
+  color: var(--success);
+}
+
 /* ===== QUIZ: NAME FIELD ===== */
 
 /* Constrains the name input to match the quiz-rules width and left-aligns

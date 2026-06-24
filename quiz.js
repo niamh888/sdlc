@@ -297,18 +297,40 @@ function showResults() {
 }
 
 // ---------- CERTIFICATE ----------
+// Fills in the hidden #certificate element with the participant's details.
+// window.print() (triggered by the Download Certificate button) then hides
+// everything except #certificate, so the browser renders it as a printable PDF.
 function populateCertificate(score, total, pct) {
   const dateStr = new Date().toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric'
   });
 
-  const nameEl  = document.getElementById('cert-name');
-  const scoreEl = document.getElementById('cert-score');
-  const dateEl  = document.getElementById('cert-date');
+  // Read the training level that was saved to localStorage on the Learn page.
+  // The Learn and Quiz pages are separate HTML files; localStorage is the
+  // bridge that carries the user's choice between them.
+  // If the key is absent (user never visited the Learn page), we default to Introductory.
+  const isAdvanced   = localStorage.getItem('62304_trainingLevel') === 'advanced';
+  const levelLabel   = isAdvanced ? 'Advanced Level' : 'Introductory Level';
+  const levelDesc    = isAdvanced
+    ? 'An in-depth study of IEC 62304:2006+AMD1:2015'
+    : 'An introduction to IEC 62304:2006+AMD1:2015';
 
-  if (nameEl)  nameEl.textContent  = quizState.participantName;
-  if (scoreEl) scoreEl.textContent = score + ' / ' + total + ' (' + pct + '%)';
-  if (dateEl)  dateEl.textContent  = dateStr;
+  // Grab references to each element we need to populate.
+  const nameEl       = document.getElementById('cert-name');
+  const scoreEl      = document.getElementById('cert-score');
+  const dateEl       = document.getElementById('cert-date');
+  const courseNameEl = document.getElementById('cert-course-name'); // e.g. "IEC 62304 Essentials — Advanced Level"
+  const standardEl   = document.getElementById('cert-standard');   // the descriptive line beneath the course name
+
+  if (nameEl)       nameEl.textContent  = quizState.participantName;
+  if (scoreEl)      scoreEl.textContent = score + ' / ' + total + ' (' + pct + '%)';
+  if (dateEl)       dateEl.textContent  = dateStr;
+  if (courseNameEl) courseNameEl.textContent = 'IEC 62304 Essentials — ' + levelLabel;
+
+  // innerHTML is used here (instead of textContent) because the description
+  // contains a <br> line break. The content is entirely our own hardcoded
+  // strings — no user input — so innerHTML is safe in this context.
+  if (standardEl)   standardEl.innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
 }
 
 // ---------- RESET ----------

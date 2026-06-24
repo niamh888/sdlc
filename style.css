@@ -393,6 +393,33 @@ a {
   color: white;
 }
 
+/* ===== LEARN: LEVEL TOGGLE ===== */
+
+.level-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.level-btn:hover,
+.level-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
 /* ===== LEARN: PHASE CARDS ===== */
 
 .phases-grid {

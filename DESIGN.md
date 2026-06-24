@@ -22,7 +22,7 @@ The site uses four separate HTML pages with shared CSS and shared navigation. A 
 
 ```
 index.html      Home — introduction and entry points
-learn.html      Learn — 13 lifecycle phase cards (Clauses 4–9)
+learn.html      Learn — 13 lifecycle topic cards (Clauses 4–9)
 quiz.html       Quiz — 15-question timed assessment
 contact.html    Contact — feedback form
 ```
@@ -71,7 +71,7 @@ Page-specific JavaScript:
 3. **Safety class filter** — buttons filter the visible cards by Class A, B, or C. Class C requires all 13 process areas; Class A requires only a subset. Implemented with `classList.toggle('hidden')`.
 4. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
 
-**Data model:** All 13 phases are defined as an array of objects in `learn.js`. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`['A','B','C']`, `['B','C']`, or `['C']`). The DOM is built entirely from this array using `createElement` and `innerHTML`.
+**Data model:** All 13 topics are defined as an array of objects in `learn.js`. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`['A','B','C']`, `['B','C']`, or `['C']`). The DOM is built entirely from this array using `createElement` and `innerHTML`.
 
 ---
 

@@ -2,15 +2,16 @@
 
 ## Overview
 
-This file drives the Learn page. It builds 12 expandable phase cards from a
+This file drives the Learn page. It builds 13 expandable topic cards from a
 data array, handles expand/collapse and keyboard interaction, lets the user
-filter cards by safety class, and tracks study progress with a progress bar.
+toggle between Introductory and Advanced content, filter cards by safety class,
+and tracks study progress with a progress bar.
 
 ---
 
 ## Data
 
-**`phases`** — an array of 12 objects, one per IEC 62304 process area.
+**`phases`** — an array of 13 objects, one per IEC 62304 process area (Clauses 4–9).
 Each object holds:
 
 | Field     | Description                                              |

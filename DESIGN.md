@@ -22,7 +22,7 @@ The site uses four separate HTML pages with shared CSS and shared navigation. A 
 
 ```
 index.html      Home — introduction and entry points
-learn.html      Learn — 12 lifecycle phase cards
+learn.html      Learn — 13 lifecycle phase cards (Clauses 4–9)
 quiz.html       Quiz — 15-question timed assessment
 contact.html    Contact — feedback form
 ```
@@ -46,7 +46,7 @@ Page-specific JavaScript:
 
 **Layout:**
 - Sticky header with logo and navigation links
-- Hero section: headline, subtitle, two CTA buttons, three stat cards (12 process areas / 3 safety classes / 15 questions)
+- Hero section: headline, subtitle, two CTA buttons, three stat cards (13 process areas / 3 safety classes / 15 questions)
 - Three info cards below: What is IEC 62304 / Who needs it / How to use the course
 - Footer with standard citation
 
@@ -58,19 +58,20 @@ Page-specific JavaScript:
 
 ### Learn (learn.html)
 
-**Purpose:** Present the 12 IEC 62304 process areas as expandable cards, with filtering by safety class and a progress tracker.
+**Purpose:** Present all 13 IEC 62304 process areas (Clauses 4–9) as expandable cards, with a training level toggle, safety class filter, and a progress tracker.
 
 **Layout:**
 - Page header with description
-- Controls bar: progress tracker (left) + filter buttons (right)
+- Controls bar: progress tracker (left) + level toggle + filter buttons (right)
 - Responsive card grid (auto-fill, minimum 320px per card)
 
 **Interactive features:**
-1. **Expand/collapse cards** — clicking the card header reveals the detailed requirements list. Implemented with event delegation on the grid container (one listener, not 12).
-2. **Safety class filter** — buttons filter the visible cards by Class A, B, or C. Class C requires all 12 process areas; Class A requires only a subset. Implemented with `classList.toggle('hidden')`.
-3. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
+1. **Expand/collapse cards** — clicking the card header reveals the detailed requirements list. Implemented with event delegation on the grid container (one listener, not 13).
+2. **Introductory / Advanced level toggle** — switches all card detail bullets between an overview level and clause-referenced, audit-context content. Level changes update bullet content in place (without rebuilding the card DOM) so expanded state and studied progress are preserved. The chosen level is persisted in `localStorage` so it survives page reloads and is available to the quiz page when printing the certificate.
+3. **Safety class filter** — buttons filter the visible cards by Class A, B, or C. Class C requires all 13 process areas; Class A requires only a subset. Implemented with `classList.toggle('hidden')`.
+4. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
 
-**Data model:** All 12 phases are defined as an array of objects in `learn.js`. Each object holds the clause number, title, icon, summary, detail points, and an array of applicable safety classes (`['A','B','C']`, `['B','C']`, or `['C']`). The DOM is built entirely from this array using `createElement` and `innerHTML`.
+**Data model:** All 13 phases are defined as an array of objects in `learn.js`. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`['A','B','C']`, `['B','C']`, or `['C']`). The DOM is built entirely from this array using `createElement` and `innerHTML`.
 
 ---
 
@@ -90,7 +91,7 @@ Page-specific JavaScript:
 
 **Data model:** 15 questions defined as an array of objects in `quiz.js`. Each object holds the question string, four option strings, the index of the correct answer, and an explanation. The array is shuffled with a Fisher-Yates shuffle on each new quiz attempt so questions appear in a different order every time.
 
-**Pass mark:** 70% (11 of 15 correct).
+**Pass mark:** 80% (12 of 15 correct). Passing earns a certificate that is populated with the participant's name, score, date, and the training level (Introductory or Advanced) read from `localStorage`.
 
 ---
 
@@ -151,7 +152,9 @@ Three breakpoints:
 Each page script is self-contained. There is no shared global state between pages. Functions are scoped by file. Event listeners are attached inside `DOMContentLoaded` callbacks so the DOM is always ready before manipulation begins.
 
 Key patterns used:
-- **Event delegation** (`learn.js`) — one `click` listener on the card grid handles expand, collapse, and mark-as-studied for all 12 cards
+- **Event delegation** (`learn.js`) — one `click` listener on the card grid handles expand, collapse, and mark-as-studied for all 13 cards
+- **In-place DOM update** (`learn.js`) — the level toggle replaces only the `<li>` bullet elements inside each card's existing `<ul>`, rather than rebuilding the whole grid, so expanded/collapsed state and studied progress are preserved across level changes
+- **`localStorage` for cross-page state** (`learn.js` / `quiz.js`) — the training level chosen on the Learn page is saved to `localStorage` so the Quiz page can read it when printing the certificate; the two pages share no JavaScript and communicate only through this browser storage key
 - **State object** (`quiz.js`) — all quiz state (current index, score, timer ID, time remaining) is held in one `quizState` object, making it easy to reset cleanly
 - **Validator functions** (`contact.js`) — each field has its own pure validation function that takes a string and returns an error message or an empty string. This keeps validation logic separate from DOM interaction
 

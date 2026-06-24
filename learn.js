@@ -565,4 +565,25 @@ document.addEventListener('DOMContentLoaded', function () {
       setLevel(btn.dataset.level);
     });
   });
+
+  // ---------- UPDATE BANNER ----------
+  // The banner starts hidden in the HTML (class="update-banner hidden").
+  // We reveal it here unless the user has already dismissed it this session.
+  // localStorage persists the dismissal across page reloads so it doesn't
+  // reappear every time the user returns to the Learn page.
+  const banner = document.getElementById('update-banner');
+  const bannerClose = document.getElementById('update-banner-close');
+
+  if (banner) {
+    if (localStorage.getItem('62304_bannerDismissed') !== 'true') {
+      // Remove the 'hidden' class to reveal the banner.
+      banner.classList.remove('hidden');
+    }
+    if (bannerClose) {
+      bannerClose.addEventListener('click', function () {
+        banner.classList.add('hidden');
+        localStorage.setItem('62304_bannerDismissed', 'true');
+      });
+    }
+  }
 });

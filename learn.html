@@ -28,6 +28,25 @@
   </header>
 
   <main id="main-content">
+
+    <!-- Edition 2 update banner — hidden by default, shown by learn.js unless dismissed -->
+    <div class="update-banner hidden" id="update-banner" role="note" aria-label="IEC 62304 standard update notice">
+      <div class="container update-banner-inner">
+        <div class="update-banner-content">
+          <strong class="update-banner-heading">&#9888;&#xFE0E; IEC 62304 Edition 2 is under active development</strong>
+          <p class="update-banner-intro">The changes below are proposed — not yet confirmed. This training reflects the current published standard: IEC 62304:2006+AMD1:2015.</p>
+          <ul class="update-banner-list">
+            <li><strong>Expanded scope:</strong> The standard is proposed to cover <em>health software</em> broadly, not just medical device software. This aligns with IEC 82304-1, which applies at product/validation level — a standard more widely applicable than many practitioners realise.</li>
+            <li><strong>Simplified classification:</strong> The three safety classes (A, B, C) are proposed to be replaced by two <em>Software Process Rigor Levels</em> — Level I (software that cannot contribute to a hazardous situation) and Level II (all other software).</li>
+            <li><strong>QMS and risk management references softened:</strong> Explicit normative references to ISO 13485 and ISO 14971 are proposed to become general requirements to follow the applicable product-level standard, with ISO 13485 / ISO 14971 referenced in notes only.</li>
+            <li><strong>Legacy software:</strong> The legacy software provisions are proposed to move from normative requirements to an informative annex.</li>
+          </ul>
+          <a class="update-banner-link" href="https://www.iec.ch/dyn/www/f?p=103:23:::::FSP_ORG_ID,FSP_LANG_ID:1245,25" target="_blank" rel="noopener noreferrer">Follow progress at IEC TC62 &#8599;</a>
+        </div>
+        <button class="update-banner-close" id="update-banner-close" aria-label="Dismiss this notice">&#10005;</button>
+      </div>
+    </div>
+
     <div class="container">
 
       <div class="page-header">

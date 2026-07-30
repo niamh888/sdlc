@@ -7,7 +7,13 @@
 :root {
   --primary:        #1a3a5c;
   --primary-light:  #2e5b8a;
-  --accent:         #2980b9;
+  /* Darkened from #2980b9 to meet WCAG 2.1 AA contrast (4.5:1 for normal text).
+     The old value reached only 4.30:1 as link text on white and 3.85:1 on the
+     pale blue hero tag, and white button text on it was also 4.30:1 — all just
+     short of the threshold. This value is the darker shade of the same hue
+     already present in the palette family, so the design is unchanged in
+     character while the worst case rises to 4.74:1. */
+  --accent:         #2471a3;
   --accent-light:   #5dade2;
   --success:        #1e8449;
   --success-light:  #27ae60;
@@ -971,7 +977,10 @@ a {
   margin-bottom: 20px;
 }
 
-.results-card h2 {
+/* The results heading is an <h1> because the results screen replaces the start
+   screen entirely — it is the main heading of that view, not a subsection of
+   one. Each of the three quiz screens carries its own h1 for that reason. */
+.results-card h1 {
   font-size: 1.8rem;
   color: var(--primary);
   margin-bottom: 24px;

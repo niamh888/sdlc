@@ -60,7 +60,11 @@
       <div class="learn-controls hidden" id="learn-controls">
         <div class="progress-tracker">
           <span class="progress-label">Study progress: <strong id="progress-count">0</strong> of <strong id="progress-total">0</strong> topics</span>
-          <div class="progress-bar-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <!-- role="progressbar" requires an accessible name, otherwise a screen
+               reader announces only "50%" with no indication of what is at 50%.
+               aria-label supplies it, since the visible "Study progress" text is
+               a sibling rather than a label. -->
+          <div class="progress-bar-container" role="progressbar" aria-label="Study progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="progress-bar" id="progress-bar"></div>
           </div>
         </div>

@@ -71,6 +71,14 @@
 
       <!-- Active question screen -->
       <div id="quiz-active" class="quiz-screen">
+        <!-- The three quiz screens swap by hiding each other, so the start
+             screen's <h1> is invisible while a question is showing, leaving the
+             page with no level-one heading. Each screen therefore needs its own.
+             This one is visually hidden because the question itself already
+             dominates the layout — a second visible heading would just add
+             noise for sighted users while screen reader users get the structure
+             they need. -->
+        <h1 class="sr-only">Assessment in progress</h1>
         <div class="quiz-header">
           <div class="quiz-progress-info">
             <span id="question-counter">Question 1 of 15</span>
@@ -105,7 +113,7 @@
       <div id="quiz-results" class="quiz-screen">
         <div class="results-card">
           <div class="results-icon" id="results-icon"></div>
-          <h2 id="results-heading"></h2>
+          <h1 id="results-heading"></h1>
           <div class="results-score">
             <span class="score-number" id="score-display"></span>
             <!-- Updated by quiz.js to match the number of questions loaded. -->

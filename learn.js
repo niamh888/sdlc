@@ -342,6 +342,12 @@ function deliverablesFor(cls) {
         ref: sc.ref,
         requirement: sc.title,
         output: sc.output || '',
+        // The standard's own cross-reference to another standard, where it has
+        // one. Only 4.1 and 4.2 carry this: both are satisfied outside 62304
+        // (ISO 13485 or an equivalent QMS, and ISO 14971), so a bare "no
+        // artefact named" would read as a gap when the requirement is in fact
+        // met somewhere specific.
+        seeAlso: sc.seeAlso || '',
         classes: sc.classes.join('/'),
         note: sc.note || ''
       });
@@ -392,10 +398,25 @@ function renderDeliverables(classFilter) {
                 '</tr></thead><tbody>';
     }
 
-    const output = r.output
-      ? r.output
-      : '<span class="dl-none">No documented artefact named by the standard &mdash; ' +
-        'an activity you must perform, and decide for yourself what evidence to keep</span>';
+    // A row with no output but a cross-reference is NOT the same as a row with
+    // neither. 4.1 and 4.2 name no 62304 artefact because the requirement is
+    // met in another standard, so they get the pointer instead of the
+    // "decide for yourself" wording, which would be actively misleading here.
+    let output;
+    if (r.output) {
+      output = r.output;
+    } else if (r.seeAlso) {
+      output = '<span class="dl-none">No artefact named by <em>this</em> standard &mdash; ' +
+               'satisfied under the standard referenced below</span>';
+    } else {
+      output = '<span class="dl-none">No documented artefact named by the standard &mdash; ' +
+               'an activity you must perform, and decide for yourself what evidence to keep</span>';
+    }
+
+    if (r.seeAlso) {
+      output += '<p class="dl-seealso"><span class="dl-seealso-label">In IEC 62304 &sect;' +
+                r.ref + ':</span> ' + r.seeAlso + '</p>';
+    }
 
     html += '<tr' + (r.output ? '' : ' class="dl-row-activity"') + '>' +
               '<th scope="row" class="dl-ref">' + r.ref + '</th>' +
@@ -442,6 +463,7 @@ function csvCell(value) {
 function deliverablesCsv(cls) {
   const header = ['Clause', 'Process area', 'Ref', 'Requirement',
                   'What the standard requires you to produce',
+                  'Where the standard says this is satisfied',
                   'Applies to classes', 'Notes'];
 
   const lines = [header.map(csvCell).join(',')];
@@ -452,7 +474,10 @@ function deliverablesCsv(cls) {
       r.area,
       r.ref,
       r.requirement,
-      r.output || 'No documented artefact named by the standard',
+      r.output || (r.seeAlso
+        ? 'No artefact named by this standard - satisfied under the standard referenced in the next column'
+        : 'No documented artefact named by the standard'),
+      r.seeAlso,
       r.classes,
       r.note
     ].map(csvCell).join(','));

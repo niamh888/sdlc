@@ -612,6 +612,28 @@ a {
   font-style: italic;
 }
 
+/* Where the standard points outside itself — 4.1 to a quality management system,
+   4.2 to ISO 14971. Set apart from the cell above it so it reads as a citation
+   rather than as part of the requirement, but kept in the same cell so it travels
+   with the row when the table wraps on a narrow screen. */
+.dl-seealso {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.8rem;
+  font-style: normal;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.dl-seealso-label {
+  font-weight: 600;
+  /* 4.89:1 against --bg, so it clears AA for normal-size text. */
+  color: var(--accent);
+}
+
 .dl-footnote {
   margin-top: 22px;
   padding: 14px 16px;
@@ -674,6 +696,21 @@ a {
 
   .dl-clause {
     page-break-after: avoid;
+  }
+
+  /* The cross-reference has to survive printing: on paper the 4.1 and 4.2 rows
+     are the two a reader is most likely to query, and the pointer is the answer.
+     Border and background are kept as a thin rule only — filled panels waste
+     toner and print as grey mud. */
+  .dl-seealso {
+    background: none;
+    border-left: 2px solid #000;
+    padding: 4px 0 4px 8px;
+    color: #000;
+  }
+
+  .dl-seealso-label {
+    color: #000;
   }
 }
 

@@ -10,19 +10,22 @@
     "Clause 4 carries no per-requirement [Class ...] tags; the standard's note says the tags appear in the clauses and subclauses that FOLLOW Clause 4. Table A.1 gives Clause 4 as all classes.",
     "Amendment 1 changed applicability in several places that a reader working from a 2006 copy would get wrong: 5.7 (all requirements) moved from B,C to A,B,C; 6.2.3 moved from B,C to A,B,C, making Clause 6 uniformly all-classes; and 5.8.1, 5.8.2, 5.8.7 and 5.8.8 moved from B,C to A,B,C. 5.1.12 is new in Amendment 1 at B,C.",
     "An empty classes array means the sub-clause was removed by Amendment 1 and carries no requirement.",
-    "The `output` field on a sub-clause records what the standard itself says must be documented, produced or retained, in its own terms. It is deliberately NOT a document name: IEC 62304 states it does not prescribe the name, format or content of documentation, so names like \"Software Requirements Specification\" are convention rather than requirement. Sub-clauses with no `output` are activities the standard does not attach a documented artefact to; that absence is shown in the UI rather than filled in with an invented deliverable."
+    "The `output` field on a sub-clause records what the standard itself says must be documented, produced or retained, in its own terms. It is deliberately NOT a document name: IEC 62304 states it does not prescribe the name, format or content of documentation, so names like \"Software Requirements Specification\" are convention rather than requirement. Sub-clauses with no `output` are activities the standard does not attach a documented artefact to; that absence is shown in the UI rather than filled in with an invented deliverable.",
+    "The optional `seeAlso` field carries the standard's OWN cross-reference to another standard, for the sub-clauses that satisfy themselves elsewhere - 4.1 (quality management system) and 4.2 (risk management). It exists so a row with no `output` still tells the reader where the requirement is actually met, instead of just reading as a gap. It must only ever restate what 62304 says, and the two rows differ in kind. 4.1 NOTE 1 offers three routes - ISO 13485, a national QMS standard, or a QMS required by national regulation - but does NOT offer ISO 9001; ISO 9001 appears only as the parent of ISO/IEC 90003 in NOTE 2, which is guidance rather than a compliance route. 4.2 is the opposite: the normative text says the manufacturer shall apply a risk management process complying with ISO 14971, naming one standard with no alternative and no equivalent. Do not add a non-medical-device alternative to either: this standard applies to medical device software only, so it contains no such branch to cite."
   ],
   "clauses": {
     "general-requirements": [
       {
         "ref": "4.1",
         "title": "Quality management system",
-        "classes": ["A", "B", "C"]
+        "classes": ["A", "B", "C"],
+        "seeAlso": "The requirement is to demonstrate the ability to consistently meet customer and applicable regulatory requirements. NOTE 1 says this can be demonstrated by a quality management system complying with ISO 13485, a national quality management system standard, or a quality management system required by national regulation. NOTE 2 points to ISO/IEC 90003 for guidance on applying quality management requirements to software - Annex B.2 calls that guidance highly recommended but not required by this standard. Annex D.2 adds that the QMS does not have to be certified."
       },
       {
         "ref": "4.2",
         "title": "Risk management",
-        "classes": ["A", "B", "C"]
+        "classes": ["A", "B", "C"],
+        "seeAlso": "The requirement is that the manufacturer shall apply a risk management process complying with ISO 14971. Note the difference from 4.1: ISO 14971 is named in the normative text as the single route, with no alternative and no equivalent offered, whereas 4.1 offers three ways to satisfy the quality management system requirement. The risk management file and its contents are specified by ISO 14971, not by this standard; Clause 7 adds the software-specific risk management requirements that feed it."
       },
       {
         "ref": "4.3",

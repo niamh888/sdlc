@@ -685,10 +685,56 @@ def test_deliverables(browser, base):
     R.check('requirements with no artefact are listed and marked (%d)' % len(no_output_c),
             pg.locator('tr.dl-row-activity').count() == len(no_output_c),
             pg.locator('tr.dl-row-activity').count())
-    R.check('those rows explain the absence rather than inventing a deliverable',
-            'no documented artefact named by the standard'
-            in norm(pg.locator('tr.dl-row-activity').first.inner_text()),
-            pg.locator('tr.dl-row-activity').first.inner_text()[:90])
+
+    # Two DIFFERENT reasons a row can name no artefact, and the page must not
+    # conflate them. A row with a cross-reference (4.1, 4.2) is satisfied in
+    # another standard; a row without one leaves the evidence to the manufacturer.
+    # Telling a reader to "decide for yourself" about ISO 14971 compliance would
+    # be worse than saying nothing, so pick a row that genuinely has neither.
+    plain_ref = [sc['ref'] for sc in expected_c
+                 if not sc.get('output') and not sc.get('seeAlso')][0]
+    plain_row = pg.locator('tr.dl-row-activity', has=pg.locator(
+        'th.dl-ref:text-is("%s")' % plain_ref)).first
+    R.check('a row with neither artefact nor cross-reference explains the absence (%s)'
+            % plain_ref,
+            'decide for yourself what evidence to keep' in norm(plain_row.inner_text()),
+            plain_row.inner_text()[:120])
+
+    # ---- The standard's own cross-references (4.1 QMS, 4.2 risk management) ----
+    cross = [sc for sc in expected_c if sc.get('seeAlso')]
+    R.check('the data carries cross-references for 4.1 and 4.2',
+            sorted(sc['ref'] for sc in cross) == ['4.1', '4.2'],
+            [sc['ref'] for sc in cross])
+    R.check('every cross-reference is rendered (%d)' % len(cross),
+            pg.locator('.dl-seealso').count() == len(cross),
+            pg.locator('.dl-seealso').count())
+
+    qms = norm(pg.locator('tr', has=pg.locator('th.dl-ref:text-is("4.1")'))
+               .first.inner_text())
+    R.check('4.1 points to ISO 13485 as a route to the QMS requirement',
+            'iso 13485' in qms, qms[:200])
+    R.check('4.1 also gives the national-standard and national-regulation routes',
+            'national quality management system standard' in qms
+            and 'required by national regulation' in qms, qms[:400])
+    # ISO 9001 is NOT a route offered by 4.1 — it appears only as the parent of
+    # ISO/IEC 90003, which NOTE 2 gives as guidance. Presenting it as an
+    # alternative to ISO 13485 would state something the standard does not.
+    R.check('4.1 does NOT present ISO 9001 as an alternative route',
+            'iso 9001' not in qms, qms[:400])
+    R.check('4.1 cites ISO/IEC 90003 as guidance rather than a requirement',
+            'iso/iec 90003' in qms and 'not required' in qms, qms[:400])
+
+    rm = norm(pg.locator('tr', has=pg.locator('th.dl-ref:text-is("4.2")'))
+              .first.inner_text())
+    R.check('4.2 points to ISO 14971', 'iso 14971' in rm, rm[:200])
+    # 4.2 differs from 4.1 in kind: the normative text names one standard with no
+    # alternative. The row has to say so, or a reader will assume an equivalent
+    # is acceptable the way it is under 4.1.
+    R.check('4.2 states ISO 14971 is the single route, with no equivalent offered',
+            'no alternative' in rm and 'no equivalent' in rm, rm[:400])
+    R.check('the data file records why no non-medical alternative is offered',
+            'medical device software only' in ' '.join(raw.get('_notes', [])),
+            [n for n in raw.get('_notes', []) if 'seeAlso' in n][:1])
 
     # The footnote carries the caveat that matters most.
     foot = norm(pg.locator('.dl-footnote').inner_text())
@@ -734,10 +780,24 @@ def test_deliverables(browser, base):
     R.check('one CSV row per applicable requirement plus a header (%d)'
             % (len(expected_b) + 1),
             len(rows) == len(expected_b) + 1, len(rows))
-    R.check('header names all seven columns', len(rows[0]) == 7, rows[0])
-    R.check('every row has seven fields',
-            all(len(r) == 7 for r in rows),
-            [len(r) for r in rows if len(r) != 7])
+    R.check('header names all eight columns', len(rows[0]) == 8, rows[0])
+    R.check('every row has eight fields',
+            all(len(r) == 8 for r in rows),
+            [len(r) for r in rows if len(r) != 8])
+
+    # The cross-reference column: exported too, since the CSV is what someone
+    # actually works from when building a gap analysis.
+    by_ref = {r[2]: r for r in rows[1:]}
+    R.check('CSV carries a "where this is satisfied" column',
+            'satisfied' in rows[0][5].lower(), rows[0][5])
+    R.check('CSV 4.1 row cites ISO 13485 and not ISO 9001',
+            'ISO 13485' in by_ref['4.1'][5] and 'ISO 9001' not in by_ref['4.1'][5],
+            by_ref['4.1'][5][:160])
+    R.check('CSV 4.2 row cites ISO 14971', 'ISO 14971' in by_ref['4.2'][5],
+            by_ref['4.2'][5][:160])
+    R.check('cross-referenced rows are not labelled "decide for yourself"',
+            all('decide for yourself' not in by_ref[r][4] for r in ('4.1', '4.2')),
+            by_ref['4.1'][4][:120])
 
     # ESCAPING. Plenty of the output descriptions contain commas; if quoting were
     # wrong the parse above would have produced ragged rows, so this asserts the

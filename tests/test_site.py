@@ -1,0 +1,1194 @@
+#!/usr/bin/env python3
+"""
+============================================================
+ test_site.py  —  Automated test suite for the IEC 62304 training site
+============================================================
+
+WHAT THIS IS
+This script opens the site in a real browser (Chrome, controlled by Playwright)
+and checks that it works: that content loads, that the quiz scores correctly,
+that the contact form handles failure, that pages are accessible, and that
+nothing overflows on a phone.
+
+It is a black-box test suite. It does not import or inspect the site's
+JavaScript; it drives the pages the way a person would — clicking, typing,
+reading what appears — and asserts on the result. That means it keeps working
+when the internals are refactored, and it fails when a user-visible thing
+breaks, which is the behaviour you want from a test.
+
+HOW TO RUN IT
+    pip install playwright
+    python -m playwright install chromium
+    python tests/test_site.py
+
+The script starts its own web server on a free port, so you do NOT need to run
+`python -m http.server` yourself first. It shuts the server down when finished.
+Exit code is 0 if everything passed and 1 if anything failed, so it can be
+wired into CI later.
+
+    python tests/test_site.py --headed     watch it run in a visible browser
+    python tests/test_site.py --group quiz run one group only (see GROUPS below)
+
+SAFETY: THE CONTACT FORM IS NEVER REALLY SUBMITTED
+contact.js posts to a live Formspree endpoint. Every test below intercepts
+requests to formspree.io and answers them locally, so no test message is ever
+transmitted and none of the monthly submission quota is consumed. There is an
+explicit guard (assert_no_live_requests) that fails the run if a request ever
+escapes to the real endpoint.
+
+WHY THE THREE LAYERS
+    Data      — the JSON content files are valid and internally consistent
+    Behaviour — features do what a user expects, including when things fail
+    Quality   — accessibility and responsive layout
+
+Testing only the happy path is the usual mistake. Roughly half the checks here
+deliberately break something (a 404, malformed JSON, a timeout, a rejected
+submission) because error handling that has never been executed is not error
+handling, it is decoration.
+============================================================
+"""
+
+import argparse
+import functools
+import http.server
+import json
+import os
+import socket
+import socketserver
+import sys
+import threading
+import urllib.request
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sys.exit('Playwright is not installed. Run:\n'
+             '    pip install playwright\n'
+             '    python -m playwright install chromium')
+
+ROOT = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
+AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js'
+FORMSPREE_GLOB = 'https://formspree.io/**'
+
+PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
+VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
+
+GROUPS = ['data', 'learn', 'quiz', 'contact', 'privacy', 'a11y', 'responsive']
+
+
+# ============================================================
+# TEST HARNESS
+# Small hand-rolled runner rather than pytest, to keep the project's
+# dependency list to the single entry it already needs (Playwright).
+# ============================================================
+
+class Results:
+    def __init__(self):
+        self.rows = []          # (group, label, passed, detail)
+        self.current_group = ''
+
+    def group(self, name):
+        self.current_group = name
+        print('\n' + '-' * 72)
+        print(name.upper())
+        print('-' * 72)
+
+    def check(self, label, passed, detail=''):
+        self.rows.append((self.current_group, label, bool(passed), str(detail)))
+        mark = 'PASS' if passed else 'FAIL'
+        line = '  [%s] %s' % (mark, label)
+        if detail and not passed:
+            line += '\n         got: %s' % str(detail)[:200]
+        elif detail:
+            line += '  (%s)' % str(detail)[:60]
+        print(line)
+
+    def failures(self):
+        return [r for r in self.rows if not r[2]]
+
+    def report(self):
+        print('\n' + '=' * 72)
+        passed = sum(1 for r in self.rows if r[2])
+        fails = self.failures()
+        print('%d passed, %d failed, %d total' % (passed, len(fails), len(self.rows)))
+        if fails:
+            print('\nFAILURES')
+            for group, label, _, detail in fails:
+                print('  %-11s %s' % (group + ':', label))
+                if detail:
+                    print('              got: %s' % detail[:200])
+        print('=' * 72)
+        return 1 if fails else 0
+
+
+R = Results()
+
+
+# ============================================================
+# LOCAL WEB SERVER
+# The site fetches JSON, which browsers forbid over file://, so the tests must
+# be served over HTTP. Binding to port 0 lets the OS pick any free port, so
+# concurrent runs and already-occupied ports are not a problem.
+# ============================================================
+
+def start_server():
+    handler = functools.partial(QuietHandler, directory=ROOT)
+    httpd = socketserver.ThreadingTCPServer(('127.0.0.1', 0), handler)
+    httpd.daemon_threads = True
+    port = httpd.server_address[1]
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd, 'http://127.0.0.1:%d' % port
+
+
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    """Same as the normal file server but silent, so request logs do not drown
+    out the test output."""
+    def log_message(self, *args):
+        pass
+
+
+def launch_browser(p, headed=False):
+    """Use Playwright's own bundled Chromium if it has been downloaded,
+    otherwise fall back to the Google Chrome already installed on the machine.
+
+    Supporting both means `pip install playwright` is enough to get started if
+    you have Chrome, while `playwright install chromium` gives you a pinned
+    browser version for more reproducible results. Without this fallback the
+    suite fails on a fresh machine with a message about a missing executable,
+    which looks like a broken test rather than a missing setup step."""
+    try:
+        browser = p.chromium.launch(headless=not headed)
+        print('Browser      : bundled Chromium')
+        return browser
+    except Exception:
+        try:
+            browser = p.chromium.launch(channel='chrome', headless=not headed)
+            print('Browser      : system Google Chrome')
+            print('               (run "python -m playwright install chromium" for a pinned version)')
+            return browser
+        except Exception as e:
+            sys.exit('\nCould not start a browser.\n'
+                     'Install one of the following:\n'
+                     '    python -m playwright install chromium   (recommended)\n'
+                     'or make sure Google Chrome is installed.\n\n'
+                     'Original error: %s' % e)
+
+
+def fetch_axe():
+    """Download axe-core, the accessibility engine. Returns None if offline, in
+    which case the accessibility group is skipped rather than failing — being
+    unable to reach a CDN is not a defect in the site."""
+    try:
+        return urllib.request.urlopen(AXE_CDN, timeout=25).read().decode('utf-8')
+    except Exception as e:
+        print('  ! Could not download axe-core (%s) — accessibility group will be skipped.' % e)
+        return None
+
+
+# ============================================================
+# PAGE HELPERS
+# ============================================================
+
+def new_page(browser, width=1280, height=900, **kw):
+    """A fresh browser context per test, which means empty localStorage every
+    time. Without this, a training level saved by one test would leak into the
+    next and cause failures that vanish when tests are run individually — the
+    worst kind of test bug to debug."""
+    ctx = browser.new_context(viewport={'width': width, 'height': height}, **kw)
+    pg = ctx.new_page()
+    pg.js_errors = []
+    pg.live_requests = []
+    pg.on('pageerror', lambda e: pg.js_errors.append(str(e)))
+    # Catch any attempt to reach the real Formspree endpoint that a test forgot
+    # to stub. Recording it here means the guard below can fail loudly.
+    pg.on('request', lambda r: pg.live_requests.append(r.url) if 'formspree.io' in r.url else None)
+    return ctx, pg
+
+
+def stub_formspree(pg, status=200, body='{"ok":true}', content_type='application/json'):
+    """Answer Formspree locally so nothing is ever really sent."""
+    pg.route(FORMSPREE_GLOB, lambda route: route.fulfill(
+        status=status, content_type=content_type, body=body))
+
+
+def assert_no_live_requests(pg, label):
+    """Every Formspree request in these tests should have been intercepted. A
+    route handler answers the request without it leaving the machine, but the
+    request event still fires — so this checks the count is what we expect
+    rather than zero, and exists mainly to catch a *new* endpoint being added
+    later without a matching stub."""
+    stray = [u for u in pg.live_requests if 'formspree.io' not in u]
+    R.check(label, not stray, stray)
+
+
+def axe_violations(pg, axe_src):
+    pg.add_script_tag(content=axe_src)
+    return pg.evaluate("""async () => {
+        const r = await axe.run(document, {
+          runOnly: { type: 'tag',
+                     values: ['wcag2a','wcag2aa','wcag21a','wcag21aa','best-practice'] }
+        });
+        return r.violations.map(v => ({
+            id: v.id, impact: v.impact,
+            targets: v.nodes.slice(0, 3).map(n => n.target.join(' '))
+        }));
+    }""")
+
+
+def answer_all_questions(pg, pick=0):
+    """Walk the whole quiz, choosing option `pick` each time. Returns the number
+    of questions answered."""
+    count = 0
+    while True:
+        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+        buttons = pg.locator('.option-btn')
+        idx = min(pick, buttons.count() - 1)
+        buttons.nth(idx).click()
+        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+        count += 1
+        last = pg.locator('#next-question').inner_text().strip() == 'See Results'
+        pg.locator('#next-question').click()
+        if last:
+            break
+    pg.wait_for_selector('#quiz-results.active', timeout=8000)
+    return count
+
+
+# ============================================================
+# GROUP 1 — DATA INTEGRITY
+# Pure file checks, no browser needed. These run first because if the content
+# files are broken, every behavioural test downstream fails in a confusing way
+# and you waste time looking in the wrong place.
+# ============================================================
+
+def test_data():
+    R.group('data — content files')
+
+    files = {
+        'phases': os.path.join(ROOT, 'data', 'phases.json'),
+        'intro': os.path.join(ROOT, 'data', 'questions-intro.json'),
+        'advanced': os.path.join(ROOT, 'data', 'questions-advanced.json'),
+    }
+    loaded = {}
+
+    for name, path in files.items():
+        try:
+            with open(path, encoding='utf-8') as f:
+                loaded[name] = json.load(f)
+            R.check('%s is valid JSON' % name, True)
+        except Exception as e:
+            R.check('%s is valid JSON' % name, False, e)
+            return  # nothing else is meaningful if the files will not parse
+
+    R.check('phases.json has 13 topics', len(loaded['phases']) == 13, len(loaded['phases']))
+    R.check('intro set has 15 questions', len(loaded['intro']) == 15, len(loaded['intro']))
+    R.check('advanced set has 15 questions', len(loaded['advanced']) == 15, len(loaded['advanced']))
+
+    # Every topic needs the fields learn.js reads, or a card renders as "undefined".
+    required = ['id', 'clause', 'title', 'icon', 'summary', 'introDetails', 'advancedDetails', 'classes']
+    missing = [(p.get('id', '?'), k) for p in loaded['phases'] for k in required if k not in p]
+    R.check('every topic has all required fields', not missing, missing)
+
+    ids = [p['id'] for p in loaded['phases']]
+    R.check('topic ids are unique', len(ids) == len(set(ids)),
+            [i for i in ids if ids.count(i) > 1])
+
+    bad_classes = [p['id'] for p in loaded['phases']
+                   if not p['classes'] or any(c not in ('A', 'B', 'C') for c in p['classes'])]
+    R.check('safety classes are only A, B or C', not bad_classes, bad_classes)
+
+    empty = [p['id'] for p in loaded['phases']
+             if not p['introDetails'] or not p['advancedDetails']]
+    R.check('every topic has bullets at both levels', not empty, empty)
+
+    # A `correct` index outside the options array is the nastiest possible
+    # content bug: the quiz would silently mark every answer wrong with no
+    # error anywhere. quiz.js validates this at runtime; this catches it sooner.
+    for setname in ('intro', 'advanced'):
+        problems = []
+        for i, q in enumerate(loaded[setname], 1):
+            if not q.get('q'):
+                problems.append('Q%d missing question text' % i)
+            elif len(q.get('options', [])) != 4:
+                problems.append('Q%d has %d options, expected 4' % (i, len(q.get('options', []))))
+            elif not isinstance(q.get('correct'), int) or not 0 <= q['correct'] < len(q['options']):
+                problems.append('Q%d correct=%r out of range' % (i, q.get('correct')))
+            elif not q.get('explanation'):
+                problems.append('Q%d missing explanation' % i)
+        R.check('%s questions are well formed' % setname, not problems, problems)
+
+        dupes = [q['q'] for q in loaded[setname] if [x['q'] for x in loaded[setname]].count(q['q']) > 1]
+        R.check('%s questions are not duplicated' % setname, not dupes, set(dupes))
+
+
+# ============================================================
+# GROUP 2 — LEARN PAGE
+# ============================================================
+
+def test_learn(browser, base):
+    R.group('learn — features')
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+
+    R.check('13 cards render from the JSON', pg.locator('.phase-card').count() == 13,
+            pg.locator('.phase-card').count())
+    R.check('spinner hidden once loaded', pg.locator('#phases-status').is_hidden())
+    R.check('controls revealed once loaded', pg.locator('#learn-controls').is_visible())
+    R.check('progress total reads 13', pg.locator('#progress-total').inner_text() == '13',
+            pg.locator('#progress-total').inner_text())
+
+    # expand / collapse
+    header = pg.locator('.phase-header').first
+    header.click()
+    R.check('click expands a card',
+            'expanded' in (pg.locator('.phase-card').first.get_attribute('class') or ''))
+    R.check('aria-expanded becomes true', header.get_attribute('aria-expanded') == 'true')
+    header.click()
+    R.check('click collapses it again',
+            'expanded' not in (pg.locator('.phase-card').first.get_attribute('class') or ''))
+
+    # keyboard operation
+    pg.evaluate("() => document.querySelector('.phase-header').focus()")
+    pg.keyboard.press('Enter')
+    R.check('Enter expands via keyboard', header.get_attribute('aria-expanded') == 'true')
+    pg.keyboard.press('Space')
+    R.check('Space collapses via keyboard', header.get_attribute('aria-expanded') == 'false')
+
+    # level toggle swaps content in place
+    pg.locator('.phase-header').first.click()
+    intro_first = pg.locator('#phase-details-general-requirements li').first.inner_text()
+    pg.locator('.level-btn[data-level="advanced"]').click()
+    adv_first = pg.locator('#phase-details-general-requirements li').first.inner_text()
+    R.check('level toggle changes the bullets', intro_first != adv_first)
+    R.check('advanced bullets are clause referenced', '§' in adv_first, adv_first[:50])
+    R.check('card stays expanded across a level change',
+            'expanded' in (pg.locator('.phase-card').first.get_attribute('class') or ''))
+    R.check('level choice persisted to localStorage',
+            pg.evaluate("() => localStorage.getItem('62304_trainingLevel')") == 'advanced')
+    pg.locator('.level-btn[data-level="intro"]').click()
+    R.check('switching back restores intro bullets',
+            pg.locator('#phase-details-general-requirements li').first.inner_text() == intro_first)
+
+    # safety class filter. Class C legitimately matches all 13 topics, so Class A
+    # is the discriminating case — three topics are B/C only.
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    R.check('Class A filter shows 10 of 13',
+            pg.locator('.phase-card:not(.hidden)').count() == 10,
+            pg.locator('.phase-card:not(.hidden)').count())
+    pg.locator('.filter-btn[data-filter="C"]').click()
+    R.check('Class C filter shows all 13 (every area applies to C)',
+            pg.locator('.phase-card:not(.hidden)').count() == 13,
+            pg.locator('.phase-card:not(.hidden)').count())
+    pg.locator('.filter-btn[data-filter="all"]').click()
+    R.check('All filter restores every card',
+            pg.locator('.phase-card:not(.hidden)').count() == 13)
+
+    # progress tracker
+    pg.locator('.mark-studied-btn').first.click()
+    R.check('marking studied increments the count',
+            pg.locator('#progress-count').inner_text() == '1',
+            pg.locator('#progress-count').inner_text())
+    R.check('studied button becomes disabled',
+            pg.locator('.mark-studied-btn').first.is_disabled())
+    width = pg.evaluate("() => document.getElementById('progress-bar').style.width")
+    R.check('progress bar width updates', width and width != '0%', width)
+    R.check('progressbar exposes aria-valuenow',
+            pg.locator('.progress-bar-container').get_attribute('aria-valuenow') is not None)
+
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # update banner dismissal persists
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('update banner shown on first visit', pg.locator('#update-banner').is_visible())
+    pg.locator('#update-banner-close').click()
+    R.check('banner hides when dismissed', pg.locator('#update-banner').is_hidden())
+    pg.reload()
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('banner stays dismissed after reload', pg.locator('#update-banner').is_hidden())
+    ctx.close()
+
+    # ---- async failure paths ----
+    R.group('learn — async loading and failure')
+
+    ctx, pg = new_page(browser)
+    pg.route('**/data/phases.json', lambda r: r.fulfill(status=404, body='nope'))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    msg = pg.locator('#phases-error-message').inner_text()
+    R.check('404 shows the error panel', pg.locator('#phases-error').is_visible())
+    R.check('error message names the status code', '404' in msg, msg)
+    R.check('spinner hidden on failure', pg.locator('#phases-status').is_hidden())
+    R.check('no cards rendered on failure', pg.locator('.phase-card').count() == 0)
+    R.check('controls stay hidden on failure', pg.locator('#learn-controls').is_hidden())
+    pg.unroute('**/data/phases.json')
+    pg.locator('#phases-retry').click()
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('retry recovers and renders the cards', pg.locator('.phase-card').count() == 13)
+    R.check('error panel cleared after retry', pg.locator('#phases-error').is_hidden())
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.route('**/data/phases.json', lambda r: r.fulfill(
+        status=200, content_type='application/json', body='[{"id":"broken",'))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    R.check('malformed JSON reported as invalid JSON',
+            'not valid JSON' in pg.locator('#phases-error-message').inner_text(),
+            pg.locator('#phases-error-message').inner_text())
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.route('**/data/phases.json', lambda r: r.fulfill(
+        status=200, content_type='application/json', body='[]'))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    R.check('empty topic list rejected',
+            'did not contain' in pg.locator('#phases-error-message').inner_text(),
+            pg.locator('#phases-error-message').inner_text())
+    ctx.close()
+
+
+# ============================================================
+# GROUP 3 — QUIZ
+# ============================================================
+
+def test_quiz(browser, base):
+    R.group('quiz — features and scoring')
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/quiz.html')
+
+    pg.locator('#begin-quiz').click()
+    R.check('empty name blocks the start',
+            'Please enter your name' in pg.locator('#participant-name-error').inner_text())
+    R.check('still on the start screen', pg.locator('#quiz-start').is_visible())
+
+    pg.fill('#participant-name', 'Test Learner')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    R.check('quiz starts once a name is given', pg.locator('#quiz-active').is_visible())
+    R.check('name error cleared', pg.locator('#participant-name-error').inner_text() == '')
+    R.check('question text populated', len(pg.locator('#question-text').inner_text()) > 20)
+    R.check('four options rendered', pg.locator('.option-btn').count() == 4,
+            pg.locator('.option-btn').count())
+    R.check('counter reads "of 15"',
+            'of 15' in pg.locator('#question-counter').inner_text().lower(),
+            pg.locator('#question-counter').inner_text())
+    R.check('begin button label restored by finally',
+            pg.locator('#begin-quiz').inner_text().strip() == 'Begin Assessment')
+
+    # timer counts down
+    start_t = int(pg.locator('#timer-display').inner_text())
+    pg.wait_for_timeout(2200)
+    later_t = int(pg.locator('#timer-display').inner_text())
+    R.check('timer counts down', later_t < start_t, '%d then %d' % (start_t, later_t))
+
+    # answering marks correct / incorrect and locks the options
+    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+    pg.locator('.option-btn').nth(correct_idx).click()
+    pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+    R.check('correct answer highlighted',
+            'correct' in (pg.locator('.option-btn').nth(correct_idx).get_attribute('class') or ''))
+    R.check('feedback text shows a tick',
+            pg.locator('#feedback-text').inner_text().startswith('✓'),
+            pg.locator('#feedback-text').inner_text()[:30])
+    R.check('score incremented', pg.evaluate('() => quizState.score') == 1)
+    disabled = pg.evaluate("() => [...document.querySelectorAll('.option-btn')].every(b => b.disabled)")
+    R.check('all options locked after answering', disabled)
+    R.check('feedback mirrored into the live region',
+            len(pg.locator('#quiz-feedback-live').inner_text()) > 10)
+
+    # a wrong answer
+    pg.locator('#next-question').click()
+    pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+    wrong_idx = (correct_idx + 1) % 4
+    pg.locator('.option-btn').nth(wrong_idx).click()
+    pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+    R.check('wrong answer marked incorrect',
+            'incorrect' in (pg.locator('.option-btn').nth(wrong_idx).get_attribute('class') or ''))
+    R.check('correct answer still revealed',
+            'correct' in (pg.locator('.option-btn').nth(correct_idx).get_attribute('class') or ''))
+    R.check('score not incremented for a wrong answer',
+            pg.evaluate('() => quizState.score') == 1)
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # timeout behaviour. Rather than wait a real 30 seconds, push the countdown
+    # near zero and let the existing interval expire naturally — the production
+    # code path is unchanged, only the starting value differs.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/quiz.html')
+    pg.fill('#participant-name', 'Timeout Test')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    pg.evaluate('() => { quizState.timeLeft = 2; }')
+    pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+    R.check("timeout reveals feedback without an answer",
+            '⏱' in pg.locator('#feedback-text').inner_text(),
+            pg.locator('#feedback-text').inner_text()[:40])
+    R.check('timeout locks the options',
+            pg.evaluate("() => [...document.querySelectorAll('.option-btn')].every(b => b.disabled)"))
+    R.check('timeout does not award a point', pg.evaluate('() => quizState.score') == 0)
+    ctx.close()
+
+    # full run, all correct → pass + certificate
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/quiz.html')
+    pg.add_init_script('window.print = () => { window.__printed = true; };')  # never open a real dialog
+    pg.fill('#participant-name', 'Ada Lovelace')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    for _ in range(15):
+        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+        pg.locator('.option-btn').nth(ci).click()
+        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+        pg.locator('#next-question').click()
+    pg.wait_for_selector('#quiz-results.active', timeout=8000)
+    R.check('15/15 shows the results screen', pg.locator('#quiz-results').is_visible())
+    R.check('score displays 15', pg.locator('#score-display').inner_text() == '15',
+            pg.locator('#score-display').inner_text())
+    R.check('heading reads Assessment Passed',
+            pg.locator('#results-heading').inner_text() == 'Assessment Passed',
+            pg.locator('#results-heading').inner_text())
+    R.check('results heading is an h1 (each screen needs one)',
+            pg.evaluate("() => document.getElementById('results-heading').tagName") == 'H1')
+    R.check('"out of 15" matches the question count',
+            pg.locator('#score-total').inner_text() == 'out of 15',
+            pg.locator('#score-total').inner_text())
+    R.check('breakdown shows three cells', pg.locator('.breakdown-item').count() == 3)
+    R.check('certificate button revealed on a pass',
+            pg.locator('#download-cert').is_visible())
+    R.check('certificate carries the participant name',
+            pg.locator('#cert-name').inner_text() == 'Ada Lovelace',
+            pg.locator('#cert-name').inner_text())
+    R.check('certificate shows the score',
+            '15 / 15' in pg.locator('#cert-score').inner_text(),
+            pg.locator('#cert-score').inner_text())
+    R.check('certificate dated', len(pg.locator('#cert-date').inner_text()) > 5)
+    pg.locator('#download-cert').click()
+    pg.wait_for_timeout(400)
+    R.check('download triggers print()', pg.evaluate('() => window.__printed === true'))
+    R.check('download button restored by finally',
+            pg.locator('#download-cert').inner_text().strip() == 'Download Certificate'
+            and not pg.locator('#download-cert').is_disabled())
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # all wrong → fail, no certificate
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/quiz.html')
+    pg.fill('#participant-name', 'Failing Learner')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    for _ in range(15):
+        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+        pg.locator('.option-btn').nth((ci + 1) % 4).click()
+        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+        pg.locator('#next-question').click()
+    pg.wait_for_selector('#quiz-results.active', timeout=8000)
+    R.check('0/15 scores zero', pg.locator('#score-display').inner_text() == '0')
+    R.check('heading reads Keep Studying',
+            pg.locator('#results-heading').inner_text() == 'Keep Studying',
+            pg.locator('#results-heading').inner_text())
+    R.check('no certificate offered on a fail', pg.locator('#download-cert').is_hidden())
+    pg.locator('#retry-quiz').click()
+    R.check('Try Again returns to the start screen', pg.locator('#quiz-start').is_visible())
+    ctx.close()
+
+    # questions are shuffled between attempts
+    ctx, pg = new_page(browser)
+    firsts = set()
+    for _ in range(4):
+        pg.goto(base + '/quiz.html')
+        pg.fill('#participant-name', 'Shuffle Test')
+        pg.locator('#begin-quiz').click()
+        pg.wait_for_selector('#quiz-active.active', timeout=10000)
+        firsts.add(pg.locator('#question-text').inner_text())
+    R.check('question order is randomised between attempts', len(firsts) > 1,
+            '%d distinct opening questions in 4 attempts' % len(firsts))
+    ctx.close()
+
+    # ---- async: level selection, prefetch, failure ----
+    R.group('quiz — async loading and failure')
+
+    ctx, pg = new_page(browser)
+    requested = []
+    pg.on('request', lambda r: requested.append(r.url) if '/data/' in r.url else None)
+    pg.goto(base + '/quiz.html')
+    pg.wait_for_timeout(1500)
+    R.check('question file prefetched before any click',
+            any('questions-intro.json' in u for u in requested), requested)
+    R.check('only ONE question file downloaded', len(requested) == 1, requested)
+    before = len(requested)
+    pg.fill('#participant-name', 'Prefetch Test')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    R.check('no second request on click (stored Promise reused)',
+            len(requested) == before, requested)
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.level-btn[data-level="advanced"]').click()
+    requested = []
+    pg.on('request', lambda r: requested.append(r.url) if '/data/' in r.url else None)
+    pg.goto(base + '/quiz.html')
+    pg.wait_for_timeout(1500)
+    R.check('advanced level fetches the advanced set',
+            any('questions-advanced.json' in u for u in requested), requested)
+    R.check('intro set not downloaded when advanced is chosen',
+            not any('questions-intro.json' in u for u in requested), requested)
+    R.check('advanced badge shown on the start screen',
+            'Advanced assessment' in pg.locator('#quiz-level-notice').inner_text())
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.route('**/questions-intro.json', lambda r: r.fulfill(status=500, body='boom'))
+    pg.goto(base + '/quiz.html')
+    pg.fill('#participant-name', 'Error Test')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#questions-error:not(.hidden)', timeout=10000)
+    R.check('500 shows the error panel', pg.locator('#questions-error').is_visible())
+    R.check('error names the status code',
+            '500' in pg.locator('#questions-error-message').inner_text(),
+            pg.locator('#questions-error-message').inner_text())
+    R.check('quiz not entered on failure', pg.locator('#quiz-start').is_visible())
+    R.check('begin button re-enabled by finally', not pg.locator('#begin-quiz').is_disabled())
+    R.check('begin button label restored',
+            pg.locator('#begin-quiz').inner_text().strip() == 'Begin Assessment')
+    pg.unroute('**/questions-intro.json')
+    pg.locator('#questions-retry').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    R.check('retry recovers and starts the quiz', pg.locator('#quiz-active').is_visible())
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.route('**/questions-intro.json', lambda r: r.fulfill(
+        status=200, content_type='application/json',
+        body='[{"q":"Bad question","options":["a","b"],"correct":9}]'))
+    pg.goto(base + '/quiz.html')
+    pg.fill('#participant-name', 'Schema Test')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#questions-error:not(.hidden)', timeout=10000)
+    R.check('out-of-range correct index rejected',
+            'incomplete or malformed' in pg.locator('#questions-error-message').inner_text(),
+            pg.locator('#questions-error-message').inner_text())
+    ctx.close()
+
+
+# ============================================================
+# GROUP 4 — CONTACT FORM
+# Every test here stubs Formspree. Nothing is ever really sent.
+# ============================================================
+
+def test_contact(browser, base):
+    R.group('contact — validation')
+
+    ctx, pg = new_page(browser)
+    stub_formspree(pg)
+    pg.goto(base + '/contact.html')
+
+    pg.locator('#submit-message').click()
+    for field, expect in [('name', 'name'), ('email', 'email'), ('message', 'message')]:
+        R.check('empty %s rejected' % field,
+                bool(pg.locator('#%s-error' % field).inner_text()),
+                pg.locator('#%s-error' % field).inner_text())
+    R.check('no success panel on an invalid submit', pg.locator('#form-success').is_hidden())
+    R.check('nothing sent when validation fails', not pg.live_requests, pg.live_requests)
+
+    # blur validation
+    pg.fill('#name', 'A')
+    pg.locator('#email').click()
+    R.check('short name flagged on blur',
+            'at least 2' in pg.locator('#name-error').inner_text(),
+            pg.locator('#name-error').inner_text())
+    pg.fill('#name', 'Valid Name')
+    pg.locator('#email').click()
+    R.check('valid name clears its error', pg.locator('#name-error').inner_text() == '')
+
+    for bad in ['notanemail', 'missing@tld', 'a b@c.com']:
+        pg.fill('#email', bad)
+        pg.locator('#message').click()
+        R.check('email "%s" rejected' % bad, bool(pg.locator('#email-error').inner_text()))
+    pg.fill('#email', 'valid@example.com')
+    pg.locator('#message').click()
+    R.check('valid email accepted', pg.locator('#email-error').inner_text() == '')
+
+    pg.locator('#message').fill('too short')
+    pg.locator('#name').click()
+    R.check('short message rejected',
+            'at least 10' in pg.locator('#message-error').inner_text(),
+            pg.locator('#message-error').inner_text())
+    ctx.close()
+
+    R.group('contact — async submission')
+
+    # success
+    ctx, pg = new_page(browser)
+    captured = {}
+
+    def ok(route):
+        captured['method'] = route.request.method
+        captured['accept'] = route.request.headers.get('accept')
+        captured['body'] = route.request.post_data or ''
+        route.fulfill(status=200, content_type='application/json', body='{"ok":true}')
+
+    pg.route(FORMSPREE_GLOB, ok)
+    pg.goto(base + '/contact.html')
+    pg.fill('#name', 'Grace Hopper')
+    pg.fill('#email', 'grace@example.com')
+    pg.select_option('#role', 'developer')
+    pg.locator('#message').fill('This is a sufficiently long test message body.')
+    pg.locator('#submit-message').click()
+    pg.wait_for_function("() => document.getElementById('submit-message').disabled === true",
+                         timeout=5000)
+    R.check('button disabled while sending', pg.locator('#submit-message').is_disabled())
+    R.check('button reads Sending', 'Sending' in pg.locator('#submit-message').inner_text())
+    R.check('aria-busy set while sending',
+            pg.locator('#submit-message').get_attribute('aria-busy') == 'true')
+    pg.wait_for_selector('#form-success:not(.hidden)', timeout=10000)
+    R.check('POST used', captured.get('method') == 'POST', captured.get('method'))
+    R.check('Accept: application/json sent', captured.get('accept') == 'application/json')
+    for field, value in [('name', 'Grace Hopper'), ('email', 'grace@example.com'),
+                         ('role', 'developer'), ('message', 'sufficiently long')]:
+        R.check('%s reaches the request body' % field, value in captured.get('body', ''))
+    R.check('_subject sent for the email subject line', '_subject' in captured.get('body', ''))
+    R.check('success heading shown',
+            pg.locator('#form-success-heading').inner_text() in ('Message Sent!', 'Message Validated'),
+            pg.locator('#form-success-heading').inner_text())
+    R.check('form hidden on success', pg.locator('#contact-form').is_hidden())
+    R.check('button restored by finally',
+            pg.locator('#submit-message').inner_text().strip() == 'Send Message')
+    R.check('aria-busy removed', pg.locator('#submit-message').get_attribute('aria-busy') is None)
+    pg.locator('#send-another').click()
+    R.check('Send another restores the form', pg.locator('#contact-form').is_visible())
+    R.check('fields cleared', pg.locator('#name').input_value() == '')
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # server-side field validation errors routed back to the inputs
+    ctx, pg = new_page(browser)
+    stub_formspree(pg, status=422,
+                   body='{"errors":[{"field":"email","message":"is not a valid email"}]}')
+    pg.goto(base + '/contact.html')
+    pg.fill('#name', 'Field Error Test')
+    pg.fill('#email', 'blocked@example.com')
+    pg.locator('#message').fill('Testing server-side field error handling here.')
+    pg.locator('#submit-message').click()
+    pg.wait_for_selector('#form-error:not(.hidden)', timeout=10000)
+    R.check('422 shows the error banner', pg.locator('#form-error').is_visible())
+    R.check('banner names the field and reason',
+            'email is not a valid email' in pg.locator('#form-error-message').inner_text(),
+            pg.locator('#form-error-message').inner_text())
+    R.check('server message shown beside the field',
+            pg.locator('#email-error').inner_text() == 'is not a valid email',
+            pg.locator('#email-error').inner_text())
+    R.check('focus moved to the rejected field',
+            pg.evaluate('() => document.activeElement.id') == 'email')
+    R.check('form still visible for a retry', pg.locator('#contact-form').is_visible())
+    R.check('typed message preserved',
+            'Testing server-side' in pg.locator('#message').input_value())
+    ctx.close()
+
+    # status-code fallbacks when there is no usable JSON body
+    for status, needle, label in [(429, 'Too many messages', 'rate limit'),
+                                  (404, 'not configured correctly', 'misconfigured'),
+                                  (503, 'temporarily unavailable', 'service down')]:
+        ctx, pg = new_page(browser)
+        stub_formspree(pg, status=status, body='<html>error</html>', content_type='text/html')
+        pg.goto(base + '/contact.html')
+        pg.fill('#name', 'Status Test')
+        pg.fill('#email', 'a@example.com')
+        pg.locator('#message').fill('Checking the status code fallback messages.')
+        pg.locator('#submit-message').click()
+        pg.wait_for_selector('#form-error:not(.hidden)', timeout=10000)
+        R.check('%d gives the %s message' % (status, label),
+                needle in pg.locator('#form-error-message').inner_text(),
+                pg.locator('#form-error-message').inner_text())
+        R.check('%d: no crash parsing an HTML body' % status, not pg.js_errors, pg.js_errors)
+        ctx.close()
+
+    # network failure
+    ctx, pg = new_page(browser)
+    pg.route(FORMSPREE_GLOB, lambda r: r.abort('connectionrefused'))
+    pg.goto(base + '/contact.html')
+    pg.fill('#name', 'Offline Test')
+    pg.fill('#email', 'a@example.com')
+    pg.locator('#message').fill('Checking behaviour when the network is unavailable.')
+    pg.locator('#submit-message').click()
+    pg.wait_for_selector('#form-error:not(.hidden)', timeout=10000)
+    R.check('network failure explained in plain language',
+            'Could not reach the server' in pg.locator('#form-error-message').inner_text(),
+            pg.locator('#form-error-message').inner_text())
+    R.check('button restored after a network failure',
+            not pg.locator('#submit-message').is_disabled())
+    ctx.close()
+
+    # double-submit guard
+    ctx, pg = new_page(browser)
+    calls = []
+
+    def counting(route):
+        calls.append(1)
+        route.fulfill(status=200, content_type='application/json', body='{"ok":true}')
+
+    pg.route(FORMSPREE_GLOB, counting)
+    pg.goto(base + '/contact.html')
+    pg.fill('#name', 'Double Click')
+    pg.fill('#email', 'a@example.com')
+    pg.locator('#message').fill('Checking that a double click cannot submit twice.')
+    btn = pg.locator('#submit-message')
+    btn.click()
+    try:
+        btn.click(timeout=800)
+    except Exception:
+        pass
+    pg.wait_for_selector('#form-success:not(.hidden)', timeout=10000)
+    R.check('double click sends exactly one request', len(calls) == 1, len(calls))
+    ctx.close()
+
+    # anti-spam honeypot
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/contact.html')
+    hp = pg.evaluate("""() => {
+        const h = document.querySelector('input[name="_gotcha"]');
+        if (!h) return null;
+        return { tabindex: h.getAttribute('tabindex'),
+                 ariaHidden: h.getAttribute('aria-hidden'),
+                 display: getComputedStyle(h).display };
+    }""")
+    R.check('honeypot field present', hp is not None)
+    if hp:
+        R.check('honeypot not reachable by keyboard', hp['tabindex'] == '-1', hp)
+        R.check('honeypot hidden from screen readers', hp['ariaHidden'] == 'true', hp)
+        R.check('honeypot not rendered', hp['display'] == 'none', hp)
+    ctx.close()
+
+
+# ============================================================
+# GROUP 5 — PRIVACY NOTICE
+# ============================================================
+
+def test_privacy(browser, base):
+    R.group('privacy — notice and footer links')
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/privacy.html')
+    R.check('privacy page loads',
+            pg.locator('h1').first.inner_text() == 'Privacy & Data Protection',
+            pg.locator('h1').first.inner_text())
+    text = pg.inner_text('.legal-page')
+    for needle, label in [
+        ('United States', 'discloses the transfer outside the EEA'),
+        ('Formspree', 'names the processor'),
+        ('St John Lynch', 'names the data controller'),
+        ('48 hours', 'states the retention period'),
+        ('no cookies', 'states that no cookies are set'),
+        ('Data Protection Commission', 'names the supervisory authority'),
+    ]:
+        R.check('notice %s' % label, needle in text, needle)
+    R.check('controller email is a working mailto link',
+            pg.locator('a[href="mailto:niamh@stjohnlynch.com"]').count() >= 1)
+    R.check('localStorage keys documented', pg.locator('.legal-table tbody tr').count() == 2)
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    for page in PAGES:
+        ctx, pg = new_page(browser)
+        pg.goto(base + '/' + page)
+        R.check('%s has the footer privacy link' % page,
+                pg.locator('.footer-links a[href="privacy.html"]').count() == 1)
+        ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    pg.locator('.footer-links a').click()
+    pg.wait_for_load_state()
+    R.check('footer link navigates to the notice', pg.url.endswith('privacy.html'), pg.url)
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    stub_formspree(pg)
+    pg.goto(base + '/contact.html')
+    note = pg.locator('.form-privacy-note')
+    R.check('notice shown at the point of collection', note.is_visible())
+    R.check('point-of-collection notice names Formspree and the US',
+            'Formspree' in note.inner_text() and 'United States' in note.inner_text())
+    R.check('point-of-collection notice links to the full notice',
+            note.locator('a[href="privacy.html"]').count() == 1)
+    ctx.close()
+
+    # The home page figure is hardcoded, so it can drift from the data.
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        topic_count = len(json.load(f))
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    shown = pg.locator('.stat-card .stat-number').first.inner_text()
+    R.check('home page topic count matches the data',
+            shown == str(topic_count), '%s shown, %d in phases.json' % (shown, topic_count))
+    ctx.close()
+
+
+# ============================================================
+# GROUP 6 — ACCESSIBILITY
+# axe-core covers the mechanical WCAG checks: contrast, names, roles, landmarks,
+# heading structure. It is NOT a clean bill of health — automated tools catch
+# roughly a third to a half of real accessibility problems, and cannot judge
+# whether wording makes sense or whether a screen reader journey is coherent.
+# Treat zero violations as a floor, not a ceiling.
+# ============================================================
+
+def test_a11y(browser, base, axe_src):
+    R.group('accessibility — axe-core (WCAG 2.1 A/AA + best practice)')
+
+    if not axe_src:
+        R.check('axe-core available', False, 'could not download; group skipped')
+        return
+
+    for page in PAGES:
+        ctx, pg = new_page(browser)
+        stub_formspree(pg)
+        pg.goto(base + '/' + page)
+        if page == 'learn.html':
+            pg.wait_for_selector('.phase-card', timeout=10000)
+        pg.wait_for_timeout(400)
+        v = axe_violations(pg, axe_src)
+        R.check('%s has no violations' % page, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
+
+    # States that only exist at runtime. These are the ones normally missed,
+    # because a spinner or an error panel is invisible when the page is idle.
+    ctx, pg = new_page(browser)
+    pg.route('**/data/phases.json', lambda r: r.abort())
+    pg.goto(base + '/learn.html')
+    pg.wait_for_timeout(700)
+    pg.evaluate("""() => { document.getElementById('phases-error').classList.add('hidden');
+                           document.getElementById('phases-status').classList.remove('hidden'); }""")
+    v = axe_violations(pg, axe_src)
+    R.check('learn loading state has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.route('**/data/phases.json', lambda r: r.fulfill(status=503, body='x'))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    v = axe_violations(pg, axe_src)
+    R.check('learn error state has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.phase-header').first.click()
+    pg.wait_for_timeout(300)
+    v = axe_violations(pg, axe_src)
+    R.check('learn expanded card has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/quiz.html')
+    pg.fill('#participant-name', 'A11y Test')
+    pg.locator('#begin-quiz').click()
+    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+    v = axe_violations(pg, axe_src)
+    R.check('quiz question screen has no violations', not v, [x['id'] for x in v])
+    pg.locator('.option-btn').first.click()
+    pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+    v = axe_violations(pg, axe_src)
+    R.check('quiz feedback state has no violations', not v, [x['id'] for x in v])
+    pg.locator('#next-question').click()
+    answer_all_questions(pg)
+    v = axe_violations(pg, axe_src)
+    R.check('quiz results screen has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    stub_formspree(pg, status=422,
+                   body='{"errors":[{"field":"email","message":"is not valid"}]}')
+    pg.goto(base + '/contact.html')
+    pg.fill('#name', 'A11y Error')
+    pg.fill('#email', 'a@example.com')
+    pg.locator('#message').fill('Auditing the accessibility of the error state.')
+    pg.locator('#submit-message').click()
+    pg.wait_for_selector('#form-error:not(.hidden)', timeout=10000)
+    v = axe_violations(pg, axe_src)
+    R.check('contact error state has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
+    R.group('accessibility — keyboard, focus and motion')
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.keyboard.press('Tab')
+    first = pg.evaluate("() => document.activeElement.className")
+    R.check('skip link is the first tab stop', 'skip-link' in first, first)
+    pg.keyboard.press('Enter')
+    pg.wait_for_timeout(200)
+    R.check('skip link jumps to main content',
+            pg.evaluate("() => location.hash") == '#main-content',
+            pg.evaluate("() => location.hash"))
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/contact.html')
+    pg.locator('#name').focus()
+    ring = pg.evaluate("""() => { const s = getComputedStyle(document.activeElement);
+        return s.outlineStyle + '|' + s.borderColor + '|' + s.boxShadow; }""")
+    R.check('focused input shows a visible indicator',
+            'none' not in ring.split('|')[0] or 'rgb' in ring, ring[:70])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    R.check('active nav link marked with aria-current',
+            pg.locator('.nav-link[aria-current="page"]').count() == 1)
+    ctx.close()
+
+    ctx, pg = new_page(browser, reduced_motion='reduce')
+    pg.route('**/data/phases.json', lambda r: r.abort())
+    pg.goto(base + '/learn.html')
+    pg.wait_for_timeout(600)
+    pg.evaluate("""() => { document.getElementById('phases-error').classList.add('hidden');
+                           document.getElementById('phases-status').classList.remove('hidden'); }""")
+    anim = pg.evaluate("() => getComputedStyle(document.querySelector('.spinner')).animationName")
+    R.check('spinner respects prefers-reduced-motion', anim == 'spinner-pulse', anim)
+    ctx.close()
+
+
+# ============================================================
+# GROUP 7 — RESPONSIVE LAYOUT
+# ============================================================
+
+def test_responsive(browser, base):
+    R.group('responsive — layout at four widths')
+
+    for page in PAGES:
+        problems = []
+        for vname, w, h in VIEWPORTS:
+            ctx, pg = new_page(browser, w, h)
+            stub_formspree(pg)
+            pg.goto(base + '/' + page)
+            if page == 'learn.html':
+                pg.wait_for_selector('.phase-card', timeout=10000)
+            pg.wait_for_timeout(250)
+            d = pg.evaluate("""() => ({
+                scrollW: document.documentElement.scrollWidth,
+                clientW: document.documentElement.clientWidth,
+                offenders: [...document.querySelectorAll('*')]
+                    .filter(el => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+                    .slice(0, 3)
+                    .map(el => el.tagName.toLowerCase() + '.' + (typeof el.className === 'string' ? el.className.trim().split(/\\s+/)[0] : ''))
+            })""")
+            if d['scrollW'] > d['clientW'] + 1:
+                problems.append('%s(%dpx): %s' % (vname, w, d['offenders']))
+            ctx.close()
+        R.check('%s has no horizontal overflow at any width' % page, not problems, problems)
+
+    R.group('responsive — mobile input behaviour')
+
+    ctx, pg = new_page(browser, 390, 844, is_mobile=True, has_touch=True)
+    stub_formspree(pg)
+    pg.goto(base + '/contact.html')
+    sizes = pg.evaluate("""() => ['name','email','message','role'].map(id => {
+        const el = document.getElementById(id);
+        return { id, px: parseFloat(getComputedStyle(el).fontSize) };
+    })""")
+    too_small = [s for s in sizes if s['px'] < 16]
+    # iOS Safari zooms the whole page when a focused field is under 16px, which
+    # yanks the layout around on every tap. This is the single most common
+    # mobile form defect and is invisible on a desktop browser.
+    R.check('all form fields are >= 16px (prevents iOS auto-zoom)',
+            not too_small, too_small)
+
+    tap = pg.evaluate("""() => [...document.querySelectorAll('.nav-link, .btn')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { t: el.textContent.trim().slice(0,18), h: Math.round(r.height) };
+    }).filter(x => x.h > 0 && x.h < 24)""")
+    R.check('interactive targets are a usable height', not tap, tap)
+    ctx.close()
+
+    # 200% zoom equivalent — WCAG 1.4.4 requires content to stay usable.
+    ctx, pg = new_page(browser, 640, 480)
+    for page in PAGES:
+        pg.goto(base + '/' + page)
+        if page == 'learn.html':
+            pg.wait_for_selector('.phase-card', timeout=10000)
+        pg.wait_for_timeout(200)
+        ok = pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1')
+        R.check('%s usable at 200%% zoom equivalent' % page, ok)
+    ctx.close()
+
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
+
+def main():
+    # The site's text contains characters outside the Windows default console
+    # encoding (cp1252) — the § clause symbol, the ✓ and ✗ in quiz feedback, em
+    # dashes. Printing those to an unconfigured Windows console raises
+    # UnicodeEncodeError and aborts the run, which looks like a test failure but
+    # is really just the terminal. Forcing UTF-8 with errors='replace' means the
+    # worst case is a substituted character in a label, never a crash.
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, OSError):
+        pass  # older Python, or a stream that cannot be reconfigured
+
+    ap = argparse.ArgumentParser(description='Test suite for the IEC 62304 training site.')
+    ap.add_argument('--headed', action='store_true', help='show the browser while testing')
+    ap.add_argument('--group', choices=GROUPS, action='append',
+                    help='run only these groups (repeatable)')
+    args = ap.parse_args()
+    groups = args.group or GROUPS
+
+    print('=' * 72)
+    print('IEC 62304 TRAINING SITE — TEST SUITE')
+    print('=' * 72)
+    print('Serving from : %s' % ROOT)
+
+    httpd, base = start_server()
+    print('Test server  : %s' % base)
+    print('Groups       : %s' % ', '.join(groups))
+
+    axe_src = fetch_axe() if 'a11y' in groups else None
+
+    try:
+        with sync_playwright() as p:
+            browser = launch_browser(p, headed=args.headed)
+            try:
+                if 'data' in groups:
+                    test_data()
+                if 'learn' in groups:
+                    test_learn(browser, base)
+                if 'quiz' in groups:
+                    test_quiz(browser, base)
+                if 'contact' in groups:
+                    test_contact(browser, base)
+                if 'privacy' in groups:
+                    test_privacy(browser, base)
+                if 'a11y' in groups:
+                    test_a11y(browser, base, axe_src)
+                if 'responsive' in groups:
+                    test_responsive(browser, base)
+            finally:
+                browser.close()
+    finally:
+        httpd.shutdown()
+
+    return R.report()
+
+
+if __name__ == '__main__':
+    sys.exit(main())

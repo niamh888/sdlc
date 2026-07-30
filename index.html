@@ -80,6 +80,8 @@
     </div>
   </footer>
 
-  <script src="nav.js"></script>
+  <!-- `defer` runs the script after the HTML is parsed, so it never blocks
+       rendering. The home page has no data to load, so it needs only nav.js. -->
+  <script src="nav.js" defer></script>
 </body>
 </html>

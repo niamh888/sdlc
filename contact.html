@@ -51,6 +51,25 @@
         </div>
 
         <form id="contact-form" class="contact-form" novalidate>
+
+          <!-- Two Formspree conventions. Both are sent automatically because
+               FormData collects every named field in the form.
+
+               _subject sets the subject line of the notification email, so
+               messages from this site are identifiable in an inbox.
+
+               _gotcha is a honeypot: a field hidden from real users that
+               automated spam bots fill in anyway, because they work from the
+               HTML and cannot tell it is invisible. Formspree silently discards
+               any submission where it has a value. This matters now that the
+               endpoint is public — a free plan has a monthly submission limit,
+               and spam would otherwise consume it.
+
+               tabindex="-1" keeps it out of the keyboard tab order and
+               aria-hidden="true" keeps it out of screen reader output, so it is
+               genuinely invisible to every real user, not just sighted ones. -->
+          <input type="hidden" name="_subject" value="IEC 62304 Training site — contact form">
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="form-group">
             <label for="name">Full Name <span class="required" aria-hidden="true">*</span></label>
             <input type="text" id="name" name="name" placeholder="Your full name" autocomplete="name" aria-required="true">
@@ -78,13 +97,28 @@
             <textarea id="message" name="message" rows="5" placeholder="Your message..." aria-required="true"></textarea>
             <span class="field-error" id="message-error" role="alert"></span>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+          <!-- ASYNC FAILURE STATE — revealed by contact.js if the submission
+               fails. It sits directly above the button, and the form is left
+               on screen with the user's text intact so they can just press
+               Send again. role="alert" makes screen readers announce it. -->
+          <div class="form-error hidden" id="form-error" role="alert">
+            <strong class="form-error-heading">Message not sent</strong>
+            <span class="form-error-message" id="form-error-message"></span>
+          </div>
+
+          <!-- The button needs an id so contact.js can disable it and change
+               its label to "Sending…" while the request is in flight. -->
+          <button type="submit" class="btn btn-primary btn-full" id="submit-message">Send Message</button>
         </form>
 
+        <!-- ASYNC SUCCESS STATE. The heading and message are written by
+             contact.js, because the honest wording differs depending on
+             whether a real endpoint is configured or the form is running in
+             demo mode. The defaults below are what a real send shows. -->
         <div id="form-success" class="form-success hidden">
           <div class="success-icon">&#10003;</div>
-          <h2>Message Sent!</h2>
-          <p>Thank you for your feedback. We will review your message and respond where appropriate.</p>
+          <h2 id="form-success-heading">Message Sent!</h2>
+          <p id="form-success-message">Thank you for your feedback. We will review your message and respond where appropriate.</p>
           <button class="btn btn-secondary" id="send-another">Send another message</button>
         </div>
 
@@ -98,7 +132,10 @@
     </div>
   </footer>
 
-  <script src="nav.js"></script>
-  <script src="contact.js"></script>
+  <!-- `defer` runs these after the HTML is parsed, in the order listed, so
+       async-utils.js has defined delay() before contact.js runs. -->
+  <script src="nav.js" defer></script>
+  <script src="async-utils.js" defer></script>
+  <script src="contact.js" defer></script>
 </body>
 </html>

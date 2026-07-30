@@ -54,7 +54,10 @@
         <p>IEC 62304 organises software development into defined process areas across Clauses 4&ndash;9. Click any card to expand its requirements. Use <strong>Level</strong> to switch between an overview and detailed clause-referenced content, and filter by safety class to focus on what applies to your software.</p>
       </div>
 
-      <div class="learn-controls">
+      <!-- Controls start hidden and are revealed by learn.js once the topic
+           data has loaded. Offering a "filter by class" button before there
+           is anything to filter would be misleading. -->
+      <div class="learn-controls hidden" id="learn-controls">
         <div class="progress-tracker">
           <span class="progress-label">Study progress: <strong id="progress-count">0</strong> of <strong id="progress-total">0</strong> topics</span>
           <div class="progress-bar-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -77,9 +80,29 @@
         </div>
       </div>
 
-      <div class="phases-grid" id="phases-grid">
-        <!-- Rendered by learn.js from the phases data array -->
+      <!-- ASYNC STATE 1: LOADING.
+           Shown while data/phases.json is being fetched, then hidden by
+           learn.js. role="status" with aria-live="polite" means a screen
+           reader announces the loading text when it appears, so the wait is
+           communicated to users who cannot see the spinner. -->
+      <div class="data-status" id="phases-status" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <p class="data-status-text">Loading lifecycle topics&hellip;</p>
       </div>
+
+      <!-- ASYNC STATE 3: FAILURE.
+           Hidden unless the fetch fails. role="alert" makes screen readers
+           announce it immediately, which is appropriate for an error. The
+           message text is written by learn.js from the caught error. -->
+      <div class="data-error hidden" id="phases-error" role="alert">
+        <p class="data-error-heading">Could not load the lifecycle topics</p>
+        <p class="data-error-message" id="phases-error-message"></p>
+        <button class="btn btn-secondary" id="phases-retry">Try again</button>
+      </div>
+
+      <!-- ASYNC STATE 2: SUCCESS — cards are rendered in here by learn.js
+           from the data fetched out of data/phases.json. -->
+      <div class="phases-grid" id="phases-grid"></div>
 
     </div>
   </main>
@@ -90,7 +113,12 @@
     </div>
   </footer>
 
-  <script src="nav.js"></script>
-  <script src="learn.js"></script>
+  <!-- `defer` tells the browser: download these now, but run them only after
+       the HTML has finished parsing. Deferred scripts run in the order they
+       appear, so async-utils.js is guaranteed to have defined delay() and
+       fetchJSON() before learn.js calls them. -->
+  <script src="nav.js" defer></script>
+  <script src="async-utils.js" defer></script>
+  <script src="learn.js" defer></script>
 </body>
 </html>

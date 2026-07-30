@@ -2,16 +2,23 @@
 
 ## Overview
 
-This file drives the Learn page. It builds 13 expandable topic cards from a
-data array, handles expand/collapse and keyboard interaction, lets the user
-toggle between Introductory and Advanced content, filter cards by safety class,
-and tracks study progress with a progress bar.
+This file drives the Learn page. It fetches the 13 topics from a JSON file,
+builds an expandable card for each one, handles expand/collapse and keyboard
+interaction, lets the user toggle between Introductory and Advanced content,
+filter cards by safety class, and tracks study progress with a progress bar.
 
 ---
 
 ## Data
 
-**`phases`** — an array of 13 objects, one per IEC 62304 process area (Clauses 4–9).
+**`phases`** — an array of 13 objects, one per IEC 62304 process area (Clauses 4–9),
+**fetched from `data/phases.json` when the page loads**.
+
+It starts as an **empty array** and is filled in once the download completes. This
+is the key mental shift when data is loaded asynchronously: for the first moments
+of the page's life the content does not exist yet, so every function that reads
+`phases` must tolerate it being empty rather than assume the data is there.
+
 Each object holds:
 
 | Field             | Description                                                          |
@@ -45,9 +52,75 @@ is readable by the quiz page when printing the certificate.
 
 ---
 
+### `loadPhases()`  *(async)*
+
+Downloads the topic data and renders it. Contains no error handling of its own —
+errors are deliberately left to propagate to `initPhases()`, which is the only
+place that knows where on the page to show a message.
+
+```
+START BOTH OF THESE AT THE SAME TIME and wait for both to finish:
+      A) fetch and parse data/phases.json
+      B) a 250ms pause
+
+    — running them concurrently means the total wait is the LONGER of the two,
+      not the sum. Written as two separate waits, the pause would not start
+      until the download had finished.
+    — the pause exists so a fast load cannot make the spinner flash on and
+      off within a couple of frames, which reads as a glitch rather than
+      as progress.
+    — if the fetch fails, the wait ends immediately; it does not sit out
+      the remaining pause.
+
+IF the result is not a non-empty array:
+    RAISE an error naming the file
+        — the file could be valid JSON yet still the wrong shape;
+          checking here means the rest of the code can trust the data
+
+STORE the result in phases
+CALL renderPhases
+```
+
+---
+
+### `initPhases()`  *(async)*
+
+Wraps `loadPhases()` with the user-facing state handling. This is where the three
+states of an asynchronous operation become three branches of real code.
+
+```
+— STATE 1: LOADING —
+SHOW the spinner
+HIDE any error panel left over from a previous attempt
+HIDE the controls bar
+    — offering a "filter by class" button before there is anything
+      to filter would mislead the user
+
+TRY:
+    WAIT for loadPhases to finish
+        — this pauses initPhases only; the page stays scrollable and
+          responsive, and other event handlers still run
+
+    — STATE 2: SUCCESS —
+    HIDE the spinner
+    SHOW the controls bar
+
+CATCH any error:
+    — STATE 3: FAILURE —
+    HIDE the spinner
+    SHOW the error panel with the error's message text
+    LOG the full error to the console for debugging
+
+    — one CATCH covers every possible failure in the whole sequence:
+      no network, a 404, malformed JSON, or the wrong data shape.
+      That is the main practical advantage over chained .then() calls.
+```
+
+---
+
 ### `renderPhases()`
 
-Called once on page load. Builds all 13 topic cards from the current state
+Called once the data has loaded. Builds all 13 topic cards from the current state
 (`activeLevel`, `activeFilter`, `studiedPhases`) and inserts them into the grid.
 
 ```
@@ -97,6 +170,9 @@ CALL updateProgress
 
 Swaps the bullet-point content inside every card **without rebuilding the DOM**.
 Called whenever the level toggle changes.
+
+Safe to call before the data has loaded: `phases` is empty at that point, so the
+loop simply does nothing.
 
 ```
 FOR EACH phase in the phases array:
@@ -247,6 +323,10 @@ UPDATE aria-valuenow on the progress bar container to PCT
 
 Runs after the HTML is fully parsed.
 
+All the controls are wired up FIRST and the data request is started LAST. That
+ordering is deliberate: it means the page is interactive *during* the load rather
+than only after it.
+
 ```
 ON page load:
 
@@ -254,9 +334,8 @@ ON page load:
         IF the stored value is "advanced":
             SET activeLevel to "advanced"
         (if nothing is stored — first visit — activeLevel stays "intro")
-
-    CALL renderPhases
-        — builds all 13 cards using the restored activeLevel
+        — read before the data arrives, so renderPhases shows the
+          correct bullet set from the very first paint
 
     FOR EACH level button (Introductory / Advanced):
         MARK it as active if its data-level matches activeLevel
@@ -264,6 +343,9 @@ ON page load:
 
     ATTACH one click listener to the grid
         — handles expand/collapse and mark-as-studied for all 13 cards
+        — event delegation is also what allows this listener to be attached
+          BEFORE the cards exist: it lives on the container, which is
+          already in the HTML, so cards added later are covered automatically
     ATTACH one keydown listener to the grid
         — handles Enter and Space on card headers for keyboard users
 
@@ -272,6 +354,19 @@ ON page load:
 
     FOR EACH level button (Introductory / Advanced):
         ON click: CALL setLevel with that button's data-level value
+        — if clicked while the download is still in flight, the choice is
+          recorded and renderPhases picks it up when the data arrives
+
+    ON click of the "Try again" button:
+        CALL initPhases
+        — re-attempts a failed load without discarding everything else
+          the user has done on the page
+
+    REVEAL the update banner unless previously dismissed
+
+    CALL initPhases                     ← starts the download
+        — NOT waited for: there is nothing left to do afterwards, and
+          initPhases already handles its own errors internally
 ```
 
 ---
@@ -280,7 +375,11 @@ ON page load:
 
 | Pattern | Where used | Why |
 |---|---|---|
-| **Data-driven rendering** | `renderPhases` | Content lives in a JS array; adding a topic requires no HTML changes |
+| **Async data loading** | `loadPhases`, `initPhases` | Content is fetched from JSON at runtime, with loading, success and failure all handled explicitly |
+| **`Promise.all` for concurrency** | `loadPhases` | Runs the download and the anti-flicker pause together, so the total wait is the longer one rather than the sum |
+| **Validation at the boundary** | `loadPhases` | External data is shape-checked as it enters, so everything downstream can trust it |
+| **Errors handled where they can be acted on** | `loadPhases` raises, `initPhases` catches | The loader has no `try`/`catch`; only the caller knows where to display a message |
+| **Data-driven rendering** | `renderPhases` | Content lives in a data file; adding a topic requires no HTML or JS changes |
 | **In-place DOM update** | `updateDetailsContent` | Level toggle swaps only the bullet list, preserving expanded state and studied progress |
 | **localStorage for cross-page state** | `setLevel`, init, `quiz.js` | Training level chosen on the Learn page is available to the Quiz page when printing the certificate |
 | **Event delegation** | `handleCardClick`, keydown listener | One listener on the grid covers all 13 cards efficiently |

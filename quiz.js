@@ -1,276 +1,38 @@
 // ============================================================
 // quiz.js  —  Quiz page: shuffle, timer, scoring, results
 // ============================================================
+//
+// ASYNCHRONOUS DATA LOADING
+// Both question sets used to be hardcoded arrays in this file — roughly 250
+// lines of content. They now live in two separate JSON files:
+//
+//     data/questions-intro.json      15 overview-level questions
+//     data/questions-advanced.json   15 clause-referenced questions
+//
+// Splitting them fixed a real inefficiency. The old version defined BOTH
+// sets on every page load and then threw one away, so every visitor paid to
+// parse 30 questions in order to sit 15. Now only the file matching the
+// user's chosen level is requested.
+//
+// This file also demonstrates a pattern worth learning: PREFETCHING. The
+// request starts as soon as the page loads, but the result is not needed
+// until the user clicks "Begin Assessment". Rather than waiting for the
+// click to start the request, we start it immediately and keep the Promise
+// in a variable, then await that same Promise on click. By the time the
+// learner has typed their name, the questions have almost always arrived,
+// so the click feels instant. See startQuestionsLoad() below.
+// ============================================================
 
-// ---------- DATA ----------
-// Two question sets — one per training level. Each question holds the question
-// string, four option strings, the index of the correct answer (0-based), and
-// an explanation shown after the user answers.
-// getQuestions() selects the right set based on the level stored in localStorage.
+// ---------- CONFIG ----------
+// Which file to fetch for each training level.
+const QUESTION_URLS = {
+  intro: 'data/questions-intro.json',
+  advanced: 'data/questions-advanced.json'
+};
 
-// INTRODUCTORY — overview-level questions suitable for first-time learners.
-const introQuestions = [
-  {
-    q: 'What are the three software safety classes defined in IEC 62304?',
-    options: ['Class 1, Class 2, Class 3', 'Class A, Class B, Class C', 'Low, Medium, High', 'Minor, Serious, Critical'],
-    correct: 1,
-    explanation: 'IEC 62304 defines Class A (no injury possible), Class B (non-serious injury possible), and Class C (serious injury or death possible), based on the consequence if the software were to fail.'
-  },
-  {
-    q: 'Which clause of IEC 62304 covers software development planning?',
-    options: ['Clause 4', 'Clause 5.1', 'Clause 6', 'Clause 8'],
-    correct: 1,
-    explanation: 'Clause 5.1 requires the manufacturer to establish a software development plan that defines the lifecycle model, activities, deliverables, and standards to be used.'
-  },
-  {
-    q: 'What does the acronym SOUP stand for in IEC 62304?',
-    options: ['Software of Unknown Provenance', 'System of Unverified Programming', 'Source of Unqualified Products', 'Software of Undefined Process'],
-    correct: 0,
-    explanation: 'SOUP is Software of Unknown Provenance — pre-existing software not developed under IEC 62304, such as open-source libraries, operating systems, or commercial off-the-shelf components.'
-  },
-  {
-    q: 'Detailed design documentation (Clause 5.4) is mandatory for which safety class?',
-    options: ['Class A only', 'Class B and C', 'Class C only', 'All classes'],
-    correct: 2,
-    explanation: 'Clause 5.4 (Software Detailed Design) is only required for Class C software. Classes A and B require architectural design under Clause 5.3 but not unit-level detailed design documentation.'
-  },
-  {
-    q: 'Which international standard does IEC 62304 Clause 7 link software risk management to?',
-    options: ['ISO 13485', 'ISO 14971', 'IEC 60601-1', 'ISO 9001'],
-    correct: 1,
-    explanation: 'Clause 7 integrates with ISO 14971, the risk management standard for medical devices. Software risk control measures must be evaluated within the broader device risk management framework.'
-  },
-  {
-    q: 'What is the primary purpose of software configuration management under Clause 8?',
-    options: ['To plan software testing activities', 'To control and track software items throughout the lifecycle', 'To document software risk mitigations', 'To define the software release process'],
-    correct: 1,
-    explanation: 'Configuration management ensures all software items and their versions are uniquely identified, controlled, and traceable — critical for reproducibility and regulatory audit trails.'
-  },
-  {
-    q: 'If a software failure could contribute to serious injury or death, which safety class applies?',
-    options: ['Class A', 'Class B', 'Class C', 'There is no Class D'],
-    correct: 2,
-    explanation: 'Class C applies when software failure can contribute to serious injury or death. Class A means no injury is possible; Class B means only non-serious injury is possible. There is no Class D in IEC 62304.'
-  },
-  {
-    q: 'Which clause covers the software maintenance process in IEC 62304?',
-    options: ['Clause 5', 'Clause 6', 'Clause 7', 'Clause 9'],
-    correct: 1,
-    explanation: 'Clause 6 covers the Software Maintenance Process, governing how modifications, corrections, and enhancements to released software are planned and controlled.'
-  },
-  {
-    q: 'Integration test plans and records are explicitly required for which safety classes?',
-    options: ['Class A only', 'Class A and B', 'Class B and C', 'All classes equally'],
-    correct: 2,
-    explanation: 'Clause 5.6 requires integration test plans and results for Class B and C software. Class A has lighter requirements for integration activities.'
-  },
-  {
-    q: 'Before software can be released under Clause 5.8, what must the manufacturer verify?',
-    options: ['Marketing and commercial approval', 'All planned development activities have been completed', 'FDA 510(k) clearance has been received', 'CE marking has been obtained'],
-    correct: 1,
-    explanation: 'Clause 5.8 requires objective evidence that all planned software development activities are complete and all known anomalies have been evaluated before the software is released.'
-  },
-  {
-    q: 'When a change request is received for released software, what is the first required action?',
-    options: ['Immediately implement the fix and retest', 'Analyse the change for potential safety impact', 'Archive the current released version', 'Update the software requirements specification'],
-    correct: 1,
-    explanation: 'Under Clause 6, every change to released software must first be analysed to determine its impact on safety and the scope of additional verification and validation required.'
-  },
-  {
-    q: 'Software requirements under Clause 5.2 must be traceable to what?',
-    options: ['Business requirements and stakeholder requests', 'The system requirements specification', 'User stories and acceptance criteria', 'The device risk register only'],
-    correct: 1,
-    explanation: 'Clause 5.2 requires software requirements to be traceable to the system requirements specification, ensuring every device-level requirement has been addressed by software requirements.'
-  },
-  {
-    q: 'What minimum information must be documented when a manufacturer uses SOUP?',
-    options: ["The SOUP's complete source code", "The title, manufacturer, and version of the SOUP", "The SOUP's full validation test history", "The SOUP's patent and licensing status"],
-    correct: 1,
-    explanation: "IEC 62304 requires that SOUP be identified by its title, manufacturer, and version so it can be tracked as a configuration item and its known anomalies can be evaluated."
-  },
-  {
-    q: 'Which class of medical device software has the most comprehensive IEC 62304 requirements?',
-    options: ['Class A', 'Class B', 'Class C', 'All classes have identical requirements'],
-    correct: 2,
-    explanation: 'Class C imposes the most stringent requirements, including detailed design documentation, rigorous unit testing, and complete traceability — reflecting the highest potential severity of harm.'
-  },
-  {
-    q: 'What must a problem resolution process under Clause 9 include?',
-    options: ['Immediate product recall procedures', 'Analysis of problems for safety impact and documented resolution', 'Customer compensation frameworks', 'Regulatory filing procedures only'],
-    correct: 1,
-    explanation: 'Clause 9 requires that problems be evaluated for safety impact, investigated for root cause, resolved, verified, and documented — with records maintained throughout the process.'
-  }
-];
-
-// ADVANCED — clause-referenced questions requiring in-depth knowledge of
-// IEC 62304:2006+AMD1:2015, including Amendment 1 changes and audit context.
-const advancedQuestions = [
-  {
-    q: 'Under Amendment 1, what condition must be established by the risk management process before a software item may be classified as Class A?',
-    options: [
-      'The software item has no user interface',
-      'The risk management process determines the software item cannot contribute to a hazardous situation',
-      'The software item runs on Class I medical hardware only',
-      'The software item was developed before the current regulatory framework applied'
-    ],
-    correct: 1,
-    explanation: 'Amendment 1 revised §4.3 so that Class A requires the product/system risk management process to explicitly determine that the software item cannot contribute to a hazardous situation. It is not sufficient to assume low risk based on functionality — the risk analysis must make this determination.'
-  },
-  {
-    q: 'Under §4.3 (Amendment 1), if a software item is the sole control measure preventing serious injury or death, which safety class must it be assigned?',
-    options: ['Class A', 'Class B', 'Class C', 'The class is determined by the hardware platform it runs on'],
-    correct: 2,
-    explanation: 'Amendment 1\'s revised §4.3 states that a software item that is the sole control measure preventing serious injury or death must be Class C, regardless of other risk controls elsewhere in the device. This reflects the sole-reliance principle from ISO 14971.'
-  },
-  {
-    q: 'Amendment 1 introduced a clarified distinction between two key terms. Which pairing is correct?',
-    options: [
-      'HAZARD = the circumstances of exposure; HAZARDOUS SITUATION = the potential source of harm',
-      'HAZARD = a software defect; HAZARDOUS SITUATION = a defect that reaches a released product',
-      'HAZARD = the potential source of harm; HAZARDOUS SITUATION = the circumstances where a person is exposed to that hazard',
-      'HAZARD and HAZARDOUS SITUATION are defined as synonymous in Amendment 1'
-    ],
-    correct: 2,
-    explanation: 'Amendment 1 clarified: a HAZARD is a potential source of harm (e.g., incorrect dose calculation), while a HAZARDOUS SITUATION is the circumstance in which a person is exposed to that hazard (e.g., patient receives an incorrect dose). Software failure modes must be linked to hazardous situations, not just to abstract hazards.'
-  },
-  {
-    q: 'IEC 62304 §5.3 requires SOUP to be documented in the architectural design. Which set of information is required as a minimum?',
-    options: [
-      'The SOUP\'s complete source code and build scripts',
-      'Title, manufacturer, version identifier, intended use, functional requirements it must meet, and its required operating environment',
-      'The SOUP\'s CE marking certificate or FDA 510(k) clearance number',
-      'The SOUP\'s full validation test history and a list of all known anomalies'
-    ],
-    correct: 1,
-    explanation: '§5.3 requires SOUP to be identified by: name/title, manufacturer, version or revision identifier, intended use within the system, the functional and performance requirements it must meet, and the hardware/software environment it requires. This information is needed to evaluate SOUP as a configuration item and to assess whether its known anomalies are relevant.'
-  },
-  {
-    q: 'A configuration management record identifies a SOUP component as "latest stable release." Does this satisfy IEC 62304 §8?',
-    options: [
-      'Yes, if the SOUP vendor provides regular security updates',
-      'Yes, for Class A and B software only',
-      'No — SOUP must be identified by an exact version or revision identifier',
-      'No — SOUP must not be used unless the full source code is available for review'
-    ],
-    correct: 2,
-    explanation: '§8 requires all SOUP items to be under configuration management with an exact version or revision identifier recorded. "Latest" or "current" is not acceptable because it prevents the manufacturer from reproducing the exact configuration used in any released product — a requirement that may need to be met years later during a regulatory investigation.'
-  },
-  {
-    q: 'After release, the manufacturer discovers a known anomaly in a SOUP component. What does IEC 62304 §7 require?',
-    options: [
-      'Immediately withdraw the product from the market pending investigation',
-      'Evaluate whether the anomaly could contribute to a hazardous situation in the intended use environment and document the assessment with a conclusion',
-      'Notify the SOUP vendor and await a patch before taking any further action',
-      'Issue a corrective software update within 30 days of discovery'
-    ],
-    correct: 1,
-    explanation: '§7 requires that for each known anomaly in a SOUP item, the manufacturer assesses whether it could contribute to a hazardous situation in the intended use environment and documents the conclusion. Market withdrawal is only required if the risk assessment determines that the risk is unacceptable and cannot be mitigated otherwise.'
-  },
-  {
-    q: 'A Class C software item implements a risk control measure identified in the ISO 14971 risk management file. Which IEC 62304 clause governs the requirement to verify its effectiveness?',
-    options: [
-      'Clause 5.7 — Software System Testing',
-      'Clause 5.8 — Software Release',
-      'Clause 7 — Software Risk Management',
-      'Clause 9 — Problem Resolution'
-    ],
-    correct: 2,
-    explanation: 'Clause 7 requires that software items implementing risk control measures are verified as effective. The verification evidence must feed into the ISO 14971 risk management file to demonstrate that the control measure functions as intended. System testing (§5.7) provides the test evidence, but the requirement to verify effectiveness is a §7 obligation.'
-  },
-  {
-    q: 'Under §5.8, under what condition may a manufacturer release software that has unresolved known anomalies?',
-    options: [
-      'Never — all anomalies must be resolved before release is permitted',
-      'Only for Class A software where no injury is possible',
-      'When each open anomaly has been evaluated for safety impact and the decision to release has been made by appropriate authority and documented',
-      'Only when the anomalies are user interface issues with no functional impact'
-    ],
-    correct: 2,
-    explanation: '§5.8 does not require zero open anomalies at release. It requires that all known anomalies are evaluated for patient safety impact, and that the decision to release with open items is made by appropriate authority with the rationale documented. This is a common area of confusion in regulatory submissions.'
-  },
-  {
-    q: 'During a §5.5 unit verification activity for Class C software, a defect is found and silently fixed by the developer without logging a problem report. Is this acceptable under IEC 62304?',
-    options: [
-      'Yes, if the fix is verified and the unit re-tested successfully',
-      'Yes, if the defect was found before the unit was formally baselined',
-      'No — all anomalies found during verification must be documented through the Clause 9 problem resolution process',
-      'No — but only if the defect affected a safety-related software item'
-    ],
-    correct: 2,
-    explanation: 'Clause 9 requires all problems to be logged regardless of when they are found. Silent fixes — even those re-verified successfully — bypass the required safety impact assessment and root cause analysis. Undocumented fixes are one of the most common critical findings in notified body audits of Class C software.'
-  },
-  {
-    q: 'What specific addition did Amendment 1 make to the requirements of §5.1 Software Development Planning?',
-    options: [
-      'It added a requirement to specify the waterfall lifecycle model as the default',
-      'It removed the requirement to reference ISO 13485 in the plan',
-      'It added an explicit requirement to address cybersecurity in the software development plan',
-      'It added a requirement to produce a separate test plan for each software item'
-    ],
-    correct: 2,
-    explanation: 'Amendment 1 added cybersecurity as a topic that must be explicitly addressed in the software development plan, including how security requirements are identified, allocated to software items, implemented, and verified. The original 2006 standard had no explicit cybersecurity planning requirement.'
-  },
-  {
-    q: 'A software engineer proposes using a static analysis tool to extract comments from completed code and format them as the "detailed design" documentation for Class C. What is the correct assessment?',
-    options: [
-      'Acceptable, provided the static analysis tool is listed in the software development plan',
-      'Acceptable for Class B but not Class C',
-      'Not acceptable — detailed design must describe intended behaviour before implementation, not document what was built after the fact',
-      'Acceptable if the output is reviewed and approved by a second engineer'
-    ],
-    correct: 2,
-    explanation: '§5.4 detailed design must be specified before implementation begins — it is the basis for implementation, not a retrospective description of it. Extracting documentation from existing code reverses the required sequence, does not demonstrate planned design intent, and has been highlighted in the IEC 62304 2nd edition design specification as a known misuse that the revision aims to address.'
-  },
-  {
-    q: 'Under §6, a change request is received to add a new clinical feature to released Class C software. Which development activities are required?',
-    options: [
-      'The maintenance process only — new features are categorised as maintenance activities',
-      'A brief impact assessment followed by direct implementation and regression testing',
-      'The full §5 development activities appropriate for the safety class of the affected software items, including requirements, design, testing, and risk management',
-      'The change must be rejected — new features require a new regulatory submission before implementation'
-    ],
-    correct: 2,
-    explanation: '§6 requires that changes to released software that affect safety-related software items re-apply the relevant §5 development activities at the depth appropriate for the safety class. Adding new features is not a pure maintenance activity — it requires requirements analysis, design, risk management, and testing to be applied to the new and affected software items.'
-  },
-  {
-    q: 'Which of the following correctly defines "legacy software" as introduced in §4.4 (Amendment 1)?',
-    options: [
-      'Software that was developed more than 10 years before the current review',
-      'Software that was deployed and in use before IEC 62304 was applied to it',
-      'Software that was developed for a previous device version and reused without modification',
-      'Software that has not been validated for the current intended use of the device'
-    ],
-    correct: 1,
-    explanation: '§4.4 (added in Amendment 1) defines legacy software as software already deployed and in use before IEC 62304 was applied. Such software can be brought into compliance by documenting its development history, evaluating it against the standard\'s requirements, and addressing identified gaps — full retrospective development documentation is not required.'
-  },
-  {
-    q: 'Under §9, a problem is investigated and determined not to be a software defect. What does IEC 62304 require?',
-    options: [
-      'Nothing — only confirmed defects need to be formally recorded',
-      'Record the problem and the rationale for the "not a defect" conclusion',
-      'Record it only if found in a safety-related software item',
-      'Escalate to the risk management team for independent review'
-    ],
-    correct: 1,
-    explanation: 'Clause 9 requires all problems to be logged, including those ultimately determined not to be defects. The record must include the rationale for closure. Undocumented investigations — even for non-defects — are a common critical finding during regulatory audits because they leave gaps in the objective evidence trail.'
-  },
-  {
-    q: 'A bidirectional traceability matrix is required under IEC 62304. What must it trace in both directions?',
-    options: [
-      'Source code commits to developer names, and developer names to their qualifications',
-      'Software requirements to system requirements, and software requirements to test cases',
-      'Risk control measures to test cases only',
-      'Software items to their assigned safety class, and safety classes to the risk management file'
-    ],
-    correct: 1,
-    explanation: '§5.2 and §5.7 together require bidirectional traceability: each software requirement must trace up to a system requirement (ensuring nothing is implemented without a system-level justification) and down to a test case (ensuring everything required is tested). Gaps in either direction are a common finding in technical file reviews.'
-  }
-];
-
-// Returns the appropriate question set based on the training level stored in localStorage.
-function getQuestions() {
-  return localStorage.getItem('62304_trainingLevel') === 'advanced' ? advancedQuestions : introQuestions;
-}
+// Minimum time the "Loading questions" state stays visible, to avoid a
+// flicker on fast connections. Same reasoning as in learn.js.
+const MIN_LOADING_MS = 250;
 
 // ---------- STATE ----------
 // One object holds everything the quiz needs to track. Keeping it together
@@ -284,6 +46,91 @@ const quizState = {
   timeLeft: 30,           // seconds remaining for the current question
   participantName: ''     // entered on the start screen; used on the certificate
 };
+
+// Holds the Promise for the question data — not the data itself.
+//
+// This is the idea that makes prefetching work, and it surprises most people
+// learning async for the first time: A PROMISE IS A VALUE. You can store it
+// in a variable, pass it to a function, and await it later — or await it more
+// than once. A Promise runs its work only once and then remembers the
+// outcome, so awaiting an already-settled Promise returns the remembered
+// result instantly rather than repeating the request.
+let questionsPromise = null;
+
+// Reads the training level the user selected on the Learn page.
+// localStorage is the bridge between the two separate HTML pages.
+// Anything other than 'advanced' (including a first visit, where the key
+// does not exist at all) falls back to the introductory set.
+function getLevel() {
+  return localStorage.getItem('62304_trainingLevel') === 'advanced' ? 'advanced' : 'intro';
+}
+
+// ---------- LOAD ----------
+// Fetches and validates one question set. Errors are deliberately allowed to
+// propagate to whoever awaits this — see the note in async-utils.js about not
+// catching errors where you cannot act on them.
+async function loadQuestions(level) {
+  // Promise.all runs the fetch and the anti-flicker delay CONCURRENTLY, so
+  // the total wait is the longer of the two rather than the sum of both.
+  // Array destructuring on the left picks out the fetch result (element 0);
+  // the delay's result is not useful, so it is left unnamed.
+  const [questions] = await Promise.all([
+    fetchJSON(QUESTION_URLS[level]),
+    delay(MIN_LOADING_MS)
+  ]);
+
+  // Validate at the boundary, where external data enters the program, so
+  // that the rest of the quiz can trust its input completely. A malformed
+  // question would otherwise fail much later and much more confusingly —
+  // a missing `correct` index, for instance, would silently mark every
+  // answer wrong instead of reporting a data problem.
+  if (!Array.isArray(questions) || questions.length === 0) {
+    throw new Error('The question file did not contain any questions.');
+  }
+
+  questions.forEach(function (q, i) {
+    const validIndex = typeof q.correct === 'number' && q.correct >= 0 && q.correct < (q.options || []).length;
+    if (!q.q || !Array.isArray(q.options) || !validIndex) {
+      throw new Error('Question ' + (i + 1) + ' in the question file is incomplete or malformed.');
+    }
+  });
+
+  return questions;
+}
+
+// Starts (or restarts) the background request and stores the Promise.
+// Called once on page load, and again by the retry button after a failure.
+function startQuestionsLoad() {
+  questionsPromise = loadQuestions(getLevel());
+
+  // This no-op .catch() looks pointless but prevents a real annoyance.
+  //
+  // If a Promise rejects and nothing is listening at that moment, the
+  // browser logs "Uncaught (in promise)" to the console. Here the rejection
+  // could easily happen while the user is still typing their name — long
+  // before startQuiz() awaits it — so there would be no handler attached
+  // yet, and the console would fill with a scary-looking warning.
+  //
+  // Attaching an empty catch marks the rejection as acknowledged. It does
+  // NOT swallow the error: .catch() returns a NEW Promise, while
+  // questionsPromise itself stays rejected, so the `await` in startQuiz()
+  // still throws and still shows the error panel. All this line removes is
+  // the spurious console warning.
+  questionsPromise.catch(function () { /* handled later, in startQuiz() */ });
+
+  // When the prefetch succeeds, update the question counts shown on the
+  // start screen so the wording always matches the actual data rather than
+  // a number hardcoded in the HTML.
+  questionsPromise
+    .then(function (questions) {
+      document.querySelectorAll('.js-question-count').forEach(function (el) {
+        el.textContent = questions.length;
+      });
+    })
+    .catch(function () { /* start screen keeps its default wording */ });
+
+  return questionsPromise;
+}
 
 // ---------- SHUFFLE ----------
 // Fisher-Yates shuffle: walks backwards through a copy of the array,
@@ -310,12 +157,21 @@ function showQuizScreen(id) {
 }
 
 // ---------- START ----------
-function startQuiz() {
-  // Require a name before starting — it appears on the certificate.
+// `async` because it awaits the question data before the quiz can begin.
+// An async function used as an event handler is perfectly normal: the browser
+// ignores the Promise it returns, which is fine as long as the function
+// handles its own errors — which this one does, in the try/catch below.
+async function startQuiz() {
   const nameInput = document.getElementById('participant-name');
   const nameError = document.getElementById('participant-name-error');
-  const name = nameInput ? nameInput.value.trim() : '';
+  const beginBtn = document.getElementById('begin-quiz');
+  const loadErrorEl = document.getElementById('questions-error');
+  const loadErrorMsgEl = document.getElementById('questions-error-message');
 
+  // Require a name before starting — it appears on the certificate.
+  // Validation runs FIRST, before any awaiting, so an empty name is rejected
+  // instantly rather than after a needless wait.
+  const name = nameInput ? nameInput.value.trim() : '';
   if (!name) {
     if (nameError) nameError.textContent = 'Please enter your name to begin.';
     if (nameInput) nameInput.focus();
@@ -324,14 +180,64 @@ function startQuiz() {
   if (nameError) nameError.textContent = '';
 
   quizState.participantName = name;
-  // getQuestions() picks introQuestions or advancedQuestions based on localStorage.
-  quizState.shuffled = shuffleArray(getQuestions());
-  quizState.currentIndex = 0;
-  quizState.score = 0;
-  quizState.answered = false;
 
-  showQuizScreen('quiz-active');
-  showQuestion();
+  // ---- STATE 1: LOADING ----
+  // Disable the button while we wait. This is not decoration: without it,
+  // an impatient double-click would run startQuiz() twice concurrently and
+  // start two quizzes on top of each other. Disabling the control that
+  // triggered an async operation is the simplest way to prevent that whole
+  // class of bug.
+  //
+  // aria-busy tells assistive technology that this control is mid-operation,
+  // so a screen reader user gets the same information the spinner conveys.
+  if (beginBtn) {
+    beginBtn.disabled = true;
+    beginBtn.setAttribute('aria-busy', 'true');
+    beginBtn.textContent = 'Loading questions…';
+  }
+  if (loadErrorEl) loadErrorEl.classList.add('hidden');
+
+  try {
+    // If the prefetch has already finished, this resolves immediately with
+    // the remembered result — no second network request. If it is still in
+    // flight, we simply join the wait already in progress.
+    //
+    // The `|| startQuestionsLoad()` guard covers the unlikely case where no
+    // load has been started yet.
+    const questions = await (questionsPromise || startQuestionsLoad());
+
+    // ---- STATE 2: SUCCESS ----
+    quizState.shuffled = shuffleArray(questions);
+    quizState.currentIndex = 0;
+    quizState.score = 0;
+    quizState.answered = false;
+
+    // Keep the results screen's "out of N" in step with the real count.
+    const scoreTotalEl = document.getElementById('score-total');
+    if (scoreTotalEl) scoreTotalEl.textContent = 'out of ' + questions.length;
+
+    showQuizScreen('quiz-active');
+    showQuestion();
+
+  } catch (error) {
+    // ---- STATE 3: FAILURE ----
+    // One catch covers every way the load could have failed: no network,
+    // a 404, malformed JSON, or a question that failed validation.
+    if (loadErrorEl) loadErrorEl.classList.remove('hidden');
+    if (loadErrorMsgEl) loadErrorMsgEl.textContent = error.message;
+    console.error('Failed to load quiz questions:', error);
+
+  } finally {
+    // `finally` runs whether the try succeeded or threw. Restoring the button
+    // here rather than in both branches means it can never be left stuck
+    // reading "Loading questions…" — the most common bug in hand-written
+    // async UI code, and exactly what finally exists to prevent.
+    if (beginBtn) {
+      beginBtn.disabled = false;
+      beginBtn.removeAttribute('aria-busy');
+      beginBtn.textContent = 'Begin Assessment';
+    }
+  }
 }
 
 // ---------- SHOW QUESTION ----------
@@ -417,6 +323,11 @@ function showFeedback(result, explanation) {
 }
 
 // ---------- NEXT QUESTION ----------
+// Deliberately NOT automated with a timer. It would be easy to write
+// `await delay(2000); nextQuestion();` after showing the feedback, but a
+// fixed pause takes control away from anyone who reads slowly, uses a screen
+// reader, or wants to sit and think about the explanation. Async tools should
+// remove waiting, not impose it.
 function nextQuestion() {
   quizState.currentIndex++;
 
@@ -479,10 +390,8 @@ function populateCertificate(score, total, pct) {
   });
 
   // Read the training level that was saved to localStorage on the Learn page.
-  // The Learn and Quiz pages are separate HTML files; localStorage is the
-  // bridge that carries the user's choice between them.
-  // If the key is absent (user never visited the Learn page), we default to Introductory.
-  const isAdvanced   = localStorage.getItem('62304_trainingLevel') === 'advanced';
+  // If the key is absent (user never visited the Learn page), default to Introductory.
+  const isAdvanced   = getLevel() === 'advanced';
   const levelLabel   = isAdvanced ? 'Advanced Level' : 'Introductory Level';
   const levelDesc    = isAdvanced
     ? 'An in-depth study of IEC 62304:2006+AMD1:2015'
@@ -506,6 +415,44 @@ function populateCertificate(score, total, pct) {
   if (standardEl)   standardEl.innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
 }
 
+// ---------- DOWNLOAD CERTIFICATE ----------
+// A small but genuine use of `await delay()` — and a different reason from
+// the anti-flicker pauses above.
+//
+// window.print() is SYNCHRONOUS and BLOCKING: it opens the print dialog and
+// stops JavaScript, rendering, and everything else until the user dismisses
+// it. So setting the button text and immediately calling window.print() on
+// the next line would be a race the button usually loses — the browser never
+// gets a chance to paint "Preparing certificate…" before being frozen, and
+// the user sees nothing happen until the dialog appears.
+//
+// `await delay(50)` yields control back to the browser for a moment. That is
+// long enough for it to paint the updated label, after which blocking is
+// harmless. This "yield so the browser can paint before blocking" trick is
+// worth remembering — it applies to any long synchronous operation.
+async function downloadCertificate() {
+  const certBtn = document.getElementById('download-cert');
+
+  if (certBtn) {
+    certBtn.disabled = true;
+    certBtn.setAttribute('aria-busy', 'true');
+    certBtn.textContent = 'Preparing certificate…';
+  }
+
+  try {
+    await delay(50); // let the browser paint the label above
+    window.print();  // blocks here until the print dialog is dismissed
+  } finally {
+    // finally guarantees the button is restored even if print() throws
+    // (some browsers and kiosk configurations block printing entirely).
+    if (certBtn) {
+      certBtn.disabled = false;
+      certBtn.removeAttribute('aria-busy');
+      certBtn.textContent = 'Download Certificate';
+    }
+  }
+}
+
 // ---------- RESET ----------
 function resetQuiz() {
   clearTimer();
@@ -518,6 +465,13 @@ function resetQuiz() {
 // ---------- TIMER ----------
 // setInterval calls its callback every 1000ms (1 second) and returns an ID.
 // We store that ID in quizState.timerId so we can cancel it with clearInterval.
+//
+// This is the OLDER callback style of asynchronous code, kept here because it
+// genuinely suits the job: a repeating tick with no result to return. Compare
+// it with delay() in async-utils.js, which wraps the one-shot setTimeout in a
+// Promise so it can be awaited. Promises represent a single eventual value, so
+// they are a poor fit for something that fires over and over — a callback is
+// the right tool for a recurring event.
 function startTimer() {
   quizState.timeLeft = 30;
   updateTimerDisplay();
@@ -596,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // which question set they are about to sit before they begin.
   const levelNotice = document.getElementById('quiz-level-notice');
   if (levelNotice) {
-    const isAdvanced = localStorage.getItem('62304_trainingLevel') === 'advanced';
+    const isAdvanced = getLevel() === 'advanced';
     levelNotice.innerHTML = isAdvanced
       ? '<span class="level-notice-badge level-notice-advanced">Advanced assessment</span> Questions are clause-referenced and test in-depth knowledge of IEC 62304:2006+AMD1:2015.'
       : '<span class="level-notice-badge level-notice-intro">Introductory assessment</span> Questions cover the core concepts of IEC 62304. Switch to Advanced on the <a href="learn.html">Learn page</a> for a more challenging assessment.';
@@ -605,9 +559,22 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('begin-quiz').addEventListener('click', startQuiz);
   document.getElementById('next-question').addEventListener('click', nextQuestion);
   document.getElementById('retry-quiz').addEventListener('click', resetQuiz);
-  document.getElementById('download-cert').addEventListener('click', function () {
-    // window.print() triggers the browser print dialog. With @media print CSS
-    // hiding everything except #certificate, the user saves it as a PDF.
-    window.print();
-  });
+  document.getElementById('download-cert').addEventListener('click', downloadCertificate);
+
+  // RETRY — re-attempt a failed question load. This starts a genuinely new
+  // request: the old Promise is permanently rejected and, once settled, a
+  // Promise can never change state, so retrying means creating a new one.
+  const retryBtn = document.getElementById('questions-retry');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', function () {
+      document.getElementById('questions-error').classList.add('hidden');
+      startQuestionsLoad(); // replaces questionsPromise with a fresh attempt
+      startQuiz();          // and immediately try to begin again
+    });
+  }
+
+  // PREFETCH — start downloading the question set now, while the learner is
+  // still reading the instructions and typing their name. Nothing awaits this
+  // yet; startQuiz() awaits the stored Promise later.
+  startQuestionsLoad();
 });

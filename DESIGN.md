@@ -28,13 +28,24 @@ contact.html    Contact — feedback form
 ```
 
 Shared across all pages:
-- `style.css`   — all visual styling
-- `nav.js`      — sets the active state on the current page's nav link
+- `style.css`      — all visual styling
+- `nav.js`         — sets the active state on the current page's nav link
+- `async-utils.js` — shared asynchronous helpers (`delay()`, `fetchJSON()`)
 
 Page-specific JavaScript:
 - `learn.js`
 - `quiz.js`
 - `contact.js`
+
+Content data, loaded at runtime rather than hardcoded in the scripts:
+```
+data/phases.json               13 lifecycle process areas
+data/questions-intro.json      15 introductory quiz questions
+data/questions-advanced.json   15 advanced quiz questions
+```
+
+Because content is fetched over the network, the site must be served over HTTP;
+opening the HTML files directly from disk no longer works. See the README.
 
 ---
 
@@ -71,7 +82,11 @@ Page-specific JavaScript:
 3. **Safety class filter** — buttons filter the visible cards by Class A, B, or C. Class C requires all 13 process areas; Class A requires only a subset. Implemented with `classList.toggle('hidden')`.
 4. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
 
-**Data model:** All 13 topics are defined as an array of objects in `learn.js`. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`['A','B','C']`, `['B','C']`, or `['C']`). The DOM is built entirely from this array using `createElement` and `innerHTML`.
+**Data model:** All 13 topics live in `data/phases.json` and are fetched when the page loads. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`["A","B","C"]`, `["B","C"]`, or `["C"]`). The DOM is built entirely from this data using `createElement` and `innerHTML`.
+
+The topics were originally a hardcoded array inside `learn.js`. They were moved out for two reasons: content and display logic are separate concerns, so a wording correction should not risk a JavaScript syntax error that breaks the page; and treating the content as a genuine external resource forces the page to handle the loading and failure states that any real data source has.
+
+**Asynchronous behaviour:** `initPhases()` implements the three states explicitly — a spinner while fetching, the card grid on success, and an error panel with a **Try again** button on failure. The filter and level controls are hidden until the data arrives, since offering a filter before there is anything to filter would mislead the user. Event listeners are attached *before* the request starts, so the page is interactive during the load rather than after it; event delegation on the grid container is what makes this possible, because the listener can be attached before any cards exist.
 
 ---
 
@@ -89,7 +104,11 @@ Page-specific JavaScript:
 2. **Countdown timer** — a 30-second `setInterval` per question. The timer turns amber at 10 seconds and red at 5. If it expires, the correct answer is revealed automatically and the question is marked wrong.
 3. **Results rendering** — the final screen is populated dynamically from the quiz state object, showing personalised pass/fail messaging and a score breakdown grid.
 
-**Data model:** Two arrays of 15 question objects in `quiz.js` — `introQuestions` (overview-level) and `advancedQuestions` (clause-referenced, requiring in-depth knowledge of specific §references and Amendment 1 changes). Each object holds the question string, four option strings, the index of the correct answer (0-based), and an explanation. `getQuestions()` reads the training level from `localStorage` and returns the appropriate array. The selected array is shuffled with a Fisher-Yates shuffle on each attempt so questions appear in a different order every time.
+**Data model:** Two files of 15 question objects each — `data/questions-intro.json` (overview-level) and `data/questions-advanced.json` (clause-referenced, requiring in-depth knowledge of specific §references and Amendment 1 changes). Each object holds the question string, four option strings, the index of the correct answer (0-based), and an explanation. `getLevel()` reads the training level from `localStorage` and only the matching file is downloaded — the previous version defined both arrays on every page load and discarded one, making every visitor parse 30 questions to sit 15. The loaded array is shuffled with a Fisher-Yates shuffle on each attempt so questions appear in a different order every time.
+
+Each question is validated on load (question text present, options an array, `correct` within range). A malformed question is reported by number rather than failing silently — an out-of-range `correct` index would otherwise mark every answer wrong with no indication why.
+
+**Asynchronous behaviour:** The question file is *prefetched* — the request starts on page load while the learner is still reading the instructions, and the resulting Promise is stored in `questionsPromise`. `startQuiz()` awaits that stored Promise on click, so the data is normally already there and the click feels instant; a learner who clicks immediately sees the button switch to "Loading questions…" and joins the wait already in progress. Name validation runs before any awaiting, so an empty name is rejected instantly with no network activity. The Begin button is disabled during the load to prevent a double-click starting two quizzes at once, and restored in a `finally` block so it can never be left stuck.
 
 **Pass mark:** 80% (12 of 15 correct). Passing earns a certificate populated with the participant's name, score, date, and the training level (Introductory or Advanced) read from `localStorage`. A level notice on the start screen shows the learner which question set they are about to sit, with a link to the Learn page if they want to switch level before starting.
 
@@ -112,9 +131,19 @@ Page-specific JavaScript:
 **Behaviour:**
 - Each field validates on `blur` (when focus leaves the field) to give inline feedback without waiting for submission
 - On submit, all three required fields are re-validated before the form is accepted
-- `e.preventDefault()` prevents any page reload
+- `e.preventDefault()` prevents any page reload — and is called *before* the first `await`, since the browser commits to its default behaviour as soon as the handler yields control
 - Errors display in `<span role="alert">` elements beneath each field
 - "Send another message" resets the form and restores it
+
+**Asynchronous submission:** Validation is synchronous (instant local computation, no waiting), so an invalid form is rejected with no network activity at all. A valid form is POSTed with `fetch`, wrapped in `try`/`catch`/`finally`: the button is disabled and relabelled "Sending…" during the request, a failure leaves the form on screen with the user's text intact so they can retry, and `finally` restores the button on every path. `AbortController` enforces a 10-second timeout, because `fetch` has none of its own and a server that accepts a connection but never replies would otherwise leave the button stuck indefinitely.
+
+**Back-end:** Submissions POST to a Formspree endpoint, so messages are genuinely delivered by email. Formspree was chosen because it requires no server-side code, which keeps the project deployable as static files on GitHub Pages. The endpoint URL is public by design — it is a write-only drop box that accepts submissions but cannot be read from.
+
+**Server error reporting:** `buildSubmissionError()` reads Formspree's JSON error body rather than reporting a bare status code, and routes field-level messages back to the individual inputs via the same `showFieldError()` used by the client-side validators. Client-side validation is treated as a convenience that catches mistakes early, not as a guarantee — the server has information the browser does not (blocklists, bouncing domains, spam scoring) and gets the final say, so the form must be able to display errors that arrive after submission. Responses with no usable JSON body fall back to messages chosen by status code, since 429 (slow down), 403/404 (misconfigured) and 5xx (retry later) each imply a different fix.
+
+**Spam and quota protection:** A `_gotcha` honeypot field is hidden from real users with `display:none`, `tabindex="-1"` and `aria-hidden="true"` — invisible to keyboard and screen reader users as well as sighted ones. Bots read the HTML and fill it in; Formspree discards those submissions. This protects the free plan's monthly submission limit. A `_subject` field sets the notification email subject so messages are identifiable in an inbox.
+
+**Demo mode:** Blanking `CONTACT_ENDPOINT` switches submission to a simulated awaited delay, for working on the form locally without spending real submissions. The confirmation wording changes to match — it reports the message as *validated* and states that nothing was transmitted, rather than claiming "Message Sent!" untruthfully.
 
 ---
 
@@ -151,12 +180,20 @@ Three breakpoints:
 
 Each page script is self-contained. There is no shared global state between pages. Functions are scoped by file. Event listeners are attached inside `DOMContentLoaded` callbacks so the DOM is always ready before manipulation begins.
 
+All pages load `nav.js`, then `async-utils.js`, then their page script, each marked `defer`. Deferred scripts run after the HTML is parsed and in document order, which guarantees the shared helpers are defined before any page script calls them, without blocking rendering.
+
 Key patterns used:
 - **Event delegation** (`learn.js`) — one `click` listener on the card grid handles expand, collapse, and mark-as-studied for all 13 cards
 - **In-place DOM update** (`learn.js`) — the level toggle replaces only the `<li>` bullet elements inside each card's existing `<ul>`, rather than rebuilding the whole grid, so expanded/collapsed state and studied progress are preserved across level changes
 - **`localStorage` for cross-page state** (`learn.js` / `quiz.js`) — the training level chosen on the Learn page is saved to `localStorage` so the Quiz page can read it to select the correct question set, display the level notice on the start screen, and populate the certificate; the two pages share no JavaScript and communicate only through this browser storage key
 - **State object** (`quiz.js`) — all quiz state (current index, score, timer ID, time remaining) is held in one `quizState` object, making it easy to reset cleanly
 - **Validator functions** (`contact.js`) — each field has its own pure validation function that takes a string and returns an error message or an empty string. This keeps validation logic separate from DOM interaction
+- **Async data loading** (`learn.js` / `quiz.js`) — content is fetched from JSON at runtime rather than hardcoded, with all three states of an asynchronous operation handled explicitly: loading, success, and failure with a retry option
+- **Shared async helpers** (`async-utils.js`) — `delay()` promisifies `setTimeout`; `fetchJSON()` centralises the fetch-and-parse sequence and, critically, the `response.ok` check that `fetch` does not perform itself. Both translate low-level failures into messages a user can act on, including detecting the `file://` case and naming the fix
+- **Validation at the boundary** (`loadPhases`, `loadQuestions`) — external data is checked for shape as it enters the program, so the rest of the code can trust it completely and failures are reported where their cause is obvious
+- **Errors raised where they occur, handled where they can be acted on** — the loader functions deliberately contain no `try`/`catch`; they let errors propagate to the caller, which is the only place that knows where on the page to display a message
+- **`finally` for cleanup** (`startQuiz`, form submit, `downloadCertificate`) — button state is restored on every path, so a control can never be left permanently disabled by an unexpected failure
+- **Prefetching** (`quiz.js`) — a Promise is stored in a variable when the page loads and awaited later on click, exploiting the fact that a settled Promise returns its remembered result instantly rather than repeating the work
 
 ---
 

@@ -1,0 +1,92 @@
+[
+  {
+    "q": "What are the three software safety classes defined in IEC 62304?",
+    "options": ["Class 1, Class 2, Class 3", "Class A, Class B, Class C", "Low, Medium, High", "Minor, Serious, Critical"],
+    "correct": 1,
+    "explanation": "IEC 62304 defines Class A (no injury possible), Class B (non-serious injury possible), and Class C (serious injury or death possible), based on the consequence if the software were to fail."
+  },
+  {
+    "q": "Which clause of IEC 62304 covers software development planning?",
+    "options": ["Clause 4", "Clause 5.1", "Clause 6", "Clause 8"],
+    "correct": 1,
+    "explanation": "Clause 5.1 requires the manufacturer to establish a software development plan that defines the lifecycle model, activities, deliverables, and standards to be used."
+  },
+  {
+    "q": "What does the acronym SOUP stand for in IEC 62304?",
+    "options": ["Software of Unknown Provenance", "System of Unverified Programming", "Source of Unqualified Products", "Software of Undefined Process"],
+    "correct": 0,
+    "explanation": "SOUP is Software of Unknown Provenance — pre-existing software not developed under IEC 62304, such as open-source libraries, operating systems, or commercial off-the-shelf components."
+  },
+  {
+    "q": "Detailed design documentation (Clause 5.4) is mandatory for which safety class?",
+    "options": ["Class A only", "Class B and C", "Class C only", "All classes"],
+    "correct": 2,
+    "explanation": "Clause 5.4 (Software Detailed Design) is only required for Class C software. Classes A and B require architectural design under Clause 5.3 but not unit-level detailed design documentation."
+  },
+  {
+    "q": "Which international standard does IEC 62304 Clause 7 link software risk management to?",
+    "options": ["ISO 13485", "ISO 14971", "IEC 60601-1", "ISO 9001"],
+    "correct": 1,
+    "explanation": "Clause 7 integrates with ISO 14971, the risk management standard for medical devices. Software risk control measures must be evaluated within the broader device risk management framework."
+  },
+  {
+    "q": "What is the primary purpose of software configuration management under Clause 8?",
+    "options": ["To plan software testing activities", "To control and track software items throughout the lifecycle", "To document software risk mitigations", "To define the software release process"],
+    "correct": 1,
+    "explanation": "Configuration management ensures all software items and their versions are uniquely identified, controlled, and traceable — critical for reproducibility and regulatory audit trails."
+  },
+  {
+    "q": "If a software failure could contribute to serious injury or death, which safety class applies?",
+    "options": ["Class A", "Class B", "Class C", "There is no Class D"],
+    "correct": 2,
+    "explanation": "Class C applies when software failure can contribute to serious injury or death. Class A means no injury is possible; Class B means only non-serious injury is possible. There is no Class D in IEC 62304."
+  },
+  {
+    "q": "Which clause covers the software maintenance process in IEC 62304?",
+    "options": ["Clause 5", "Clause 6", "Clause 7", "Clause 9"],
+    "correct": 1,
+    "explanation": "Clause 6 covers the Software Maintenance Process, governing how modifications, corrections, and enhancements to released software are planned and controlled."
+  },
+  {
+    "q": "Integration test plans and records are explicitly required for which safety classes?",
+    "options": ["Class A only", "Class A and B", "Class B and C", "All classes equally"],
+    "correct": 2,
+    "explanation": "Clause 5.6 requires integration test plans and results for Class B and C software. Class A has lighter requirements for integration activities."
+  },
+  {
+    "q": "Before software can be released under Clause 5.8, what must the manufacturer verify?",
+    "options": ["Marketing and commercial approval", "All planned development activities have been completed", "FDA 510(k) clearance has been received", "CE marking has been obtained"],
+    "correct": 1,
+    "explanation": "Clause 5.8 requires objective evidence that all planned software development activities are complete and all known anomalies have been evaluated before the software is released."
+  },
+  {
+    "q": "When a change request is received for released software, what is the first required action?",
+    "options": ["Immediately implement the fix and retest", "Analyse the change for potential safety impact", "Archive the current released version", "Update the software requirements specification"],
+    "correct": 1,
+    "explanation": "Under Clause 6, every change to released software must first be analysed to determine its impact on safety and the scope of additional verification and validation required."
+  },
+  {
+    "q": "Software requirements under Clause 5.2 must be traceable to what?",
+    "options": ["Business requirements and stakeholder requests", "The system requirements specification", "User stories and acceptance criteria", "The device risk register only"],
+    "correct": 1,
+    "explanation": "Clause 5.2 requires software requirements to be traceable to the system requirements specification, ensuring every device-level requirement has been addressed by software requirements."
+  },
+  {
+    "q": "What minimum information must be documented when a manufacturer uses SOUP?",
+    "options": ["The SOUP's complete source code", "The title, manufacturer, and version of the SOUP", "The SOUP's full validation test history", "The SOUP's patent and licensing status"],
+    "correct": 1,
+    "explanation": "IEC 62304 requires that SOUP be identified by its title, manufacturer, and version so it can be tracked as a configuration item and its known anomalies can be evaluated."
+  },
+  {
+    "q": "Which class of medical device software has the most comprehensive IEC 62304 requirements?",
+    "options": ["Class A", "Class B", "Class C", "All classes have identical requirements"],
+    "correct": 2,
+    "explanation": "Class C imposes the most stringent requirements, including detailed design documentation, rigorous unit testing, and complete traceability — reflecting the highest potential severity of harm."
+  },
+  {
+    "q": "What must a problem resolution process under Clause 9 include?",
+    "options": ["Immediate product recall procedures", "Analysis of problems for safety impact and documented resolution", "Customer compensation frameworks", "Regulatory filing procedures only"],
+    "correct": 1,
+    "explanation": "Clause 9 requires that problems be evaluated for safety impact, investigated for root cause, resolved, verified, and documented — with records maintained throughout the process."
+  }
+]

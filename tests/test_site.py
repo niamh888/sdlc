@@ -402,6 +402,69 @@ def test_learn(browser, base):
     R.check('All filter restores every card',
             pg.locator('.phase-card:not(.hidden)').count() == 13)
 
+    # ---- FILTER NOTICE ----
+    # Expected counts are derived from the JSON rather than hardcoded, so the
+    # test stays correct if a topic is added or its safety classes change.
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        topics = json.load(f)
+
+    notice = pg.locator('#filter-notice')
+    pg.locator('.filter-btn[data-filter="all"]').click()
+    R.check('filter notice hidden when showing all', notice.is_hidden())
+
+    for cls in ['A', 'B', 'C']:
+        expected_omitted = [p for p in topics if cls not in p['classes']]
+        expected_shown = [p for p in topics if cls in p['classes']]
+        pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
+        pg.wait_for_timeout(200)
+        R.check('Class %s shows the filter notice' % cls, notice.is_visible())
+        text = norm(notice.inner_text())
+        R.check('Class %s notice names the class' % cls,
+                'class ' + cls.lower() in text, text[:60])
+
+        if expected_omitted:
+            R.check('Class %s notice states the shown/total count' % cls,
+                    '%d of %d' % (len(expected_shown), len(topics)) in text, text[:110])
+            for p in expected_omitted:
+                R.check('Class %s notice lists %s as omitted' % (cls, p['clause']),
+                        norm(p['clause']) in text and norm(p['title']) in text,
+                        p['clause'])
+            # Nothing that IS shown should be listed as omitted.
+            listed = norm(pg.locator('.filter-notice-list').inner_text())
+            wrongly = [p['title'] for p in expected_shown if norm(p['title']) in listed]
+            R.check('Class %s notice does not list applicable areas as omitted' % cls,
+                    not wrongly, wrongly)
+        else:
+            R.check('Class %s notice says nothing is omitted' % cls,
+                    'nothing is omitted' in text, text[:110])
+
+        # The regulatory caution must appear for every class, including C.
+        R.check('Class %s notice carries the ISO 14971 caution' % cls,
+                'iso 14971' in text and 're-check' in text, text[-160:])
+        R.check('Class %s caution mentions re-validating after changes' % cls,
+                'soup' in text and 'architecture' in text, text[-200:])
+
+    # Class A is the dangerous case: Clause 7 is hidden, so the notice must say
+    # explicitly that this does not mean risk management is out of scope.
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    pg.wait_for_timeout(200)
+    atext = norm(notice.inner_text())
+    R.check('Class A notice rebuts "no risk management"',
+            'does not mean risk management is out of scope' in atext, atext[:200])
+    R.check('Class A notice cites 4.3 for the classification basis',
+            '4.3' in atext, atext[:250])
+    R.check('Class A notice says the class is an output of risk analysis',
+            'output' in atext and 'risk analysis' in atext, atext[:250])
+
+    R.check('filter notice is a polite live region',
+            notice.get_attribute('role') == 'status'
+            and notice.get_attribute('aria-live') == 'polite',
+            '%s / %s' % (notice.get_attribute('role'), notice.get_attribute('aria-live')))
+
+    pg.locator('.filter-btn[data-filter="all"]').click()
+    pg.wait_for_timeout(200)
+    R.check('returning to All hides the notice again', notice.is_hidden())
+
     # progress tracker
     pg.locator('.mark-studied-btn').first.click()
     R.check('marking studied increments the count',

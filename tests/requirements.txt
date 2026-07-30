@@ -1,0 +1,12 @@
+# Test-only dependencies. The SITE ITSELF has none — it is plain HTML, CSS and
+# JavaScript with nothing to install or build. This file exists purely so the
+# test suite can be reproduced on another machine.
+#
+#   pip install -r tests/requirements.txt
+#   python -m playwright install chromium
+#   python tests/test_site.py
+#
+# Playwright drives a real browser from Python. It is the only requirement;
+# axe-core (the accessibility engine) is downloaded at run time by the script,
+# so there is nothing to vendor and nothing to keep up to date by hand.
+playwright>=1.40

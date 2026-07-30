@@ -346,6 +346,81 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ---
 
+## Testing
+
+The site ships with an automated test suite: **203 checks** covering content
+integrity, every interactive feature, the asynchronous success *and* failure
+paths, accessibility, and responsive layout.
+
+### Setup (one time)
+
+```bash
+pip install -r tests/requirements.txt
+python -m playwright install chromium
+```
+
+Playwright drives a real Chrome browser from Python. It is the only dependency,
+and it is needed **only for testing** — the site itself still has none. If you
+already have Google Chrome installed you can skip the second command; the suite
+falls back to your system Chrome automatically.
+
+### Running
+
+```bash
+python tests/test_site.py
+```
+
+That is all. The script **starts its own web server on a free port**, so you do
+not need to run `python -m http.server` first, and it shuts the server down when
+it finishes. It exits with code 0 if everything passed and 1 if anything failed,
+so it can be wired into CI later.
+
+```bash
+python tests/test_site.py --headed          # watch it run in a visible browser
+python tests/test_site.py --group quiz      # run one group only
+python tests/test_site.py --group data --group a11y   # or several
+```
+
+### What it covers
+
+| Group | Checks |
+|---|---|
+| `data` | JSON parses; 13 topics and 2×15 questions; no duplicate ids or questions; every `correct` index within range; all required fields present |
+| `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
+| `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
+| `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
+| `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data |
+| `a11y` | axe-core (WCAG 2.1 A/AA + best practice) on all five pages **and** the loading, error, mid-quiz, feedback and results states; skip link; focus indicators verified before/after; `aria-current`; `prefers-reduced-motion` |
+| `responsive` | No horizontal overflow at 1280/768/480/360px; form fields ≥16px to prevent iOS auto-zoom; tap target heights; usable at a 200% zoom equivalent |
+
+### Two things worth knowing
+
+**The contact form is never really submitted.** `contact.js` posts to a live
+Formspree endpoint, so every test intercepts requests to `formspree.io` and
+answers them locally. No test message is transmitted and none of the monthly
+submission quota is consumed.
+
+**Roughly half the checks deliberately break something** — a 404, malformed JSON,
+a timeout, a rejected submission. Error handling that has never been executed is
+not error handling, it is decoration. Testing only the happy path is the usual
+mistake, and it is why a site can work perfectly on a fast laptop and fall apart
+on hospital wifi.
+
+### What it does *not* cover
+
+Being honest about the limits matters more than a green tick:
+
+- **axe-core catches perhaps a third to a half of real accessibility problems.**
+  Zero violations is a floor, not a certificate. It cannot tell you whether
+  wording makes sense, whether a screen reader journey is coherent, or whether
+  the reading order is sensible.
+- **No real screen reader has been used.** NVDA or VoiceOver testing is manual
+  and still worth doing.
+- **One browser engine.** Chrome only; Firefox and Safari are untested.
+- **The print/PDF certificate layout is not verified** — the suite stubs
+  `window.print()` to confirm it is called, but nobody has checked how the
+  certificate actually looks on paper.
+
 ## Files
 
 | File | Purpose |
@@ -364,6 +439,8 @@ Knowing when *not* to use a tool matters as much as knowing how.
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
+| `tests/test_site.py` | Automated test suite — 203 checks; starts its own server |
+| `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |
 

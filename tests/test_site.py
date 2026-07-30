@@ -538,8 +538,11 @@ def test_quiz(browser, base):
 
     # full run, all correct → pass + certificate
     ctx, pg = new_page(browser)
+    # Stub window.print BEFORE navigating. add_init_script only affects documents
+    # loaded after it is registered, so calling it after goto() silently does
+    # nothing — and the real print dialog is a modal that would hang the run.
+    pg.add_init_script('window.print = () => { window.__printed = true; };')
     pg.goto(base + '/quiz.html')
-    pg.add_init_script('window.print = () => { window.__printed = true; };')  # never open a real dialog
     pg.fill('#participant-name', 'Ada Lovelace')
     pg.locator('#begin-quiz').click()
     pg.wait_for_selector('#quiz-active.active', timeout=10000)
@@ -747,14 +750,42 @@ def test_contact(browser, base):
     pg.fill('#email', 'grace@example.com')
     pg.select_option('#role', 'developer')
     pg.locator('#message').fill('This is a sufficiently long test message body.')
+
+    # RECORDING A TRANSIENT STATE
+    # The "Sending…" state is real but very short-lived here, because the mocked
+    # response returns instantly — so polling for it after the click is a race
+    # the test usually loses. Instead, attach a MutationObserver BEFORE clicking
+    # to record every state the button passes through. Then assert against the
+    # recording afterwards. This is deterministic: it does not matter how fast
+    # the response is, because we are reading history rather than trying to
+    # observe a moment.
+    pg.evaluate("""() => {
+        window.__btnStates = [];
+        const btn = document.getElementById('submit-message');
+        const snap = () => window.__btnStates.push({
+            disabled: btn.disabled,
+            text: btn.textContent,
+            busy: btn.getAttribute('aria-busy')
+        });
+        snap();
+        new MutationObserver(snap).observe(btn, {
+            attributes: true, childList: true, subtree: true, characterData: true
+        });
+    }""")
+
     pg.locator('#submit-message').click()
-    pg.wait_for_function("() => document.getElementById('submit-message').disabled === true",
-                         timeout=5000)
-    R.check('button disabled while sending', pg.locator('#submit-message').is_disabled())
-    R.check('button reads Sending', 'Sending' in pg.locator('#submit-message').inner_text())
-    R.check('aria-busy set while sending',
-            pg.locator('#submit-message').get_attribute('aria-busy') == 'true')
     pg.wait_for_selector('#form-success:not(.hidden)', timeout=10000)
+
+    states = pg.evaluate('() => window.__btnStates')
+    R.check('button was disabled while sending',
+            any(s['disabled'] for s in states),
+            [s['text'].strip() for s in states])
+    R.check('button read "Sending" while in flight',
+            any('Sending' in (s['text'] or '') for s in states),
+            [s['text'].strip() for s in states])
+    R.check('aria-busy was set while sending',
+            any(s['busy'] == 'true' for s in states),
+            [s['busy'] for s in states])
     R.check('POST used', captured.get('method') == 'POST', captured.get('method'))
     R.check('Accept: application/json sent', captured.get('accept') == 'application/json')
     for field, value in [('name', 'Grace Hopper'), ('email', 'grace@example.com'),
@@ -1039,13 +1070,42 @@ def test_a11y(browser, base, axe_src):
             pg.evaluate("() => location.hash"))
     ctx.close()
 
+    # Focus indicators, compared before and after rather than inspected once.
+    # Asserting only on the focused state is how you get a test that passes
+    # because the *default* border happens to look like a ring. Comparing the
+    # two states proves the browser actually renders something different, which
+    # is what a keyboard user relies on to know where they are.
+    #
+    # Note the deliberate wait: the inputs transition border-color and background
+    # over 200ms, so reading immediately after focusing catches the old values
+    # mid-animation and understates the change.
     ctx, pg = new_page(browser)
+    stub_formspree(pg)
     pg.goto(base + '/contact.html')
-    pg.locator('#name').focus()
-    ring = pg.evaluate("""() => { const s = getComputedStyle(document.activeElement);
-        return s.outlineStyle + '|' + s.borderColor + '|' + s.boxShadow; }""")
-    R.check('focused input shows a visible indicator',
-            'none' not in ring.split('|')[0] or 'rgb' in ring, ring[:70])
+    probe = """(sel) => { const s = getComputedStyle(document.querySelector(sel));
+        return [s.outlineStyle, s.outlineWidth, s.outlineColor,
+                s.borderColor, s.backgroundColor, s.boxShadow].join(' | '); }"""
+    for sel, name in [('#name', 'text input'), ('#message', 'textarea'),
+                      ('#submit-message', 'submit button')]:
+        before = pg.evaluate(probe, sel)
+        pg.locator(sel).focus()
+        pg.wait_for_timeout(300)  # let the CSS transition finish
+        after = pg.evaluate(probe, sel)
+        R.check('%s changes appearance when focused' % name, before != after,
+                'before: %s / after: %s' % (before[:45], after[:45]))
+        R.check('%s focus indicator is an outline, not just a colour shift' % name,
+                after.split(' | ')[0] != 'none', after[:45])
+    ctx.close()
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    before = pg.evaluate(probe, '.phase-header')
+    pg.evaluate("() => document.querySelector('.phase-header').focus()")
+    pg.wait_for_timeout(300)
+    R.check('topic card header shows a focus ring',
+            pg.evaluate(probe, '.phase-header') != before,
+            pg.evaluate(probe, '.phase-header')[:60])
     ctx.close()
 
     ctx, pg = new_page(browser)

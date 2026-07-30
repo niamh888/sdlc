@@ -241,6 +241,18 @@ Each question is validated on load (question text present, options an array, `co
 
 ---
 
+### Content provenance and accuracy
+
+**Two placements, because they answer different questions.** "Where did this claim come from?" has to be answered next to the claim; "what is this site's relationship to the standard?" belongs in one place, in full.
+
+The Edition 2 notice on the Learn page gained a source line: IEC TC 62 work programme and Edition 2 committee drafts, a review date, and an instruction to confirm the current stage with IEC. The date is marked up as `<time datetime="2026-07-30">` so it is machine-readable and can be asserted by a test rather than parsed out of prose. **The date is the load-bearing part.** The notice's four bullets about Edition 2 were already correctly hedged as *proposed*, but with no date on them a reader in 2028 has no way to tell whether they describe the current draft or a superseded one. A dated claim can be judged stale; an undated one just becomes quietly wrong, which is the same failure mode as the Clause 7 mapping — plausible, unchallenged, and incorrect.
+
+The full statement lives on the privacy page under its own `#content-sources` heading. A small site is better served by one footer-linked page for statements of this kind than by two, and the footer is where readers look. It is kept under a separate heading so it does not read as part of the data protection notice, and it covers: the licensed copy of IEC 62304:2006+AMD1:2015 the content is based on, and that the standard's text is **not** reproduced; Table A.1 as amended as the source of the class mapping; the IEC TC 62 work programme as the source of the Edition 2 status; a disclaimer that the site is not affiliated with, authorised by or endorsed by the IEC; and that where the site and the standard disagree, **the standard governs**.
+
+**One sentence of it constrains the architecture, deliberately.** The notice already claimed that *"every file the page loads comes from this site"*, and the provenance section now adds that *"your browser never contacts the IEC, or any other third party."* Both are true today. If the Edition 2 stage is ever populated live from the IEC Projects API, the fetch must therefore happen **away from the visitor's request** — a scheduled job that writes a JSON file into the repo, which the page then loads like any other static data. Calling IEC from the browser would disclose every visitor's IP address to a third party and falsify two statements in the privacy notice at once, quite apart from being impossible without publishing an API credential in client-side JavaScript. Recording the constraint here means the next person to reach for `fetch('https://api.iec.ch/...')` finds out why not before they write it.
+
+---
+
 ### Privacy (privacy.html)
 
 **Purpose:** Disclose what personal information the site handles, where it goes, and what rights visitors have. This page became necessary when the contact form was connected to a live Formspree endpoint — before that the form transmitted nothing, so there was no personal data to disclose.

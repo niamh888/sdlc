@@ -28,7 +28,7 @@ all of this, so it cannot quietly disappear in a redesign.
 - **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; study progress tracker
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
-- **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button
+- **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
 
 ## Safety Class Applicability
 
@@ -139,6 +139,34 @@ a temporary link. Two details worth knowing if you write one yourself:
 certificate print rules hid `<main>` on *every* page, so printing anything other than
 the quiz produced a blank sheet. They are now scoped to the quiz page via a `page-quiz`
 class on `<body>`, and the test suite asserts both behaviours.
+
+## Sources and Accuracy
+
+Someone may carry a conclusion from this course into a real regulatory submission,
+so where each claim comes from is recorded rather than assumed. Two places, doing
+two different jobs:
+
+- **At the point the claim is made.** The Edition 2 notice on the Learn page carries a
+  source line naming the IEC TC 62 work programme and committee drafts, a
+  **machine-readable review date** (`<time datetime="…">`), and an instruction to confirm
+  the current stage with IEC. The date is the important half: a dated claim about a
+  moving standard can be judged stale, whereas an undated one quietly becomes wrong.
+  Nobody checks a legal page to find out whether a banner is current, which is why this
+  is not only on the privacy page.
+- **In one place, in full.** A "Where this site's content comes from" section on the
+  privacy page covers the licensed copy of the standard the content is based on (and that
+  its text is *not* reproduced), Table A.1 as amended as the source of the class mapping,
+  the IEC TC 62 work programme as the source of the Edition 2 status, a disclaimer that the
+  site is **not affiliated with, authorised by, or endorsed by the IEC**, and the statement
+  that where the site and the standard disagree, **the standard governs**.
+
+**One line of it is a data protection matter and is worth keeping true.** The notice says
+your browser never contacts IEC or any other third party. That is only true because the
+site loads nothing from anywhere else — so if the Edition 2 status is ever populated from
+the IEC Projects API, the call has to happen away from the visitor's request (a scheduled
+job that commits a JSON file), not from the browser. Doing it in the browser would disclose
+every visitor's IP address to IEC and falsify two separate statements in the notice. The
+`privacy` test group asserts both.
 
 ## Data Protection
 
@@ -470,7 +498,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **375 checks** covering content
+The site ships with an automated test suite: **391 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -513,8 +541,8 @@ python tests/test_site.py --group data --group a11y   # or several
 | `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
-| `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data |
-| `version` | Version chip present and visible on all five pages; home hero states Edition 1 and that Edition 2 is not covered; Edition 2 notice is a bounded card with a labelled header strip and `role="note"` |
+| `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data; **content provenance** names the edition, the source of the class mapping and of the Edition 2 status, disclaims IEC affiliation, and states no visitor request reaches IEC |
+| `version` | Version chip present and visible on all five pages; home hero states Edition 1 and that Edition 2 is not covered; Edition 2 notice is a bounded card with a labelled header strip and `role="note"`; the notice carries a source line with a **machine-readable review date** and a link to the provenance section |
 | `a11y` | axe-core (WCAG 2.1 A/AA + best practice) on all five pages **and** the loading, error, mid-quiz, feedback and results states; skip link; focus indicators verified before/after; `aria-current`; `prefers-reduced-motion` |
 | `responsive` | No horizontal overflow at 1280/768/480/360px; form fields ≥16px to prevent iOS auto-zoom; tap target heights; usable at a 200% zoom equivalent |
 
@@ -565,7 +593,7 @@ Being honest about the limits matters more than a green tick:
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 375 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 391 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |

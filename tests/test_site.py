@@ -55,6 +55,7 @@ import http.server
 import io
 import json
 import os
+import re
 import socket
 import socketserver
 import sys
@@ -1562,6 +1563,32 @@ def test_privacy(browser, base):
     R.check('controller email is a working mailto link',
             pg.locator('a[href="mailto:niamh@stjohnlynch.com"]').count() >= 1)
     R.check('localStorage keys documented', pg.locator('.legal-table tbody tr').count() == 2)
+
+    # ---- Content provenance ----
+    # Not a data protection matter, but it lives here, and it is the statement a
+    # reader needs before carrying anything from this course into a submission.
+    R.check('notice has a content-sources section with a linkable id',
+            pg.locator('#content-sources').count() == 1)
+    src = norm(text)
+    for needle, label in [
+        ('iec 62304:2006+amd1:2015', 'names the edition the content is based on'),
+        ('is not reproduced here', 'states the standard\'s text is not reproduced'),
+        ('table a.1 as amended', 'names the source of the safety class mapping'),
+        ('iec tc 62 work programme', 'names the source of the Edition 2 status'),
+        ('not affiliated with, authorised by, or endorsed by the iec',
+         'disclaims affiliation with IEC'),
+        ('the standard governs', 'says the standard governs over this site'),
+    ]:
+        R.check('provenance %s' % label, needle in src, needle)
+    R.check('provenance section links to the IEC TC 62 work programme',
+            pg.locator('#content-sources ~ ul a[href*="iec.ch"]').count() >= 1)
+
+    # The claim on line "every file the page loads comes from this site" and this
+    # one have to stay true together. If the site is ever changed to call IEC from
+    # the browser, BOTH become false — which is exactly why the fetch happens away
+    # from the visitor's request.
+    R.check('provenance states no visitor request reaches IEC',
+            'your browser never contacts the iec' in src, src[-400:])
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
 
@@ -1662,6 +1689,28 @@ def test_version(browser, base):
             bool(banner.get_attribute('aria-label')), banner.get_attribute('aria-label'))
     R.check('close button lives in the header strip',
             pg.evaluate("() => !!document.querySelector('.update-banner-bar #update-banner-close')"))
+
+    # ---- Provenance, at the point the claim is made ----
+    # A claim about a standard still under development has to be dated, or it
+    # cannot be judged stale — it just silently becomes wrong. The date is
+    # machine-readable so it is unambiguous and can be checked here rather than
+    # parsed out of prose.
+    source = pg.locator('.update-banner-source')
+    R.check('notice carries a source line', source.count() == 1)
+    stext = norm(source.inner_text())
+    R.check('source line names IEC TC 62', 'iec tc 62' in stext, stext[:120])
+    R.check('source line gives a review date', 'reviewed' in stext, stext[:160])
+    R.check('review date is machine-readable',
+            bool(source.locator('time[datetime]').count()),
+            source.locator('time').count())
+    R.check('review date is a valid ISO date',
+            re.match(r'^\d{4}-\d{2}-\d{2}$',
+                     source.locator('time').first.get_attribute('datetime') or '') is not None,
+            source.locator('time').first.get_attribute('datetime'))
+    R.check('source line tells the reader to confirm the current stage with IEC',
+            'confirm the current stage' in stext, stext[:220])
+    R.check('source line links to the provenance section of the notice',
+            source.locator('a[href="privacy.html#content-sources"]').count() == 1)
     ctx.close()
 
     # The footer already cites the standard; keep that in step with the chip.

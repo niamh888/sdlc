@@ -469,6 +469,35 @@ a {
   text-decoration: none;
 }
 
+/* Attribution and review date. Quieter than the notice above it — it is a
+   citation, not part of the warning — but "quieter" here means smaller and
+   lighter in weight, NOT lower in contrast. --text-muted measures 5.04:1 against
+   the card's cream background, so it still clears AA. Fading a source line until
+   it is hard to read would defeat the point of having one. */
+.update-banner-source {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.update-banner-source strong {
+  color: var(--text);
+}
+
+/* A clause tag quoted from the standard, e.g. [Class A, B, C]. Monospace marks
+   it as verbatim rather than prose. */
+.legal-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  padding: 1px 5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
 /* Sits inside the coloured bar, so it is styled for a dark background. */
 .update-banner-close {
   background: rgba(255, 255, 255, 0.15);

@@ -360,7 +360,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **203 checks** covering content
+The site ships with an automated test suite: **235 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -452,7 +452,7 @@ Being honest about the limits matters more than a green tick:
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 203 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 235 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |

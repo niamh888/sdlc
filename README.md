@@ -102,6 +102,28 @@ what evidence to keep."* There are 24 of these at Class C. Dropping them would i
 the requirement does not exist; showing them is more honest and more useful, since
 those rows are precisely where a manufacturer has to make its own call about evidence.
 
+**Two of those rows are different, and get the standard's own cross-reference instead.**
+§4.1 (quality management system) and §4.2 (risk management) name no 62304 artefact because
+they are satisfied *in another standard*. Labelling them "decide for yourself what evidence
+to keep" would be worse than saying nothing, so they carry a `seeAlso` field quoting where
+62304 actually points:
+
+- **§4.1** — NOTE 1 offers three routes: a quality management system complying with
+  **ISO 13485**, *a national quality management system standard*, or *a quality management
+  system required by national regulation*. NOTE 2 points to **ISO/IEC 90003** for guidance on
+  applying quality management requirements to software, which Annex B.2 calls highly
+  recommended but **not required**. Annex D.2 adds that the QMS need not be certified.
+- **§4.2** — the normative text says the manufacturer *shall* apply a risk management process
+  complying with **ISO 14971**. One standard, no alternative and no equivalent offered. The row
+  says so explicitly, because a reader who has just seen §4.1's three routes will otherwise
+  assume an equivalent is acceptable here too.
+
+**ISO 9001 is deliberately not offered as a route**, and neither is a non-medical-device
+alternative. ISO 9001 appears in 62304 only as the parent of ISO/IEC 90003 — guidance, not a
+compliance route — and the standard applies to medical device software only, so it contains no
+non-medical branch to cite. The reasoning is recorded in `_notes` in the data file so the
+question does not have to be re-litigated later.
+
 **The CSV is built entirely in the browser** — there is no backend — using a `Blob` and
 a temporary link. Two details worth knowing if you write one yourself:
 
@@ -448,7 +470,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **362 checks** covering content
+The site ships with an automated test suite: **375 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -486,7 +508,7 @@ python tests/test_site.py --group data --group a11y   # or several
 | Group | Checks |
 |---|---|
 | `data` | JSON parses; 13 topics and 2×15 questions; no duplicate ids or questions; every `correct` index within range; all required fields present |
-| `deliverables` | Per-class output counts derived from the data; panel hidden until a class is chosen; collapse/expand with `aria-expanded`; requirements with no artefact listed and labelled rather than dropped; CSV filename, UTF-8 BOM, CRLF, seven columns, comma escaping, and correct inclusion of 5.4.1 / 7.4.1 and exclusion of 5.1.4 and removed sub-clauses; print output; **regression test that printing a non-quiz page is no longer blank** |
+| `deliverables` | Per-class output counts derived from the data; panel hidden until a class is chosen; collapse/expand with `aria-expanded`; requirements with no artefact listed and labelled rather than dropped; CSV filename, UTF-8 BOM, CRLF, eight columns, comma escaping, and correct inclusion of 5.4.1 / 7.4.1 and exclusion of 5.1.4 and removed sub-clauses; print output; the §4.1 / §4.2 cross-references cite ISO 13485 and ISO 14971 on screen and in the CSV, **assert ISO 9001 is not presented as a route**, and are not mislabelled "decide for yourself"; **regression test that printing a non-quiz page is no longer blank** |
 | `applicability` | Sub-clause mapping is complete and well formed; **clause-level classes equal the union of their sub-clauses**; spot checks against the standard (7.4.1, 5.4.1, 5.3.5, 5.7.1, 6.2.3 …); 97 rendered rows; per-class visible/partial counts; and a **regression test that reintroduces the original Clause 7 error and requires the site to reject it** |
 | `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
@@ -540,10 +562,10 @@ Being honest about the limits matters more than a green tick:
 | `quiz.js` | Quiz engine — async question loading with prefetch, shuffle, timer, scoring, results, certificate |
 | `contact.js` | Form validation and asynchronous submission with timeout and error handling |
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
-| `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce |
+| `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 362 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 375 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |

@@ -158,11 +158,22 @@ The topics were originally a hardcoded array inside `learn.js`. They were moved 
 
 **Requirements with no documented artefact are listed, not dropped.** 26 of the 97 sub-clauses (24 of those live at Class C) require an activity without naming anything to keep. Omitting them would imply the requirement does not exist; they are shown with the text *"no documented artefact named by the standard — an activity you must perform, and decide for yourself what evidence to keep."* Those rows are the ones where a manufacturer actually has to exercise judgement, so they are the least safe to hide.
 
+**But "no artefact" hides two different situations, and the panel distinguishes them.** §4.1 (quality management system) and §4.2 (risk management) name no 62304 artefact for a quite different reason from the other 24: they are satisfied *in another standard*. Telling a reader to "decide for yourself what evidence to keep" about ISO 14971 compliance would be actively misleading. Those two rows carry an optional `seeAlso` field and render a citation block instead.
+
+The content of that field is constrained to what 62304 itself says, and the two rows differ in kind — which is the point worth teaching:
+
+- **§4.1 offers alternatives.** NOTE 1 gives three routes: a quality management system complying with **ISO 13485**, *a national quality management system standard*, or *a quality management system required by national regulation*. NOTE 2 points to **ISO/IEC 90003** for guidance on applying quality management requirements to software; Annex B.2 calls that guidance highly recommended but not required, and Annex D.2 records that the QMS need not be certified.
+- **§4.2 does not.** The normative text says the manufacturer *shall* apply a risk management process complying with **ISO 14971** — one standard, no alternative, no equivalent. The row states that explicitly, because a reader who has just read §4.1's three routes will otherwise carry the wrong inference across.
+
+**Two things the rows deliberately do not say.** ISO 9001 is not offered as a route: it appears in 62304 only as the parent of ISO/IEC 90003, which is guidance, so presenting it alongside ISO 13485 would assert something the standard does not. And neither row offers a non-medical-device equivalent, because 62304's scope is medical device software — there is no non-medical branch in the standard to cite, so any such wording would be invented rather than quoted. Both exclusions are recorded in `_notes` in the data file and asserted by tests, so a future edit that reintroduces them fails rather than ships.
+
 **No new source of truth.** `deliverablesFor(cls)` derives the list from `applicability.json` at render time — the same file the filter, the notice and the per-card tables read. Adding a second list of deliverables would reintroduce precisely the failure mode that produced the Clause 7 error: two hand-maintained records of the same fact, drifting apart with nothing to detect it.
 
 **Collapsible.** The list runs to 95 rows at Class C, so it is collapsed by default behind a **Show list** toggle that carries `aria-expanded`, with the count visible in the heading. The count is the part most readers want; the rows are for the one who is building a plan.
 
 **CSV export, built in the browser.** There is no backend, so the file is assembled as a string, wrapped in a `Blob`, and handed to a temporary `<a download>` that is clicked and removed. Two details matter more than they look:
+
+The export carries eight columns, including the cross-reference, because the CSV is what someone actually works from when building a gap analysis.
 
 - **Escaping.** `csvCell()` wraps any value containing a comma, double quote or newline in quotes and doubles the internal quotes. Without it, one description containing a comma shifts every later column — the file still opens cleanly, it is just wrong, which is the worst kind of bug in an export. 47 rows of the Class B export contain commas.
 - **A UTF-8 byte order mark.** Excel reads a UTF-8 CSV as the local ANSI codepage unless the file begins with a BOM, so every `§` would arrive as mojibake. The three-byte prefix fixes it and is ignored everywhere else.

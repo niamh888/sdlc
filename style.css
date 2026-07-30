@@ -101,7 +101,10 @@ a {
 }
 
 .logo-sub {
-  font-size: 0.75rem;
+  /* Raised from 0.75rem (12px), which was the smallest text anywhere on the
+     site. The opacity below already marks it as secondary, so it did not need
+     to be shrunk as well — two signals for the same thing made it look weak. */
+  font-size: 0.8rem;
   opacity: 0.7;
   letter-spacing: 0.02em;
 }
@@ -120,7 +123,7 @@ a {
   padding: 8px 18px;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem; /* raised from 0.9rem to sit closer to the 16px body copy */
   font-weight: 500;
   text-decoration: none;
   transition: background 0.2s, color 0.2s;
@@ -1119,6 +1122,11 @@ a {
   color: var(--danger);
 }
 
+/* font-size MUST stay at 1rem (16px) or above.
+   iOS Safari automatically zooms the whole page when the user focuses an input
+   whose font-size is below 16px, which yanks the layout around on every tap.
+   This was 0.9rem (14.4px) and did exactly that. Nothing else forces the value
+   — it is purely to stop that behaviour. */
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -1126,7 +1134,7 @@ a {
   padding: 10px 14px;
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: 1rem; /* 16px — do not reduce; see note above */
   color: var(--text);
   background: var(--bg);
   transition: border-color 0.2s, background 0.2s;
@@ -1149,7 +1157,9 @@ a {
 
 .field-error {
   display: block;
-  font-size: 0.78rem;
+  /* Raised from 0.78rem (12.5px). Error messages tell the user how to fix a
+     problem, so they were the worst text on the page to have set smallest. */
+  font-size: 0.85rem;
   color: var(--danger);
   margin-top: 4px;
   min-height: 1em;
@@ -1420,7 +1430,9 @@ a {
    small or so faint that it reads as something being hidden from the user. */
 .form-privacy-note {
   margin: 16px 0 0;
-  font-size: 0.78rem;
+  /* Raised from 0.78rem. A data protection notice set in the smallest type on
+     the page invites the obvious accusation, however unintended. */
+  font-size: 0.85rem;
   line-height: 1.6;
   color: var(--text-muted);
   text-align: center;
@@ -1438,7 +1450,10 @@ a {
   background: var(--primary);
   color: rgba(255, 255, 255, 0.75);
   padding: 20px 0;
-  font-size: 0.82rem;
+  /* Raised from 0.82rem (13.1px). The footer sat 3px below the 16px body copy,
+     which made it look cramped rather than merely secondary — and it now carries
+     the privacy link, which should not be the hardest text on the page to read. */
+  font-size: 0.875rem;
   text-align: center;
 }
 

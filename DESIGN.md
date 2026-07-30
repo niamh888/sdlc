@@ -112,9 +112,11 @@ The notice also now states which edition the course covers, since that is the po
 
    **Filter notice.** Selecting a class reveals a panel directly beneath the filter buttons naming every process area that has been hidden and why. This addressed two separate problems. The first was plain usability: hiding cards further down a long page is invisible feedback, so a user who clicked "Class A" had no way of knowing whether anything had happened, how many topics were removed, or which ones. Screen reader users got no feedback at all, which the panel's `role="status"` with `aria-live="polite"` now fixes — polite rather than assertive because the user initiated the change themselves.
 
-   The second problem was more serious. Filtering to Class A hides **Clause 7, Software Risk Management**, which invites precisely the wrong conclusion: that Class A software needs no risk management. The reverse is true — you cannot arrive at Class A *without* a risk analysis establishing that the software item cannot contribute to a hazardous situation. The panel therefore carries a caution, shown for every class including C, stating that the classification is an *output* of the ISO 14971 risk analysis rather than an alternative to it, and that the risk management file must be re-checked whenever intended use, requirements, architecture, risk controls or SOUP change. At Class A an additional paragraph rebuts the "no risk management" reading directly and cites §4.3 and §4.2.
+   The second problem was more serious. The panel was originally built on the uncorrected data, in which **Clause 7, Software Risk Management** was hidden at Class A — so the notice drew the reader's attention to exactly the wrong conclusion: that Class A software needs no risk management. The reverse is true. You cannot arrive at Class A *without* a risk analysis establishing that the software item cannot contribute to a hazardous situation, and §7.4.1 applies at every class. With the data corrected, Clause 7 now shows at Class A with only §7.4.1 live, and the panel carries a caution for **every** class including C: the classification is an *output* of the ISO 14971 risk analysis rather than an alternative to it, and the risk management file must be re-checked whenever intended use, requirements, architecture, risk controls or SOUP change. At Class A an additional paragraph rebuts the "no risk management" reading directly and cites §4.3 and §4.2. That paragraph is keyed to the class being A, not to Clause 7 being hidden — tying it to a condition in the data was how the notice came to depend on the error in the first place.
 
    The omitted list is generated from the same data that drives the filtering, so it cannot fall out of step with what is actually on screen. Tests derive their expected counts from the data files for the same reason.
+
+4. **Deliverables list** — selecting a class also generates the documented outputs required at that class, on screen, as a CSV download, or printed. Described in full under [Deliverables list](#deliverables-list) below.
 
 ---
 
@@ -137,14 +139,37 @@ Checking the mapping against the standard found two more: **Clause 5.3** was rec
 
 **Expanded cards span the grid.** The card grid packs at a minimum of 320px, which is fine for a collapsed summary but far too narrow for a five-column requirements table. `.phase-card.expanded { grid-column: 1 / -1 }` gives the open card the full row.
 
-**Provenance and open items are recorded in the data file itself** (`_source`, `_crossCheckedOn`, `_openItems`), so anyone reviewing it can see where the mapping came from and what is still unconfirmed — currently 5.7.5, whose class tag was not legible in the copy consulted.
-4. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
+**Provenance and open items are recorded in the data file itself** (`_source`, `_crossCheckedOn`, `_openItems`, `_resolvedItems`), so anyone reviewing it can see where each value came from. `_openItems` is now empty and the test suite asserts it stays that way. One entry is recorded as resolved on a different basis and the file says so: Amendment 1 replaced 5.7.5 in full and gave it **no `[Class …]` tag at all**, so it is recorded as A/B/C on three grounds — Table A.1 assigns "5.7 All requirements" to all three classes, every other sub-clause of 5.7 is explicitly tagged all-classes, and software system testing applies to all classes so a record-keeping requirement supporting it does too. That is the only value derived from the annex plus the absence of a restriction rather than from a normative tag, and hiding that fact would misrepresent how solid it is.
+5. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
 
 **Data model:** All 13 topics live in `data/phases.json` and are fetched when the page loads. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`["A","B","C"]`, `["B","C"]`, or `["C"]`). The DOM is built entirely from this data using `createElement` and `innerHTML`.
 
 The topics were originally a hardcoded array inside `learn.js`. They were moved out for two reasons: content and display logic are separate concerns, so a wording correction should not risk a JavaScript syntax error that breaks the page; and treating the content as a genuine external resource forces the page to handle the loading and failure states that any real data source has.
 
 **Asynchronous behaviour:** `initPhases()` implements the three states explicitly — a spinner while fetching, the card grid on success, and an error panel with a **Try again** button on failure. The filter and level controls are hidden until the data arrives, since offering a filter before there is anything to filter would mislead the user. Event listeners are attached *before* the request starts, so the page is interactive during the load rather than after it; event delegation on the grid container is what makes this possible, because the listener can be attached before any cards exist.
+
+---
+
+### Deliverables list
+
+**Purpose:** Choosing a safety class on the Learn page answers "so what do I actually have to produce?" — the question a reader is really asking when they filter. The panel is hidden while the filter reads **All**, because "the deliverables for every class at once" is not a meaningful list; it appears when A, B or C is selected, showing 40, 65 and 71 documented outputs respectively.
+
+**Organised by requirement, not by document — deliberately.** The obvious design is a list of document titles: Software Development Plan, Software Requirements Specification, Architecture Design Description. It is also the wrong design, because IEC 62304 states it *"does not prescribe the name, format, or explicit content of the documentation to be produced… the decision of how to package this documentation is left to the user of the standard."* Those titles are a widely used convention, not a requirement, and a training tool that printed them in a column headed "required deliverables" would be teaching something the standard does not say — the same class of error as the Clause 7 mapping, just harder to spot because the output *looks* authoritative. So every row cites its sub-clause, and the output column carries the standard's own wording from the `output` field in `applicability.json`. Packaging is left to the reader, which is exactly where the standard leaves it.
+
+**Requirements with no documented artefact are listed, not dropped.** 26 of the 97 sub-clauses (24 of those live at Class C) require an activity without naming anything to keep. Omitting them would imply the requirement does not exist; they are shown with the text *"no documented artefact named by the standard — an activity you must perform, and decide for yourself what evidence to keep."* Those rows are the ones where a manufacturer actually has to exercise judgement, so they are the least safe to hide.
+
+**No new source of truth.** `deliverablesFor(cls)` derives the list from `applicability.json` at render time — the same file the filter, the notice and the per-card tables read. Adding a second list of deliverables would reintroduce precisely the failure mode that produced the Clause 7 error: two hand-maintained records of the same fact, drifting apart with nothing to detect it.
+
+**Collapsible.** The list runs to 95 rows at Class C, so it is collapsed by default behind a **Show list** toggle that carries `aria-expanded`, with the count visible in the heading. The count is the part most readers want; the rows are for the one who is building a plan.
+
+**CSV export, built in the browser.** There is no backend, so the file is assembled as a string, wrapped in a `Blob`, and handed to a temporary `<a download>` that is clicked and removed. Two details matter more than they look:
+
+- **Escaping.** `csvCell()` wraps any value containing a comma, double quote or newline in quotes and doubles the internal quotes. Without it, one description containing a comma shifts every later column — the file still opens cleanly, it is just wrong, which is the worst kind of bug in an export. 47 rows of the Class B export contain commas.
+- **A UTF-8 byte order mark.** Excel reads a UTF-8 CSV as the local ANSI codepage unless the file begins with a BOM, so every `§` would arrive as mojibake. The three-byte prefix fixes it and is ignored everywhere else.
+
+The filename encodes the class (`iec62304-deliverables-class-b.csv`) so three exports do not overwrite each other in the downloads folder.
+
+**Printing, and a bug it exposed.** A `@media print` block hides the header, nav, footer and filter controls and expands the list, so the panel prints as a usable checklist. Adding it surfaced an existing fault: the certificate print rules hid `<main>` for the whole site, so printing *any* page produced a blank sheet. Those rules were scoped to `body.page-quiz`, which is why `quiz.html` now carries that class. The test suite asserts a non-quiz page still has visible content under print media.
 
 ---
 
@@ -267,6 +292,8 @@ Key patterns used:
 - **Errors raised where they occur, handled where they can be acted on** — the loader functions deliberately contain no `try`/`catch`; they let errors propagate to the caller, which is the only place that knows where on the page to display a message
 - **`finally` for cleanup** (`startQuiz`, form submit, `downloadCertificate`) — button state is restored on every path, so a control can never be left permanently disabled by an unexpected failure
 - **Prefetching** (`quiz.js`) — a Promise is stored in a variable when the page loads and awaited later on click, exploiting the fact that a settled Promise returns its remembered result instantly rather than repeating the work
+- **Derive, never duplicate** (`learn.js`) — the filter notice, the per-card applicability tables and the deliverables list are all computed from `applicability.json` on each render. Nothing is stored twice, so nothing can drift; `deliverablesFor()` is a pure function of the loaded data and the selected class
+- **Client-side file generation** (`learn.js`) — the CSV export builds a string, wraps it in a `Blob`, and clicks a temporary `<a download>`, with `URL.revokeObjectURL()` releasing the object URL afterwards. No server is involved, which is the whole point on a static host
 
 ---
 

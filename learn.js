@@ -302,6 +302,183 @@ function renderPhases() {
   updateProgress();
 }
 
+// ============================================================
+// DELIVERABLES LIST
+//
+// "What do I actually have to produce for Class B?" — answered by walking the
+// sub-clause data and keeping the requirements that apply at the chosen class.
+//
+// Two deliberate limits, both about not overstating what the standard says:
+//
+//   1. No document names are invented. IEC 62304 states it "does not prescribe
+//      the name, format, or explicit content of the documentation to be
+//      produced". So this list is organised by REQUIREMENT, and the description
+//      of what must be produced uses the standard's own wording (the `output`
+//      field). "Software Requirements Specification" is a common and sensible
+//      way to package §5.2, but it is a convention, not a requirement, and a
+//      training tool should not blur that line.
+//
+//   2. Requirements with no documented output are still listed, marked as an
+//      activity with no artefact named by the standard. Dropping them would
+//      imply the requirement does not exist. Showing the gap is more honest and
+//      more useful — those rows are exactly where a manufacturer has to decide
+//      for itself what evidence it will keep.
+// ============================================================
+
+// Flattens the applicable requirements for one class into rows ready to render
+// or export. Ordered by clause, following the standard's own sequence.
+function deliverablesFor(cls) {
+  const rows = [];
+
+  phases.forEach(function (phase) {
+    (phase.subClauses || []).forEach(function (sc) {
+      // Skip sub-clauses removed by Amendment 1 — they carry no requirement.
+      if (!Array.isArray(sc.classes) || sc.classes.length === 0) return;
+      if (sc.classes.indexOf(cls) === -1) return;
+
+      rows.push({
+        clause: phase.clause,
+        area: phase.title,
+        ref: sc.ref,
+        requirement: sc.title,
+        output: sc.output || '',
+        classes: sc.classes.join('/'),
+        note: sc.note || ''
+      });
+    });
+  });
+
+  return rows;
+}
+
+function renderDeliverables(classFilter) {
+  const panel = document.getElementById('deliverables');
+  const heading = document.getElementById('deliverables-heading');
+  const count = document.getElementById('deliverables-count');
+  const body = document.getElementById('deliverables-body');
+  if (!panel || !body) return;
+
+  // The list is class-specific by definition, so it has no meaning with no class
+  // selected. Hiding it is clearer than showing all 97 rows unlabelled.
+  if (classFilter === 'all' || phases.length === 0) {
+    panel.classList.add('hidden');
+    body.innerHTML = '';
+    return;
+  }
+
+  const rows = deliverablesFor(classFilter);
+  const withOutput = rows.filter(function (r) { return r.output; });
+
+  panel.classList.remove('hidden');
+  heading.textContent = 'Deliverables for Class ' + classFilter;
+  count.textContent = withOutput.length + ' documented outputs across ' +
+                      rows.length + ' applicable requirements';
+
+  // Group by clause so the list reads in the standard's order and a reader can
+  // map it onto their own document structure.
+  let html = '';
+  let currentClause = null;
+
+  rows.forEach(function (r) {
+    if (r.clause !== currentClause) {
+      if (currentClause !== null) html += '</tbody></table>';
+      currentClause = r.clause;
+      html += '<h3 class="dl-clause">' + r.clause + ' &mdash; ' + r.area + '</h3>' +
+              '<table class="dl-table">' +
+                '<thead><tr>' +
+                  '<th scope="col">Ref</th>' +
+                  '<th scope="col">Requirement</th>' +
+                  '<th scope="col">What the standard requires you to produce</th>' +
+                '</tr></thead><tbody>';
+    }
+
+    const output = r.output
+      ? r.output
+      : '<span class="dl-none">No documented artefact named by the standard &mdash; ' +
+        'an activity you must perform, and decide for yourself what evidence to keep</span>';
+
+    html += '<tr' + (r.output ? '' : ' class="dl-row-activity"') + '>' +
+              '<th scope="row" class="dl-ref">' + r.ref + '</th>' +
+              '<td class="dl-req">' + r.requirement + '</td>' +
+              '<td class="dl-out">' + output + '</td>' +
+            '</tr>';
+  });
+  if (currentClause !== null) html += '</tbody></table>';
+
+  html += '<p class="dl-footnote"><strong>How to read this.</strong> The list is ' +
+          'organised by requirement, not by document. IEC 62304 does not prescribe ' +
+          'document names, formats or how the content is packaged &mdash; that is left ' +
+          'to you. Several requirements are commonly satisfied by one document, and ' +
+          'one requirement can span several. Every row cites its sub-clause so you ' +
+          'can trace it back to the standard.</p>';
+
+  body.innerHTML = html;
+}
+
+// ---------- CSV EXPORT ----------
+// Built entirely in the browser. There is no server to ask, so the file is
+// assembled as a string, wrapped in a Blob, and handed to a temporary link which
+// is clicked programmatically.
+//
+// Two details that are easy to get wrong and annoying to debug:
+//
+//   * ESCAPING. A field containing a comma, a double quote or a newline has to be
+//     wrapped in double quotes, with any internal quote doubled. Skip this and a
+//     single requirement description containing a comma silently shifts every
+//     later column — the file still opens, it is just wrong.
+//
+//   * THE BOM. Excel assumes the ANSI codepage unless a CSV starts with a UTF-8
+//     byte order mark, so the section signs and em dashes in this content would
+//     arrive as mojibake. The three-byte ﻿ prefix fixes it, and is harmless
+//     everywhere else.
+function csvCell(value) {
+  const s = String(value == null ? '' : value);
+  if (/[",\r\n]/.test(s)) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function deliverablesCsv(cls) {
+  const header = ['Clause', 'Process area', 'Ref', 'Requirement',
+                  'What the standard requires you to produce',
+                  'Applies to classes', 'Notes'];
+
+  const lines = [header.map(csvCell).join(',')];
+
+  deliverablesFor(cls).forEach(function (r) {
+    lines.push([
+      r.clause,
+      r.area,
+      r.ref,
+      r.requirement,
+      r.output || 'No documented artefact named by the standard',
+      r.classes,
+      r.note
+    ].map(csvCell).join(','));
+  });
+
+  // CRLF is what the CSV convention specifies and what Excel expects.
+  return lines.join('\r\n') + '\r\n';
+}
+
+function downloadDeliverables(cls) {
+  const csv = '﻿' + deliverablesCsv(cls);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+
+  // createObjectURL hands back a URL pointing at the in-memory Blob. It has to be
+  // revoked afterwards or the Blob is held in memory for the life of the page.
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'iec62304-deliverables-class-' + cls.toLowerCase() + '.csv';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 // ---------- SUB-CLAUSE TABLE ----------
 // Shows, requirement by requirement, which safety classes it applies to.
 //
@@ -505,6 +682,7 @@ function applyFilter(classFilter) {
   });
 
   updateFilterNotice(classFilter);
+  renderDeliverables(classFilter);
 }
 
 // ---------- FILTER NOTICE ----------
@@ -722,6 +900,29 @@ document.addEventListener('DOMContentLoaded', function () {
       setLevel(btn.dataset.level);
     });
   });
+
+  // DELIVERABLES PANEL — show/hide and CSV export.
+  // The panel starts collapsed because the list runs to 40-71 rows depending on
+  // class, and most visitors are browsing rather than compiling a document set.
+  const dlToggle = document.getElementById('deliverables-toggle');
+  const dlBody = document.getElementById('deliverables-body');
+  if (dlToggle && dlBody) {
+    dlToggle.addEventListener('click', function () {
+      const open = dlBody.classList.toggle('hidden') === false;
+      // aria-expanded must track the visual state or a screen reader user is told
+      // the opposite of what is on screen.
+      dlToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      dlToggle.textContent = open ? 'Hide list' : 'Show list';
+    });
+  }
+
+  const dlDownload = document.getElementById('deliverables-download');
+  if (dlDownload) {
+    dlDownload.addEventListener('click', function () {
+      if (activeFilter === 'all') return; // panel is hidden in this state anyway
+      downloadDeliverables(activeFilter);
+    });
+  }
 
   // RETRY — lets the user re-attempt a failed load without reloading the page.
   // Any async operation that can fail should offer a way to try again;

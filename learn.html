@@ -131,6 +131,29 @@
         <div class="filter-notice-body" id="filter-notice-body"></div>
       </div>
 
+      <!-- DELIVERABLES PANEL — the documented outputs required at the selected
+           safety class, generated from data/applicability.json.
+
+           Collapsed by default: it is long (40 to 71 rows depending on class) and
+           most visitors are browsing rather than compiling a document set, so it
+           should be available on demand rather than pushing the topic cards off
+           the screen.
+
+           Every row traces to a sub-clause, and the "what the standard requires"
+           column uses the standard's own wording. No document names are invented
+           — IEC 62304 explicitly does not prescribe them. -->
+      <section class="deliverables hidden" id="deliverables" aria-labelledby="deliverables-heading">
+        <div class="deliverables-bar">
+          <span class="deliverables-icon" aria-hidden="true">&#128203;</span>
+          <h2 class="deliverables-heading" id="deliverables-heading">Deliverables</h2>
+          <span class="deliverables-count" id="deliverables-count"></span>
+          <button class="deliverables-btn" id="deliverables-toggle"
+                  aria-expanded="false" aria-controls="deliverables-body">Show list</button>
+          <button class="deliverables-btn" id="deliverables-download">Download CSV</button>
+        </div>
+        <div class="deliverables-body hidden" id="deliverables-body"></div>
+      </section>
+
       <!-- ASYNC STATE 1: LOADING.
            Shown while data/phases.json is being fetched, then hidden by
            learn.js. role="status" with aria-live="polite" means a screen

@@ -49,8 +49,10 @@ handling, it is decoration.
 """
 
 import argparse
+import csv
 import functools
 import http.server
+import io
 import json
 import os
 import socket
@@ -73,8 +75,8 @@ FORMSPREE_GLOB = 'https://formspree.io/**'
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
-GROUPS = ['data', 'applicability', 'learn', 'quiz', 'contact', 'privacy', 'version',
-          'a11y', 'responsive']
+GROUPS = ['data', 'applicability', 'deliverables', 'learn', 'quiz', 'contact',
+          'privacy', 'version', 'a11y', 'responsive']
 
 
 # ============================================================
@@ -593,7 +595,222 @@ def test_applicability(browser, base):
 
 
 # ============================================================
-# GROUP 3 — LEARN PAGE
+# GROUP 3 — DELIVERABLES LIST
+#
+# "What do I have to produce for Class B?" answered from the applicability data.
+#
+# The checks below police two boundaries as much as they check the mechanics:
+#   * no invented document names — the list is organised by requirement, and the
+#     output wording is the standard's own, because IEC 62304 explicitly does not
+#     prescribe document names;
+#   * requirements with no documented artefact are still listed and labelled as
+#     such, rather than dropped, because dropping them would imply the requirement
+#     does not exist.
+# ============================================================
+
+def test_deliverables(browser, base):
+    R.group('deliverables — the data behind the list')
+
+    app = applicability()
+    with open(os.path.join(ROOT, 'data', 'applicability.json'), encoding='utf-8') as f:
+        raw = json.load(f)
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        topics = json.load(f)
+
+    all_subs = [sc for subs in app.values() for sc in subs]
+    with_output = [sc for sc in all_subs if sc.get('output')]
+    R.check('some sub-clauses carry a documented output', len(with_output) > 0,
+            len(with_output))
+    R.check('removed sub-clauses carry no output',
+            all(not sc.get('output') for sc in all_subs if not sc.get('classes')),
+            [sc['ref'] for sc in all_subs if not sc.get('classes') and sc.get('output')])
+
+    # The file must state, in itself, that document names are not invented — the
+    # single most important caveat about this feature.
+    notes = ' '.join(raw.get('_notes', []))
+    R.check('the data file records that document names are NOT prescribed',
+            'does not prescribe' in notes and 'convention' in notes, notes[-200:])
+
+    R.group('deliverables — rendered panel')
+
+    ctx, pg = new_page(browser, 1180, 900)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+
+    panel = pg.locator('#deliverables')
+    R.check('panel hidden until a class is chosen', panel.is_hidden())
+
+    for cls in ['A', 'B', 'C']:
+        expected = [sc for subs in app.values() for sc in subs
+                    if sc.get('classes') and cls in sc['classes']]
+        expected_out = [sc for sc in expected if sc.get('output')]
+
+        pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
+        pg.wait_for_timeout(250)
+        R.check('Class %s: panel shown' % cls, panel.is_visible())
+        R.check('Class %s: heading names the class' % cls,
+                ('class ' + cls.lower()) in norm(pg.locator('#deliverables-heading').inner_text()),
+                pg.locator('#deliverables-heading').inner_text())
+        cnt = pg.locator('#deliverables-count').inner_text()
+        R.check('Class %s: count reads %d outputs across %d requirements'
+                % (cls, len(expected_out), len(expected)),
+                str(len(expected_out)) in cnt and str(len(expected)) in cnt, cnt)
+
+    # Expand and check the table contents against the data.
+    pg.locator('.filter-btn[data-filter="C"]').click()
+    pg.wait_for_timeout(200)
+    toggle = pg.locator('#deliverables-toggle')
+    body = pg.locator('#deliverables-body')
+    R.check('list starts collapsed', body.is_hidden())
+    R.check('collapsed toggle reports aria-expanded=false',
+            toggle.get_attribute('aria-expanded') == 'false')
+    toggle.click()
+    pg.wait_for_timeout(300)
+    R.check('list expands on click', not body.is_hidden())
+    R.check('expanded toggle reports aria-expanded=true',
+            toggle.get_attribute('aria-expanded') == 'true')
+    R.check('toggle label flips to Hide', 'hide' in norm(toggle.inner_text()),
+            toggle.inner_text())
+
+    expected_c = [sc for subs in app.values() for sc in subs
+                  if sc.get('classes') and 'C' in sc['classes']]
+    R.check('one row per applicable requirement (%d)' % len(expected_c),
+            pg.locator('#deliverables-body .dl-table tbody tr').count() == len(expected_c),
+            pg.locator('#deliverables-body .dl-table tbody tr').count())
+    R.check('one group per process area (%d)' % len(topics),
+            pg.locator('.dl-clause').count() == len(topics),
+            pg.locator('.dl-clause').count())
+
+    no_output_c = [sc for sc in expected_c if not sc.get('output')]
+    R.check('requirements with no artefact are listed and marked (%d)' % len(no_output_c),
+            pg.locator('tr.dl-row-activity').count() == len(no_output_c),
+            pg.locator('tr.dl-row-activity').count())
+    R.check('those rows explain the absence rather than inventing a deliverable',
+            'no documented artefact named by the standard'
+            in norm(pg.locator('tr.dl-row-activity').first.inner_text()),
+            pg.locator('tr.dl-row-activity').first.inner_text()[:90])
+
+    # The footnote carries the caveat that matters most.
+    foot = norm(pg.locator('.dl-footnote').inner_text())
+    R.check('footnote says the list is by requirement, not by document',
+            'not by document' in foot, foot[:110])
+    R.check('footnote states the standard does not prescribe document names',
+            'does not prescribe document names' in foot, foot[:200])
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    R.group('deliverables — CSV export')
+
+    ctx = browser.new_context(viewport={'width': 1180, 'height': 900}, accept_downloads=True)
+    pg = ctx.new_page()
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.filter-btn[data-filter="B"]').click()
+    pg.wait_for_timeout(250)
+
+    with pg.expect_download() as info:
+        pg.locator('#deliverables-download').click()
+    dl = info.value
+
+    R.check('filename names the class',
+            dl.suggested_filename == 'iec62304-deliverables-class-b.csv',
+            dl.suggested_filename)
+
+    with open(dl.path(), 'rb') as f:
+        blob = f.read()
+
+    # Excel reads a UTF-8 CSV as the ANSI codepage unless it starts with a BOM, so
+    # the section signs in this content would arrive as mojibake without it.
+    R.check('starts with a UTF-8 BOM so Excel reads it correctly',
+            blob[:3] == b'\xef\xbb\xbf', blob[:6])
+
+    text = blob.decode('utf-8-sig')
+    R.check('uses CRLF line endings per the CSV convention', '\r\n' in text)
+
+    rows = list(csv.reader(io.StringIO(text)))
+    rows = [r for r in rows if r]
+    expected_b = [sc for subs in app.values() for sc in subs
+                  if sc.get('classes') and 'B' in sc['classes']]
+    R.check('one CSV row per applicable requirement plus a header (%d)'
+            % (len(expected_b) + 1),
+            len(rows) == len(expected_b) + 1, len(rows))
+    R.check('header names all seven columns', len(rows[0]) == 7, rows[0])
+    R.check('every row has seven fields',
+            all(len(r) == 7 for r in rows),
+            [len(r) for r in rows if len(r) != 7])
+
+    # ESCAPING. Plenty of the output descriptions contain commas; if quoting were
+    # wrong the parse above would have produced ragged rows, so this asserts the
+    # case actually occurs rather than passing vacuously.
+    commas = [r for r in rows[1:] if ',' in r[4]]
+    R.check('output text containing commas is present and parsed intact',
+            len(commas) > 0, len(commas))
+
+    refs_in_csv = [r[2] for r in rows[1:]]
+    R.check('no removed sub-clause appears in the export',
+            '7.1.5' not in refs_in_csv and '7.3.2' not in refs_in_csv,
+            [r for r in refs_in_csv if r in ('7.1.5', '7.3.2')])
+    R.check('Class C only requirements are excluded from the Class B export',
+            '5.1.4' not in refs_in_csv, '5.1.4 present' if '5.1.4' in refs_in_csv else 'absent')
+    R.check('5.4.1 IS in the Class B export (it reaches Class B)',
+            '5.4.1' in refs_in_csv)
+    R.check('7.4.1 is in the Class B export', '7.4.1' in refs_in_csv)
+    ctx.close()
+
+    R.group('deliverables — print output')
+
+    ctx, pg = new_page(browser, 794, 1000)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    pg.wait_for_timeout(200)
+    pg.locator('#deliverables-toggle').click()
+    pg.wait_for_timeout(250)
+    pg.emulate_media(media='print')
+    pg.wait_for_timeout(250)
+    shown = pg.evaluate("""() => {
+        const d = s => { const el = document.querySelector(s);
+                         return el ? getComputedStyle(el).display : 'absent'; };
+        return { header: d('.site-header'), grid: d('.phases-grid'),
+                 notice: d('.filter-notice'), footer: d('.site-footer'),
+                 panel: d('.deliverables'), btn: d('.deliverables-btn') };
+    }""")
+    R.check('print hides the page furniture',
+            shown['header'] == 'none' and shown['grid'] == 'none'
+            and shown['notice'] == 'none' and shown['footer'] == 'none', shown)
+    R.check('print keeps the deliverables panel', shown['panel'] == 'block', shown)
+    R.check('print hides the buttons', shown['btn'] == 'none', shown)
+
+    # REGRESSION: the certificate print rules used to hide <main> on every page, so
+    # printing anything other than the quiz produced a blank sheet.
+    R.check('main is not hidden when printing the Learn page',
+            pg.evaluate("() => getComputedStyle(document.querySelector('main')).display") != 'none',
+            pg.evaluate("() => getComputedStyle(document.querySelector('main')).display"))
+    pg.emulate_media(media='screen')
+    ctx.close()
+
+    # ...and the quiz page must still print only the certificate.
+    ctx, pg = new_page(browser, 794, 1000)
+    pg.add_init_script('window.print = () => {};')
+    pg.goto(base + '/quiz.html')
+    pg.wait_for_timeout(400)
+    R.check('quiz page carries the page-quiz scope class',
+            'page-quiz' in (pg.locator('body').get_attribute('class') or ''),
+            pg.locator('body').get_attribute('class'))
+    pg.emulate_media(media='print')
+    pg.wait_for_timeout(250)
+    q = pg.evaluate("""() => ({
+        main: getComputedStyle(document.querySelector('main')).display,
+        cert: getComputedStyle(document.querySelector('#certificate')).display
+    })""")
+    R.check('quiz print still hides main and shows the certificate',
+            q['main'] == 'none' and q['cert'] == 'block', q)
+    pg.emulate_media(media='screen')
+    ctx.close()
+
+
+# ============================================================
+# GROUP 4 — LEARN PAGE
 # ============================================================
 
 def test_learn(browser, base):
@@ -1462,6 +1679,12 @@ def test_a11y(browser, base, axe_src):
     pg.wait_for_timeout(300)
     v = axe_violations(pg, axe_src)
     R.check('learn Class A filter notice has no violations', not v, [x['id'] for x in v])
+
+    # The deliverables list is collapsed by default, so it too would be missed.
+    pg.locator('#deliverables-toggle').click()
+    pg.wait_for_timeout(350)
+    v = axe_violations(pg, axe_src)
+    R.check('deliverables list has no violations', not v, [x['id'] for x in v])
     ctx.close()
 
     ctx, pg = new_page(browser)
@@ -1671,6 +1894,8 @@ def main():
                     test_data()
                 if 'applicability' in groups:
                     test_applicability(browser, base)
+                if 'deliverables' in groups:
+                    test_deliverables(browser, base)
                 if 'learn' in groups:
                     test_learn(browser, base)
                 if 'quiz' in groups:

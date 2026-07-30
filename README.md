@@ -25,7 +25,7 @@ all of this, so it cannot quietly disappear in a redesign.
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; study progress tracker
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; study progress tracker
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button
@@ -79,6 +79,44 @@ the one value in the file derived from the annex plus the absence of a restricti
 rather than from a normative tag, and it is recorded in `_resolvedItems` so anyone who
 asks where it came from gets a straight answer. `_openItems` is now empty, and the test
 suite asserts it stays that way.
+
+## Deliverables List
+
+Selecting a safety class on the Learn page generates the documented outputs required
+at that class — **40 for Class A, 65 for Class B, 71 for Class C** — grouped by clause,
+viewable on screen, downloadable as CSV and printable.
+
+**It is organised by requirement, not by document, and that is deliberate.** IEC 62304
+states it *"does not prescribe the name, format, or explicit content of the
+documentation to be produced… the decision of how to package this documentation is
+left to the user of the standard."* So "Software Requirements Specification" is a
+sensible convention for packaging §5.2, but it is **not** a requirement, and a training
+tool that presented it as one would be teaching something the standard does not say.
+Every row therefore cites its sub-clause, and the "what the standard requires you to
+produce" column uses the standard's own wording, recorded in the `output` field of
+[data/applicability.json](data/applicability.json).
+
+**Requirements with no documented artefact are still listed**, marked as *"no documented
+artefact named by the standard — an activity you must perform, and decide for yourself
+what evidence to keep."* There are 24 of these at Class C. Dropping them would imply
+the requirement does not exist; showing them is more honest and more useful, since
+those rows are precisely where a manufacturer has to make its own call about evidence.
+
+**The CSV is built entirely in the browser** — there is no backend — using a `Blob` and
+a temporary link. Two details worth knowing if you write one yourself:
+
+- **Escaping.** Any field containing a comma, double quote or newline is wrapped in
+  quotes with internal quotes doubled. Skip it and one description containing a comma
+  silently shifts every later column: the file still opens, it is just wrong. 47 rows
+  in the Class B export contain commas, so this is not hypothetical.
+- **The byte order mark.** Excel reads a UTF-8 CSV as the ANSI codepage unless the file
+  starts with a BOM, so the `§` characters would arrive as mojibake. The three-byte
+  prefix fixes it and is harmless elsewhere.
+
+**Printing the Learn page** now yields just this list. That also fixed a latent bug: the
+certificate print rules hid `<main>` on *every* page, so printing anything other than
+the quiz produced a blank sheet. They are now scoped to the quiz page via a `page-quiz`
+class on `<body>`, and the test suite asserts both behaviours.
 
 ## Data Protection
 
@@ -410,7 +448,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **317 checks** covering content
+The site ships with an automated test suite: **362 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -448,6 +486,7 @@ python tests/test_site.py --group data --group a11y   # or several
 | Group | Checks |
 |---|---|
 | `data` | JSON parses; 13 topics and 2×15 questions; no duplicate ids or questions; every `correct` index within range; all required fields present |
+| `deliverables` | Per-class output counts derived from the data; panel hidden until a class is chosen; collapse/expand with `aria-expanded`; requirements with no artefact listed and labelled rather than dropped; CSV filename, UTF-8 BOM, CRLF, seven columns, comma escaping, and correct inclusion of 5.4.1 / 7.4.1 and exclusion of 5.1.4 and removed sub-clauses; print output; **regression test that printing a non-quiz page is no longer blank** |
 | `applicability` | Sub-clause mapping is complete and well formed; **clause-level classes equal the union of their sub-clauses**; spot checks against the standard (7.4.1, 5.4.1, 5.3.5, 5.7.1, 6.2.3 …); 97 rendered rows; per-class visible/partial counts; and a **regression test that reintroduces the original Clause 7 error and requires the site to reject it** |
 | `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
@@ -497,14 +536,14 @@ Being honest about the limits matters more than a green tick:
 | `style.css` | Shared CSS — professional medical theme, responsive layout, loading and error states |
 | `async-utils.js` | **Shared async helpers** — `delay()` and `fetchJSON()`, plus the main explanation of how asynchronous JavaScript works |
 | `nav.js` | Shared navigation — highlights active page link |
-| `learn.js` | Topic card rendering, async content loading, expand/collapse, level toggle, safety class filter, progress tracking |
+| `learn.js` | Topic card rendering, async content loading, expand/collapse, level toggle, safety class filter, per-class deliverables list and CSV export, progress tracking |
 | `quiz.js` | Quiz engine — async question loading with prefetch, shuffle, timer, scoring, results, certificate |
 | `contact.js` | Form validation and asynchronous submission with timeout and error handling |
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
-| `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9 and the safety classes it applies to |
+| `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 317 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 362 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |
@@ -518,6 +557,7 @@ guarantees `delay()` and `fetchJSON()` exist before any page script calls them.
 Content is now separate from code, so no JavaScript knowledge is needed to change it.
 
 - **Change a topic or clause reference** — edit `data/phases.json`
+- **Change what a requirement says must be produced** — edit the `output` field in `data/applicability.json`. Use the standard's own wording; omit the field entirely where the standard names no artefact.
 - **Change which safety classes a requirement applies to** — edit `data/applicability.json`. If you change a sub-clause's classes such that the clause-level roll-up changes, you must update `classes` in `phases.json` to match, or the Learn page will refuse to render and tell you which clause disagrees. That is deliberate.
 - **Add or reword a quiz question** — edit the relevant file in `data/`
 

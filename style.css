@@ -4,6 +4,33 @@
   padding: 0;
 }
 
+/* ============================================================
+   THEME
+   Every colour in this file is a variable, so a theme is a matter of
+   redefining them rather than restyling components.
+   ------------------------------------------------------------
+   The variables are split by ROLE, not by hue, and the reason is the whole
+   trick behind supporting two themes without auditing every rule twice:
+
+     --primary / --accent-fill / --success-fill   solid FILLS carrying white text.
+       These stay dark in BOTH themes, because white-on-dark works on a light page
+       and on a dark one. A "dark mode" version of a filled button is a trap: make
+       it lighter to suit the background and the white label stops being readable.
+
+     --heading / --accent / --*-text              TEXT colours.
+       These MUST flip. `color: var(--primary)` — a near-black navy — was used for
+       every heading, and on a dark background it is invisible. Splitting the text
+       role out from the fill role is what made this feature tractable at all.
+
+     --tint-*                                     pale panel backgrounds and the
+       text and borders that sit on them (notices, badges, answer feedback).
+
+   Every foreground/background pair below was checked numerically against WCAG
+   2.1 AA rather than judged by eye — see DESIGN.md. Eyeballing dark palettes is
+   unreliable in a way that eyeballing light ones is not: light text on a dark
+   field reads as higher contrast than it measures.
+   ============================================================ */
+
 :root {
   --primary:        #1a3a5c;
   --primary-light:  #2e5b8a;
@@ -28,6 +55,145 @@
   --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.12);
   --radius:         8px;
   --radius-lg:      12px;
+
+  /* --- Role variables (light theme) --- */
+  --heading:            #1a3a5c;  /* heading text; was color: var(--primary) */
+  --heading-sub:        #2e5b8a;  /* sub-heading text; 7.05:1 on white */
+  --accent-fill:        #2471a3;  /* fill behind white text: 5.30:1 */
+  --success-fill:       #1a7a4a;  /* 5.35:1 with white — see the .btn-success fix */
+  --success-fill-hover: #156b3c;  /* 6.56:1 */
+  --success-text:       #18703f;  /* 5.56:1 on the pale green tint */
+  --danger-text:        #c0392b;
+  --warning-text:       #b34700;  /* 5.02:1 on the orange tint; #d35400 was 3.80:1 */
+
+  /* Pale panel tints. Near-identical shades were collapsed into one variable
+     each: #e8f4fd/#eaf3fb and #fdf3f2/#fdf0ee differ by a couple of points per
+     channel and are indistinguishable on screen, but every extra variable is
+     another value to keep honest in two themes. */
+  --tint-info:          #eaf3fb;
+  --tint-info-text:     #1a5fa0;  /* 5.87:1 */
+  --tint-ok:            #eaf7f0;
+  --tint-ok-text:       #1a7a4a;  /* 4.85:1 */
+  --tint-ok-border:     #a9dfbf;
+  --tint-warn:          #fef9e7;
+  --tint-warn-text:     #6b4e00;  /* 7.34:1 */
+  --tint-warn-border:   #e0cd8a;
+  --tint-bad:           #fdecea;
+  --tint-bad-soft:      #fdf3f2;
+  --tint-bad-text:      #a93226;  /* 5.95:1 */
+  --tint-orange:        #fdf3e8;
+  --notice-bar:         #8a6d1f;  /* white label on it: 4.90:1 */
+  --notice-marker:      #c9a227;
+}
+
+/* DARK THEME
+   Applied by a data-theme attribute on <html> rather than by a media query
+   alone, so a visitor can override their system setting. The default still
+   follows the system — see the block below and theme.js.
+
+   The page background is #12171e rather than pure black: on an LCD, white text
+   on #000 produces halation that makes long passages harder to read, and this
+   site is mostly long passages. The card surface is one step lighter so panels
+   remain distinguishable from the page (1.11:1 — deliberately subtle, since
+   contrast between two backgrounds is depth, not information). */
+[data-theme="dark"] {
+  --primary:        #16324f;
+  --primary-light:  #24537f;
+  --accent:         #7fbcec;  /* link/border/focus text role: 7.95:1 on a card */
+  --accent-light:   #a8d3f2;
+  --success:        #27ae60;
+  --success-light:  #2ecc71;
+  --danger:         #e57373;
+  --warning:        #eda45f;
+  --bg:             #12171e;
+  --bg-white:       #1b2129;
+  --text:           #e3e9ef;  /* 13.25:1 on a card */
+  --text-muted:     #a3b0bd;  /* 7.33:1 — still clears AA, unlike most "muted" greys */
+  --border:         #303a45;
+  /* Shadows are nearly invisible on a dark field, so they lean on opacity
+     rather than colour to keep giving cards their lift. */
+  --shadow:         0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.6);
+
+  --heading:            #cfe0f0;  /* 12.02:1 */
+  --heading-sub:        #a8c8e8;  /* 9.33:1 */
+  --accent-fill:        #2471a3;  /* unchanged: white text still needs 5.30:1 */
+  --success-fill:       #1a7a4a;
+  --success-fill-hover: #156b3c;
+  --success-text:       #5fc98d;  /* 7.89:1 */
+  --danger-text:        #f08b82;  /* 6.73:1 */
+  --warning-text:       #eda45f;  /* 7.77:1 */
+
+  /* Tints become dark, low-saturation fields rather than pale ones. Inverting
+     the lightness is not enough on its own — a saturated dark red reads as an
+     error state far more loudly than a pale pink does, so these are muted. */
+  --tint-info:          #16293a;
+  --tint-info-text:     #9ccdf0;  /* 8.78:1 */
+  --tint-ok:            #14291f;
+  --tint-ok-text:       #79d0a0;  /* 8.30:1 */
+  --tint-ok-border:     #2a5240;
+  --tint-warn:          #2a2413;
+  --tint-warn-text:     #e8cf8a;  /* 10.09:1 */
+  --tint-warn-border:   #574a25;
+  --tint-bad:           #2e1a19;
+  --tint-bad-soft:      #2a1817;
+  --tint-bad-text:      #f0a49c;  /* 8.21:1 */
+  --tint-orange:        #2d1f12;
+  --notice-bar:         #8a6d1f;
+  --notice-marker:      #d9b545;
+}
+
+/* NO-JAVASCRIPT FALLBACK.
+   theme.js normally sets data-theme explicitly, so the rule above is all that
+   runs. But if JavaScript is unavailable no attribute is ever set, and someone
+   whose system is in dark mode would get the light theme with no way to change
+   it. `:root:not([data-theme])` covers exactly that case and nothing else: once
+   the attribute exists — whether from the saved preference or the toggle — this
+   block stops applying and the visitor's explicit choice wins over the system's.
+
+   The variables are duplicated rather than shared with a common class because a
+   media query cannot be re-scoped, and `@import` or a preprocessor would mean a
+   build step. This file is hand-written CSS on purpose. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --primary:        #16324f;
+    --primary-light:  #24537f;
+    --accent:         #7fbcec;
+    --accent-light:   #a8d3f2;
+    --success:        #27ae60;
+    --success-light:  #2ecc71;
+    --danger:         #e57373;
+    --warning:        #eda45f;
+    --bg:             #12171e;
+    --bg-white:       #1b2129;
+    --text:           #e3e9ef;
+    --text-muted:     #a3b0bd;
+    --border:         #303a45;
+    --shadow:         0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.6);
+    --heading:            #cfe0f0;
+    --heading-sub:        #a8c8e8;
+    --accent-fill:        #2471a3;
+    --success-fill:       #1a7a4a;
+    --success-fill-hover: #156b3c;
+    --success-text:       #5fc98d;
+    --danger-text:        #f08b82;
+    --warning-text:       #eda45f;
+    --tint-info:          #16293a;
+    --tint-info-text:     #9ccdf0;
+    --tint-ok:            #14291f;
+    --tint-ok-text:       #79d0a0;
+    --tint-ok-border:     #2a5240;
+    --tint-warn:          #2a2413;
+    --tint-warn-text:     #e8cf8a;
+    --tint-warn-border:   #574a25;
+    --tint-bad:           #2e1a19;
+    --tint-bad-soft:      #2a1817;
+    --tint-bad-text:      #f0a49c;
+    --tint-orange:        #2d1f12;
+    --notice-bar:         #8a6d1f;
+    --notice-marker:      #d9b545;
+  }
 }
 
 body {
@@ -134,7 +300,45 @@ a {
 .site-nav {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
+
+/* ===== THEME TOGGLE ===== */
+/* Sits at the end of the nav on every page. It is a real <button> with
+   aria-pressed rather than a checkbox styled to look like a switch, because a
+   button already carries "activate me" semantics and aria-pressed already
+   carries the on/off state — no extra ARIA needed to explain a custom widget.
+   The icon is aria-hidden and the accessible name comes from the visually
+   hidden label, so a screen reader announces "Dark theme, toggle button,
+   pressed" rather than reading out a moon emoji. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 40px square: comfortably above the 24px minimum for a touch target, and
+     matching the height of the nav links beside it. */
+  width: 40px;
+  height: 40px;
+  margin-left: 8px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius);
+  color: white;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* The toggle lives on the navy header in both themes, so it is styled against
+   that rather than against the page background — which is why these are
+   rgba(255,255,255,…) values and not theme variables. */
 
 .nav-link {
   background: transparent;
@@ -178,9 +382,9 @@ a {
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: white;
-  border-color: var(--accent);
+  border-color: var(--accent-fill);
 }
 
 .btn-primary:hover {
@@ -191,8 +395,8 @@ a {
 
 .btn-secondary {
   background: transparent;
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--heading);
+  border-color: var(--heading);
 }
 
 .btn-secondary:hover {
@@ -209,15 +413,19 @@ a {
   width: 100%;
 }
 
+/* FIX: was --success-light (#27ae60), which gave white text only 2.87:1 —
+   below AA and below even the large-text threshold. This is the certificate
+   download button, so it only ever appeared on a quiz PASS: a state the axe
+   audit never drove the page into, which is why it went unnoticed. */
 .btn-success {
-  background: var(--success-light);
+  background: var(--success-fill);
   color: white;
-  border-color: var(--success-light);
+  border-color: var(--success-fill);
 }
 
 .btn-success:hover {
-  background: var(--success);
-  border-color: var(--success);
+  background: var(--success-fill-hover);
+  border-color: var(--success-fill-hover);
   color: white;
 }
 
@@ -230,7 +438,7 @@ a {
 
 .page-header h1 {
   font-size: 1.9rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 10px;
 }
 
@@ -265,12 +473,12 @@ a {
 }
 
 .hero-version strong {
-  color: var(--primary);
+  color: var(--heading);
 }
 
 .hero-tag {
   display: inline-block;
-  background: #e8f4fd;
+  background: var(--tint-info);
   color: var(--accent);
   font-size: 0.75rem;
   font-weight: 600;
@@ -284,7 +492,7 @@ a {
 .hero-title {
   font-size: 2.8rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--heading);
   line-height: 1.1;
   margin-bottom: 16px;
   letter-spacing: -0.03em;
@@ -321,7 +529,7 @@ a {
   display: block;
   font-size: 2rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--heading);
   line-height: 1;
 }
 
@@ -352,7 +560,7 @@ a {
 
 .info-card h2 {
   font-size: 1rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 12px;
   font-weight: 700;
 }
@@ -377,8 +585,8 @@ a {
 .update-banner-card {
   max-width: 820px;
   margin: 0 auto;
-  background: #fef9e7;
-  border: 1px solid #e0cd8a;
+  background: var(--tint-warn);
+  border: 1px solid var(--tint-warn-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden; /* keeps the bar's square corners inside the rounded card */
@@ -392,7 +600,7 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #8a6d1f;
+  background: var(--notice-bar);
   padding: 9px 16px;
 }
 
@@ -419,7 +627,7 @@ a {
   display: block;
   font-size: 1.02rem;
   font-weight: 700;
-  color: #6b4e00;
+  color: var(--tint-warn-text);
   margin-bottom: 8px;
   line-height: 1.35;
 }
@@ -434,7 +642,7 @@ a {
 /* Draws the eye to the version statement, which is the sentence readers most
    need to take away from this notice. */
 .update-banner-intro strong {
-  color: #6b4e00;
+  color: var(--tint-warn-text);
 }
 
 .update-banner-list {
@@ -454,7 +662,7 @@ a {
   content: '\2192';
   position: absolute;
   left: 0;
-  color: #c9a227;
+  color: var(--notice-marker);
   font-size: 0.8rem;
 }
 
@@ -582,7 +790,7 @@ a {
 
 .dl-clause {
   font-size: 0.95rem;
-  color: var(--primary);
+  color: var(--heading);
   margin: 22px 0 8px;
   padding-bottom: 6px;
   border-bottom: 2px solid var(--border);
@@ -615,7 +823,7 @@ a {
 .dl-ref {
   text-align: left;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--heading);
   white-space: nowrap;
   width: 4.5em;
 }
@@ -672,6 +880,68 @@ a {
   font-size: 0.84rem;
   line-height: 1.65;
   color: var(--text);
+}
+
+/* ===== PRINT IS ALWAYS LIGHT =====
+   Paper has no dark mode. Printing the dark theme would either waste an enormous
+   amount of toner on a black background, or — more likely, since most browsers
+   drop background colours when printing — emit light grey text on white paper and
+   come out nearly blank. Neither is acceptable for a certificate or a deliverables
+   checklist someone puts in a design history file.
+
+   So the print stylesheet resets the palette to the light values regardless of
+   the theme on screen. This works because the rest of the file only ever refers
+   to variables: one override here fixes every rule at once, with no need to
+   revisit individual components. `[data-theme="dark"]` is included in the
+   selector because the attribute carries higher specificity than :root alone and
+   would otherwise win. */
+@media print {
+  :root,
+  :root:not([data-theme]),
+  [data-theme="dark"] {
+    --primary:        #1a3a5c;
+    --primary-light:  #2e5b8a;
+    --accent:         #2471a3;
+    --accent-light:   #5dade2;
+    --success:        #1e8449;
+    --success-light:  #27ae60;
+    --danger:         #c0392b;
+    --warning:        #d35400;
+    --bg:             #ffffff;
+    --bg-white:       #ffffff;
+    --text:           #000000;
+    --text-muted:     #333333;
+    --border:         #999999;
+    --shadow:         none;
+    --shadow-md:      none;
+    --heading:            #1a3a5c;
+    --heading-sub:        #2e5b8a;
+    --accent-fill:        #2471a3;
+    --success-fill:       #1a7a4a;
+    --success-fill-hover: #156b3c;
+    --success-text:       #18703f;
+    --danger-text:        #c0392b;
+    --warning-text:       #b34700;
+    --tint-info:          #ffffff;
+    --tint-info-text:     #1a5fa0;
+    --tint-ok:            #ffffff;
+    --tint-ok-text:       #1a7a4a;
+    --tint-ok-border:     #999999;
+    --tint-warn:          #ffffff;
+    --tint-warn-text:     #6b4e00;
+    --tint-warn-border:   #999999;
+    --tint-bad:           #ffffff;
+    --tint-bad-soft:      #ffffff;
+    --tint-bad-text:      #a93226;
+    --tint-orange:        #ffffff;
+    --notice-bar:         #8a6d1f;
+    --notice-marker:      #8a6d1f;
+  }
+
+  /* The toggle is meaningless on paper. */
+  .theme-toggle {
+    display: none !important;
+  }
 }
 
 /* Printing the panel: an obvious thing to want, since the list is exactly what
@@ -787,7 +1057,7 @@ a {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--primary);
+  color: var(--heading);
   border-bottom: 2px solid var(--border);
   padding: 6px 8px;
 }
@@ -808,7 +1078,7 @@ a {
 .sc-ref {
   text-align: left;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--heading);
   white-space: nowrap;
 }
 
@@ -833,7 +1103,7 @@ a {
 /* Applies. Green tick — but the sr-only text in the markup is what actually
    conveys the meaning, so the colour is reinforcement, never the sole signal. */
 .sc-yes {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 /* Does not apply. A muted middot rather than a cross: a cross reads as "failed",
@@ -864,9 +1134,9 @@ a {
 .partial-badge {
   align-self: flex-start;
   flex-shrink: 0;
-  background: #fef9e7;
-  color: #6b4e00;
-  border: 1px solid #e0cd8a;
+  background: var(--tint-warn);
+  color: var(--tint-warn-text);
+  border: 1px solid var(--tint-warn-border);
   border-radius: 20px;
   padding: 3px 10px;
   font-size: 0.68rem;
@@ -878,7 +1148,7 @@ a {
 }
 
 .phase-card.partial-applicability {
-  border-left: 3px solid #c9a227;
+  border-left: 3px solid var(--notice-marker);
 }
 
 /* ===== LEARN: SAFETY CLASS FILTER NOTICE ===== */
@@ -935,7 +1205,7 @@ a {
 .filter-notice-subheading {
   font-size: 0.86rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--heading);
   margin: 14px 0 6px;
 }
 
@@ -971,15 +1241,15 @@ a {
 .filter-notice-caution {
   margin-top: 16px;
   padding: 14px 16px;
-  background: #fef9e7;
-  border-left: 4px solid #8a6d1f;
+  background: var(--tint-warn);
+  border-left: 4px solid var(--notice-bar);
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 
 .filter-notice-caution-heading {
   display: block;
   font-size: 0.9rem;
-  color: #6b4e00;
+  color: var(--tint-warn-text);
   margin-bottom: 8px;
 }
 
@@ -1094,7 +1364,7 @@ a {
 .level-btn {
   background: transparent;
   border: none;
-  color: var(--primary);
+  color: var(--heading);
   padding: 5px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -1183,7 +1453,7 @@ a {
 .phase-title {
   font-size: 0.98rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 6px;
 }
 
@@ -1207,9 +1477,9 @@ a {
   border-radius: 10px;
 }
 
-.class-badge.A { background: #eaf7f0; color: #1a7a4a; }
-.class-badge.B { background: #eaf3fb; color: #1a5fa0; }
-.class-badge.C { background: #fdf0ee; color: #a93226; }
+.class-badge.A { background: var(--tint-ok); color: var(--tint-ok-text); }
+.class-badge.B { background: var(--tint-info); color: var(--tint-info-text); }
+.class-badge.C { background: var(--tint-bad-soft); color: var(--tint-bad-text); }
 
 .phase-chevron {
   flex-shrink: 0;
@@ -1264,9 +1534,12 @@ a {
   gap: 12px;
 }
 
+/* FIX: was --success-light (#27ae60) on a white card — 2.87:1 at 12.5px. Another
+   fill colour used as text; found by auditing a card in its STUDIED state, which
+   no test had ever produced. */
 .studied-badge {
   font-size: 0.78rem;
-  color: var(--success-light);
+  color: var(--success-text);
   font-weight: 600;
   display: none;
 }
@@ -1281,9 +1554,9 @@ a {
 }
 
 .phase-card.studied .mark-studied-btn {
-  background: #eaf7f0;
-  color: var(--success);
-  border-color: #a9dfbf;
+  background: var(--tint-ok);
+  color: var(--success-text);
+  border-color: var(--tint-ok-border);
   cursor: default;
 }
 
@@ -1313,13 +1586,13 @@ a {
 }
 
 .level-notice-intro {
-  background: #eaf3fb;
-  color: #1a5fa0;
+  background: var(--tint-info);
+  color: var(--tint-info-text);
 }
 
 .level-notice-advanced {
-  background: #eaf7f0;
-  color: var(--success);
+  background: var(--tint-ok);
+  color: var(--success-text);
 }
 
 /* ===== QUIZ: NAME FIELD ===== */
@@ -1357,7 +1630,7 @@ a {
 
 .quiz-intro h1 {
   font-size: 1.8rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 16px;
 }
 
@@ -1393,7 +1666,10 @@ a {
   content: '\2713';
   position: absolute;
   left: 0;
-  color: var(--success-light);
+  /* A decorative list marker rather than text, so the 3:1 non-text threshold
+     applies — but --success-light managed only 2.87:1 on a white card, under even
+     that. --success-text is the role with a checked ratio in both themes. */
+  color: var(--success-text);
   font-weight: 700;
 }
 
@@ -1447,7 +1723,7 @@ a {
   gap: 6px;
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--heading);
   background: var(--bg);
   padding: 8px 16px;
   border-radius: var(--radius);
@@ -1457,13 +1733,13 @@ a {
 }
 
 .quiz-timer.warning {
-  color: var(--warning);
-  background: #fdf3e8;
+  color: var(--warning-text);
+  background: var(--tint-orange);
 }
 
 .quiz-timer.danger {
-  color: var(--danger);
-  background: #fdecea;
+  color: var(--danger-text);
+  background: var(--tint-bad);
 }
 
 .question-card {
@@ -1477,7 +1753,7 @@ a {
 
 .question-text {
   font-size: 1.05rem;
-  color: var(--primary);
+  color: var(--heading);
   font-weight: 600;
   margin-bottom: 28px;
   line-height: 1.5;
@@ -1505,20 +1781,20 @@ a {
 
 .option-btn:hover:not(:disabled) {
   border-color: var(--accent);
-  background: #eaf3fb;
+  background: var(--tint-info);
 }
 
 .option-btn.correct {
-  background: #eaf7f0;
+  background: var(--tint-ok);
   border-color: var(--success-light);
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
 }
 
 .option-btn.incorrect {
-  background: #fdecea;
+  background: var(--tint-bad);
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: 600;
 }
 
@@ -1570,7 +1846,7 @@ a {
    one. Each of the three quiz screens carries its own h1 for that reason. */
 .results-card h1 {
   font-size: 1.8rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 24px;
 }
 
@@ -1585,7 +1861,7 @@ a {
 .score-number {
   font-size: 4rem;
   font-weight: 900;
-  color: var(--primary);
+  color: var(--heading);
   line-height: 1;
 }
 
@@ -1621,7 +1897,7 @@ a {
   display: block;
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--heading);
 }
 
 .breakdown-label {
@@ -1648,7 +1924,7 @@ a {
 
 .contact-info h2 {
   font-size: 1.1rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 16px;
 }
 
@@ -1704,7 +1980,7 @@ a {
 }
 
 .required {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* font-size MUST stay at 1rem (16px) or above.
@@ -1745,7 +2021,7 @@ a {
   /* Raised from 0.78rem (12.5px). Error messages tell the user how to fix a
      problem, so they were the worst text on the page to have set smallest. */
   font-size: 0.85rem;
-  color: var(--danger);
+  color: var(--danger-text);
   margin-top: 4px;
   min-height: 1em;
 }
@@ -1759,10 +2035,14 @@ a {
   box-shadow: var(--shadow);
 }
 
+/* FIX: the tick was --success-light (#27ae60) on the pale green tint — 2.61:1,
+   which fails AA even at this size. It confirms the message was actually sent,
+   so it is meaningful rather than decorative. It went unnoticed because the axe
+   audit covered the contact form's ERROR state but never its SUCCESS state. */
 .success-icon {
   font-size: 2rem;
-  color: var(--success-light);
-  background: #eaf7f0;
+  color: var(--tint-ok-text);
+  background: var(--tint-ok);
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -1775,7 +2055,7 @@ a {
 
 .form-success h2 {
   font-size: 1.5rem;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 12px;
 }
 
@@ -1855,7 +2135,7 @@ a {
 
 .data-error-heading {
   font-weight: 600;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 1rem;
   margin: 0 0 8px;
 }
@@ -1872,7 +2152,7 @@ a {
   display: block;
   padding: 12px 16px;
   margin-bottom: 16px;
-  background: #fdf3f2;
+  background: var(--tint-bad-soft);
   border: 1px solid var(--danger);
   border-radius: var(--radius);
   font-size: 0.85rem;
@@ -1881,7 +2161,7 @@ a {
 
 .form-error-heading {
   display: block;
-  color: var(--danger);
+  color: var(--danger-text);
   margin-bottom: 4px;
 }
 
@@ -1951,13 +2231,15 @@ a {
 
 .legal-page h2 {
   font-size: 1.25rem;
-  color: var(--primary);
+  color: var(--heading);
   margin: 40px 0 14px;
 }
 
+/* --heading-sub, not --primary-light. --primary-light is a FILL (it backs the
+   primary button on hover); as text on a dark card it measured 2.02:1. */
 .legal-page h3 {
   font-size: 1rem;
-  color: var(--primary-light);
+  color: var(--heading-sub);
   margin: 26px 0 10px;
 }
 
@@ -1998,7 +2280,7 @@ a {
 }
 
 .legal-table th {
-  color: var(--primary);
+  color: var(--heading);
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2201,7 +2483,7 @@ a {
   display: block;
   font-size: 2.5rem;
   margin-bottom: 4px;
-  color: var(--primary);
+  color: var(--heading);
 }
 
 .cert-site-name {
@@ -2218,7 +2500,7 @@ a {
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--primary);
+  color: var(--heading);
   padding-bottom: 20px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
@@ -2233,7 +2515,7 @@ a {
 .cert-name {
   font-size: 2.2rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--heading);
   font-style: italic;
   margin-bottom: 16px;
   line-height: 1.2;
@@ -2248,7 +2530,7 @@ a {
 .cert-course-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--heading);
   margin-bottom: 8px;
 }
 
@@ -2281,7 +2563,7 @@ a {
   display: block;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--heading);
 }
 
 .cert-disclaimer {

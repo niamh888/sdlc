@@ -77,7 +77,7 @@ PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html'
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
 GROUPS = ['data', 'applicability', 'deliverables', 'learn', 'quiz', 'contact',
-          'privacy', 'version', 'a11y', 'responsive']
+          'privacy', 'version', 'theme', 'a11y', 'responsive']
 
 
 # ============================================================
@@ -289,6 +289,51 @@ def axe_violations(pg, axe_src):
             targets: v.nodes.slice(0, 3).map(n => n.target.join(' '))
         }));
     }""")
+
+
+def answer_all_correctly(pg):
+    """Walk the whole quiz answering every question correctly, so the run ends on
+    the PASS screen with the certificate button visible.
+
+    Why this exists: answer_all_questions() picks option 0 every time, which
+    scores about 25% and always lands on the FAIL screen. That meant no test had
+    ever rendered the certificate button — and the button had a real contrast
+    failure sitting in it (white on #27ae60, 2.87:1) for exactly as long.
+
+    The correct answer is looked up from the JSON rather than read off the page,
+    because reading it off the page would mean trusting the thing under test.
+    Questions are shuffled but options are not, so a question's `correct` index is
+    stable; matching on the option's TEXT rather than its index keeps this working
+    even if option shuffling is added later."""
+    answers = {}
+    for name in ('questions-intro.json', 'questions-advanced.json'):
+        with open(os.path.join(ROOT, 'data', name), encoding='utf-8') as f:
+            for q in json.load(f):
+                answers[norm(q['q'])] = norm(q['options'][q['correct']])
+
+    count = 0
+    while True:
+        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+        stem = norm(pg.locator('#question-text').inner_text())
+        want = answers.get(stem)
+        if want is None:
+            raise AssertionError('question not found in the data files: %s' % stem[:80])
+
+        buttons = pg.locator('.option-btn')
+        idx = next((i for i in range(buttons.count())
+                    if norm(buttons.nth(i).inner_text()) == want), None)
+        if idx is None:
+            raise AssertionError('correct option not on screen for: %s' % stem[:80])
+
+        buttons.nth(idx).click()
+        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+        count += 1
+        last = pg.locator('#next-question').inner_text().strip() == 'See Results'
+        pg.locator('#next-question').click()
+        if last:
+            break
+    pg.wait_for_selector('#quiz-results.active', timeout=8000)
+    return count
 
 
 def answer_all_questions(pg, pick=0):
@@ -1562,7 +1607,26 @@ def test_privacy(browser, base):
         R.check('notice %s' % label, needle in text, needle)
     R.check('controller email is a working mailto link',
             pg.locator('a[href="mailto:niamh@stjohnlynch.com"]').count() >= 1)
-    R.check('localStorage keys documented', pg.locator('.legal-table tbody tr').count() == 2)
+    # DERIVED, not hardcoded. The old version asserted "2 rows" and broke the
+    # moment a third key was added — which is the good case. The bad case is the
+    # reverse: adding a key to the JS and NOT documenting it would have left this
+    # test passing while the privacy notice became incomplete. So scan the scripts
+    # for every 62304_* key actually written and require each to appear in the
+    # table. The notice can no longer fall behind the code.
+    keys = set()
+    for name in ('learn.js', 'quiz.js', 'theme.js', 'nav.js', 'contact.js'):
+        path = os.path.join(ROOT, name)
+        if os.path.exists(path):
+            with open(path, encoding='utf-8') as f:
+                keys.update(re.findall(r"'(62304_[A-Za-z]+)'", f.read()))
+    for page in PAGES:  # the inline theme script in each <head> writes one too
+        with open(os.path.join(ROOT, page), encoding='utf-8') as f:
+            keys.update(re.findall(r"'(62304_[A-Za-z]+)'", f.read()))
+    documented = set(pg.locator('.legal-table tbody td code').all_inner_texts())
+    R.check('every localStorage key the code uses is documented (%d)' % len(keys),
+            keys and keys.issubset(documented), 'undocumented: %s' % (keys - documented))
+    R.check('no phantom keys documented that the code never writes',
+            documented.issubset(keys), 'not in code: %s' % (documented - keys))
 
     # ---- Content provenance ----
     # Not a data protection matter, but it lives here, and it is the statement a
@@ -1626,6 +1690,319 @@ def test_privacy(browser, base):
     R.check('home page topic count matches the data',
             shown == str(topic_count), '%s shown, %d in phases.json' % (shown, topic_count))
     ctx.close()
+
+
+# ============================================================
+# GROUP 9 - THEME (light / dark)
+#
+# The mechanics are simple; what these checks actually protect is the THREE-WAY
+# default, which is the part that is easy to get subtly wrong:
+#   nothing saved     -> follow the operating system
+#   preference saved  -> honour it, even when the OS says otherwise
+# A switch that re-reads the system setting on every load looks fine in testing
+# and quietly overrides the user's own choice in real use.
+#
+# It also asserts there is no flash of the wrong theme on load, and that printing
+# always comes out light - a dark certificate is either a toner disaster or, once
+# the browser drops background colours, a near-blank page.
+# ============================================================
+
+def test_theme(browser, base):
+    R.group('theme - toggle, persistence and defaults')
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    btn = pg.locator('#theme-toggle')
+    R.check('toggle present in the header', btn.count() == 1)
+    R.check('toggle is a real button', btn.get_attribute('type') == 'button')
+    R.check('starts light with no saved preference',
+            pg.get_attribute('html', 'data-theme') == 'light',
+            pg.get_attribute('html', 'data-theme'))
+    R.check('reports aria-pressed=false in light mode',
+            btn.get_attribute('aria-pressed') == 'false')
+    R.check('accessible name states the ACTION, not the state',
+            'switch to dark' in norm(btn.inner_text()), btn.inner_text())
+
+    btn.click()
+    pg.wait_for_timeout(150)
+    R.check('clicking switches to dark',
+            pg.get_attribute('html', 'data-theme') == 'dark',
+            pg.get_attribute('html', 'data-theme'))
+    R.check('aria-pressed becomes true', btn.get_attribute('aria-pressed') == 'true')
+    R.check('label flips to describe the reverse action',
+            'switch to light' in norm(btn.inner_text()), btn.inner_text())
+    R.check('preference saved to localStorage',
+            pg.evaluate("() => localStorage.getItem('62304_theme')") == 'dark')
+
+    # The attribute changing is not the point - the colours have to change with it.
+    bg_dark = pg.evaluate("() => getComputedStyle(document.body).backgroundColor")
+    btn.click()
+    pg.wait_for_timeout(150)
+    bg_light = pg.evaluate("() => getComputedStyle(document.body).backgroundColor")
+    R.check('the page background actually changes', bg_dark != bg_light,
+            '%s vs %s' % (bg_dark, bg_light))
+    R.check('toggling back saves light',
+            pg.evaluate("() => localStorage.getItem('62304_theme')") == 'light')
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # ---- Persistence across pages ----
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    pg.locator('#theme-toggle').click()
+    pg.wait_for_timeout(150)
+    for page in PAGES:
+        pg.goto(base + '/' + page)
+        R.check('%s honours the saved dark preference' % page,
+                pg.get_attribute('html', 'data-theme') == 'dark',
+                pg.get_attribute('html', 'data-theme'))
+        R.check('%s toggle reflects the restored state' % page,
+                pg.locator('#theme-toggle').get_attribute('aria-pressed') == 'true')
+    ctx.close()
+
+    # ---- Following the system when nothing is saved ----
+    ctx = browser.new_context(viewport={'width': 1280, 'height': 900},
+                              color_scheme='dark')
+    pg = ctx.new_page()
+    pg.goto(base + '/index.html')
+    R.check('a dark system setting is followed when nothing is saved',
+            pg.get_attribute('html', 'data-theme') == 'dark',
+            pg.get_attribute('html', 'data-theme'))
+    ctx.close()
+
+    # THE IMPORTANT PAIR. An explicit choice must beat the system setting - this
+    # is exactly what a naive implementation gets wrong.
+    for saved, scheme in [('light', 'dark'), ('dark', 'light')]:
+        ctx = browser.new_context(viewport={'width': 1280, 'height': 900},
+                                  color_scheme=scheme)
+        pg = ctx.new_page()
+        pg.goto(base + '/index.html')
+        pg.evaluate("(v) => localStorage.setItem('62304_theme', v)", saved)
+        pg.reload()
+        R.check('an explicit %s choice overrides a %s system setting'
+                % (saved.upper(), scheme),
+                pg.get_attribute('html', 'data-theme') == saved,
+                pg.get_attribute('html', 'data-theme'))
+        ctx.close()
+
+    R.group('theme - no flash, and printing stays light')
+
+    # NO FLASH OF THE WRONG THEME. The attribute must be set before the first
+    # paint, i.e. while the document is still parsing. Sampling it at
+    # readyState === 'loading' is the only way to prove the inline <head> script
+    # did the work: if it had been left to the deferred theme.js, the attribute
+    # would still be absent at this moment and the user would see a white flash.
+    ctx = browser.new_context(viewport={'width': 1280, 'height': 900},
+                              color_scheme='dark')
+    pg = ctx.new_page()
+    # A MutationObserver installed by an init script, which runs before any of the
+    # page's own scripts. It records the moment data-theme first appears, together
+    # with whether <body> existed yet.
+    #
+    # `bodyExisted: false` is the proof that matters. The <head> script runs before
+    # <body> is parsed, so if the attribute is already set at that point the
+    # browser cannot have painted anything yet — there is nothing to flash. Had the
+    # work been left to the deferred theme.js, body would exist and the first paint
+    # would already have happened in the wrong theme.
+    #
+    # (An earlier version of this check listened for `readystatechange` and passed
+    # vacuously: that event never fires for the initial 'loading' value, so the
+    # callback never ran and the recorded value stayed empty.)
+    early = {}
+    pg.expose_function('recordEarly', lambda v: early.update(v))
+    pg.add_init_script("""
+        (function () {
+          var done = false;
+          function report() {
+            if (done) return;
+            done = true;
+            window.recordEarly({
+              theme: document.documentElement.getAttribute('data-theme'),
+              readyState: document.readyState,
+              bodyExisted: document.body !== null
+            });
+          }
+          function watch(root) {
+            new MutationObserver(function (muts, obs) {
+              for (var i = 0; i < muts.length; i++) {
+                if (muts[i].attributeName === 'data-theme') { obs.disconnect(); report(); return; }
+              }
+            }).observe(root, { attributes: true });
+          }
+          // An init script can run before <html> itself exists, in which case
+          // observing document.documentElement would throw on null and this whole
+          // probe would silently record nothing. Wait for the element first.
+          if (document.documentElement) {
+            watch(document.documentElement);
+          } else {
+            new MutationObserver(function (muts, obs) {
+              if (document.documentElement) { obs.disconnect(); watch(document.documentElement); }
+            }).observe(document, { childList: true, subtree: true });
+          }
+        })();
+    """)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('the theme attribute is set to dark during load',
+            early.get('theme') == 'dark', early)
+    R.check('it is set before <body> exists, so nothing can flash',
+            early.get('bodyExisted') is False, early)
+    R.check('document is still parsing at that point',
+            early.get('readyState') == 'loading', early)
+    ctx.close()
+
+    # Paper has no dark mode, and browsers usually drop background colours when
+    # printing - so a dark theme would print pale grey text onto white.
+    ctx = browser.new_context(viewport={'width': 1280, 'height': 900})
+    pg = ctx.new_page()
+    pg.goto(base + '/quiz.html')
+    pg.locator('#theme-toggle').click()
+    pg.wait_for_timeout(150)
+    pg.emulate_media(media='print')
+    pg.wait_for_timeout(150)
+    v = pg.evaluate(
+        "() => { const s = getComputedStyle(document.documentElement);"
+        " return { text: s.getPropertyValue('--text').trim(),"
+        "          bg: s.getPropertyValue('--bg-white').trim(),"
+        "          toggle: getComputedStyle(document.querySelector('.theme-toggle')).display }; }")
+    R.check('print resets text to black even in dark mode', v['text'] == '#000000', v)
+    R.check('print resets surfaces to white even in dark mode', v['bg'] == '#ffffff', v)
+    R.check('the toggle itself is not printed', v['toggle'] == 'none', v)
+    pg.emulate_media(media='screen')
+    ctx.close()
+
+
+# ============================================================
+# GROUP 10b - ACCESSIBILITY IN DARK MODE, AND THE STATES NOBODY AUDITED
+#
+# A dark palette needs auditing in its own right. Light text on a dark field
+# reads as higher contrast than it measures, so eyeballing it is unreliable in a
+# way that eyeballing a light palette is not. The palette was computed
+# numerically; this is the independent check on that arithmetic.
+#
+# The second half exists because building the dark theme turned up real contrast
+# failures in the LIGHT theme that had always been there:
+#   * the certificate button was white on #27ae60 - 2.87:1, below even the
+#     large-text threshold - and appears only on a quiz PASS;
+#   * the contact form's success tick was 2.61:1;
+#   * a studied card's button was 4.28:1 at 12.5px;
+#   * the low-time timer warning was 3.80:1 at 16.8px bold.
+# Every one of them sat in a state no test had ever driven the page into. An
+# accessibility audit only covers the screens you actually visit, which is the
+# real lesson: the tooling was fine, the coverage was not.
+# ============================================================
+
+def dark_ctx(browser, scheme='dark'):
+    ctx = browser.new_context(viewport={'width': 1280, 'height': 900},
+                              color_scheme=scheme)
+    pg = ctx.new_page()
+    pg.js_errors = []
+    pg.live_requests = []
+    pg.on('pageerror', lambda e: pg.js_errors.append(str(e)))
+    return ctx, pg
+
+
+def test_a11y_dark(browser, base, axe_src):
+    R.group('accessibility - axe-core in DARK mode')
+
+    if not axe_src:
+        R.check('axe-core available', False, 'could not download; group skipped')
+        return
+
+    for page in PAGES:
+        ctx, pg = dark_ctx(browser)
+        stub_formspree(pg)
+        pg.goto(base + '/' + page)
+        if page == 'learn.html':
+            pg.wait_for_selector('.phase-card', timeout=10000)
+        pg.wait_for_timeout(400)
+        R.check('%s dark theme actually applied' % page,
+                pg.get_attribute('html', 'data-theme') == 'dark')
+        v = axe_violations(pg, axe_src)
+        R.check('%s has no violations in dark mode' % page, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
+
+    # The tint colours are the hardest part of a dark palette, and they only
+    # appear in these states.
+    ctx, pg = dark_ctx(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.phase-header').first.click()
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    pg.wait_for_timeout(350)
+    v = axe_violations(pg, axe_src)
+    R.check('dark: expanded card and Class A filter notice have no violations',
+            not v, [x['id'] + ' ' + str(x['targets']) for x in v])
+    pg.locator('#deliverables-toggle').click()
+    pg.wait_for_timeout(350)
+    v = axe_violations(pg, axe_src)
+    R.check('dark: deliverables list has no violations', not v,
+            [x['id'] + ' ' + str(x['targets']) for x in v])
+    ctx.close()
+
+    R.group('accessibility - states that had never been audited')
+
+    # A STUDIED CARD - green text on the pale green tint, 4.28:1 in light mode.
+    for scheme in ['light', 'dark']:
+        ctx, pg = dark_ctx(browser, scheme)
+        pg.goto(base + '/learn.html')
+        pg.wait_for_selector('.phase-card', timeout=10000)
+        pg.locator('.mark-studied-btn').first.click()
+        pg.wait_for_timeout(250)
+        R.check('%s: card is marked studied' % scheme,
+                pg.locator('.phase-card.studied').count() >= 1)
+        v = axe_violations(pg, axe_src)
+        R.check('%s: studied card has no violations' % scheme, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
+
+    # THE QUIZ PASS SCREEN. Previous audits answered option 0 every time, scoring
+    # about 25%, so the certificate button stayed hidden and its contrast was
+    # never measured.
+    for scheme in ['light', 'dark']:
+        ctx, pg = dark_ctx(browser, scheme)
+        pg.goto(base + '/quiz.html')
+        pg.fill('#participant-name', 'Contrast Check')
+        pg.locator('#begin-quiz').click()
+        pg.wait_for_selector('#quiz-active.active', timeout=10000)
+        answer_all_correctly(pg)
+        R.check('%s: quiz pass screen offers the certificate' % scheme,
+                pg.locator('#download-cert').is_visible())
+        v = axe_violations(pg, axe_src)
+        R.check('%s: quiz PASS screen has no violations' % scheme, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
+
+    # THE CONTACT SUCCESS CARD. The error state was audited; the success state,
+    # where the 2.61:1 tick lived, was not.
+    for scheme in ['light', 'dark']:
+        ctx, pg = dark_ctx(browser, scheme)
+        stub_formspree(pg)
+        pg.goto(base + '/contact.html')
+        pg.fill('#name', 'Contrast Check')
+        pg.fill('#email', 'a@example.com')
+        pg.locator('#message').fill('Auditing the success state of this form.')
+        pg.locator('#submit-message').click()
+        pg.wait_for_selector('#form-success:not(.hidden)', timeout=10000)
+        v = axe_violations(pg, axe_src)
+        R.check('%s: contact SUCCESS state has no violations' % scheme, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
+
+    # THE LOW-TIME TIMER. Only appears in the last seconds of a question, so no
+    # earlier audit had waited long enough to see it.
+    for scheme in ['light', 'dark']:
+        ctx, pg = dark_ctx(browser, scheme)
+        pg.goto(base + '/quiz.html')
+        pg.fill('#participant-name', 'Timer Check')
+        pg.locator('#begin-quiz').click()
+        pg.wait_for_selector('#quiz-active.active', timeout=10000)
+        pg.wait_for_selector('.quiz-timer.warning', timeout=35000)
+        v = axe_violations(pg, axe_src)
+        R.check('%s: low-time timer warning has no violations' % scheme, not v,
+                [x['id'] + ' ' + str(x['targets']) for x in v])
+        ctx.close()
 
 
 # ============================================================
@@ -2015,8 +2392,11 @@ def main():
                     test_privacy(browser, base)
                 if 'version' in groups:
                     test_version(browser, base)
+                if 'theme' in groups:
+                    test_theme(browser, base)
                 if 'a11y' in groups:
                     test_a11y(browser, base, axe_src)
+                    test_a11y_dark(browser, base, axe_src)
                 if 'responsive' in groups:
                     test_responsive(browser, base)
             finally:

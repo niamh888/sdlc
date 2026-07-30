@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IEC 62304 SDLC Training | Privacy &amp; Data Protection</title>
   <link rel="stylesheet" href="style.css">
+  <!-- THEME, BEFORE FIRST PAINT.
+       This has to be inline and blocking. theme.js is deferred, so it runs after
+       the HTML is parsed — by which time the browser has already painted the
+       light theme, producing a white flash before it repaints dark. Setting the
+       attribute here, above the first pixel of <body>, avoids that.
+       Kept as small as it can be: read the saved choice, fall back to the system
+       setting, set one attribute. All the colour values live in style.css. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* Storage blocked or matchMedia missing: fall through to the CSS default,
+           which is the light theme plus the prefers-color-scheme fallback. */
+      }
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -27,6 +48,13 @@
         <a class="nav-link" href="learn.html">Learn</a>
         <a class="nav-link" href="quiz.html">Quiz</a>
         <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Theme toggle. A real button with aria-pressed: the label states the
+             ACTION and aria-pressed carries the STATE, so it is unambiguous
+             whichever a screen reader reads first. -->
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -84,7 +112,7 @@
         <p>We delete your message once your query has been dealt with, and in every case <strong>no later than 48 hours after we have replied</strong>. In practice that means removing both the submission held by Formspree and the email in our inbox. We do not keep contact form messages as a long-term record, and we do not archive them anywhere else.</p>
 
         <h2>Information stored in your browser</h2>
-        <p>This site stores two small pieces of information on your own device, using a browser feature called <em>local storage</em>:</p>
+        <p>This site stores three small pieces of information on your own device, using a browser feature called <em>local storage</em>:</p>
         <table class="legal-table">
           <thead>
             <tr><th scope="col">What is stored</th><th scope="col">Why</th></tr>
@@ -98,9 +126,13 @@
               <td><code>62304_bannerDismissed</code></td>
               <td>Remembers that you closed the notice about IEC 62304 Edition 2, so it does not keep reappearing</td>
             </tr>
+            <tr>
+              <td><code>62304_theme</code></td>
+              <td>Remembers whether you chose the light or dark theme. Only written once you use the toggle &mdash; until then the site simply follows your device's own light/dark setting and stores nothing</td>
+            </tr>
           </tbody>
         </table>
-        <p>Neither identifies you. Both stay on your device, are never transmitted to us or anyone else, and can be cleared at any time through your browser's "clear browsing data" settings. Because they exist purely to make the site work as you have asked it to, no consent banner is required for them.</p>
+        <p>None of them identifies you. All stay on your device, are never transmitted to us or anyone else, and can be cleared at any time through your browser's "clear browsing data" settings. Because they exist purely to make the site work as you have asked it to, no consent banner is required for them.</p>
         <p>This site sets <strong>no cookies at all</strong>.</p>
 
         <h2>The quiz and your certificate</h2>
@@ -168,5 +200,6 @@
   </footer>
 
   <script src="nav.js" defer></script>
+  <script src="theme.js" defer></script>
 </body>
 </html>

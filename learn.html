@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IEC 62304 SDLC Training | Learn</title>
   <link rel="stylesheet" href="style.css">
+  <!-- THEME, BEFORE FIRST PAINT.
+       This has to be inline and blocking. theme.js is deferred, so it runs after
+       the HTML is parsed — by which time the browser has already painted the
+       light theme, producing a white flash before it repaints dark. Setting the
+       attribute here, above the first pixel of <body>, avoids that.
+       Kept as small as it can be: read the saved choice, fall back to the system
+       setting, set one attribute. All the colour values live in style.css. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* Storage blocked or matchMedia missing: fall through to the CSS default,
+           which is the light theme plus the prefers-color-scheme fallback. */
+      }
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -27,6 +48,13 @@
         <a class="nav-link" href="learn.html">Learn</a>
         <a class="nav-link" href="quiz.html">Quiz</a>
         <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Theme toggle. A real button with aria-pressed: the label states the
+             ACTION and aria-pressed carries the STATE, so it is unambiguous
+             whichever a screen reader reads first. -->
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
       </nav>
     </div>
   </header>
@@ -205,6 +233,7 @@
        appear, so async-utils.js is guaranteed to have defined delay() and
        fetchJSON() before learn.js calls them. -->
   <script src="nav.js" defer></script>
+  <script src="theme.js" defer></script>
   <script src="async-utils.js" defer></script>
   <script src="learn.js" defer></script>
 </body>

@@ -308,7 +308,14 @@ function showFeedback(result, explanation) {
   const fullText = prefix + explanation;
 
   feedbackText.textContent = fullText;
-  feedbackText.style.color = result === 'correct' ? 'var(--success)' : 'var(--danger)';
+  // The -text variants, not --success / --danger. Those two are FILL colours,
+  // dark enough to carry white text; used as text themselves on a dark theme's
+  // card they are too close to the background. The -text roles are the ones with
+  // a verified contrast ratio in both themes. The ✓ / ✗ prefix above means the
+  // colour is reinforcement rather than the only signal either way.
+  feedbackText.style.color = result === 'correct'
+    ? 'var(--success-text)'
+    : 'var(--danger-text)';
 
   // Change the button label on the last question.
   const isLast = quizState.currentIndex === quizState.shuffled.length - 1;

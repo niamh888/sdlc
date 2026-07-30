@@ -73,7 +73,8 @@ FORMSPREE_GLOB = 'https://formspree.io/**'
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
-GROUPS = ['data', 'learn', 'quiz', 'contact', 'privacy', 'version', 'a11y', 'responsive']
+GROUPS = ['data', 'applicability', 'learn', 'quiz', 'contact', 'privacy', 'version',
+          'a11y', 'responsive']
 
 
 # ============================================================
@@ -188,6 +189,40 @@ def fetch_axe():
 # ============================================================
 # PAGE HELPERS
 # ============================================================
+
+def applicability():
+    """The per-sub-clause safety class mapping, read from the data file."""
+    with open(os.path.join(ROOT, 'data', 'applicability.json'), encoding='utf-8') as f:
+        return json.load(f)['clauses']
+
+
+def live_subclauses(subs):
+    """Sub-clauses that still carry a requirement. An empty classes list means the
+    sub-clause was removed by Amendment 1, so it must not count towards any
+    roll-up — otherwise Clause 7 would look partially applicable at every class
+    purely because 7.1.5 and 7.3.2 were deleted."""
+    return [sc for sc in subs if sc.get('classes')]
+
+
+def classify(topics, app, cls):
+    """Split the process areas into fully-applies / applies-in-part / does-not-apply
+    at one safety class, computed from the sub-clause data.
+
+    Every expected value in the applicability tests is derived here rather than
+    written out, for the same reason the counts are: a test that restates a value
+    from the data cannot detect an error in the data."""
+    out = {'full': [], 'partial': [], 'omitted': []}
+    for p in topics:
+        live = live_subclauses(app[p['id']])
+        applying = [sc for sc in live if cls in sc['classes']]
+        if not applying:
+            out['omitted'].append(p)
+        elif len(applying) == len(live):
+            out['full'].append(p)
+        else:
+            out['partial'].append(p)
+    return out
+
 
 def norm(text):
     """Normalise rendered text before asserting on it.
@@ -340,7 +375,218 @@ def test_data():
 
 
 # ============================================================
-# GROUP 2 — LEARN PAGE
+# GROUP 2 — SAFETY CLASS APPLICABILITY
+#
+# This group exists because of a real defect with real consequences. Clause 7
+# (Software Risk Management) was recorded as applying only to Class B and C, so
+# filtering to Class A hid the entire clause and implied that Class A software
+# needs no risk management. The truth is the reverse: §7.4.1 applies to every
+# class, and you cannot even arrive at Class A without a risk analysis. Two more
+# errors surfaced when the mapping was checked against the standard — Clause 5.3
+# was marked as reaching Class A when it has no Class A requirement at all, and
+# Clause 5.4 was marked Class C only when §5.4.1 reaches Class B.
+#
+# None of the three could be caught by the old model, because a single
+# hand-maintained list of classes per clause had nothing to disagree with. The
+# checks below therefore do two things: assert the mapping matches the standard at
+# sub-clause level, and assert that the SITE REFUSES TO RENDER if the two data
+# files ever contradict each other again.
+# ============================================================
+
+def test_applicability(browser, base):
+    R.group('applicability — the mapping itself')
+
+    path = os.path.join(ROOT, 'data', 'applicability.json')
+    try:
+        with open(path, encoding='utf-8') as f:
+            raw = json.load(f)
+        R.check('applicability.json is valid JSON', True)
+    except Exception as e:
+        R.check('applicability.json is valid JSON', False, e)
+        return
+
+    app = raw.get('clauses', {})
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        topics = json.load(f)
+
+    R.check('provenance recorded in the file',
+            bool(raw.get('_source')) and 'Table A.1' in raw['_source'])
+    R.check('cross-check date recorded', bool(raw.get('_crossCheckedOn')))
+
+    missing = [p['id'] for p in topics if p['id'] not in app]
+    R.check('every process area has a sub-clause mapping', not missing, missing)
+
+    orphans = [k for k in app if k not in [p['id'] for p in topics]]
+    R.check('no mapping entries without a matching process area', not orphans, orphans)
+
+    bad_classes = []
+    for cid, subs in app.items():
+        for sc in subs:
+            for c in sc.get('classes', []):
+                if c not in ('A', 'B', 'C'):
+                    bad_classes.append((cid, sc.get('ref'), c))
+    R.check('all class letters are A, B or C', not bad_classes, bad_classes)
+
+    dupes = []
+    for cid, subs in app.items():
+        refs = [sc['ref'] for sc in subs]
+        dupes += [(cid, r) for r in refs if refs.count(r) > 1]
+    R.check('sub-clause references are unique within a clause', not dupes, set(dupes))
+
+    # THE CENTRAL INVARIANT. The clause-level list in phases.json must equal the
+    # union of that clause's sub-clause classes. This is the check that would have
+    # caught the Clause 7 error on day one.
+    mismatches = []
+    for p in topics:
+        live = live_subclauses(app[p['id']])
+        union = [c for c in ('A', 'B', 'C') if any(c in sc['classes'] for sc in live)]
+        if union != sorted(p['classes']):
+            mismatches.append('%s: phases.json=%s mapping=%s'
+                              % (p['clause'], '/'.join(p['classes']), '/'.join(union)))
+    R.check('clause-level classes match the sub-clause union', not mismatches, mismatches)
+
+    R.group('applicability — spot checks against the standard')
+
+    def sub(cid, ref):
+        for sc in app[cid]:
+            if sc['ref'] == ref:
+                return sc
+        return None
+
+    # Each of these was wrong before the cross-check, or is a trap for anyone
+    # working from a 2006 copy rather than the amended text.
+    for cid, ref, expect, why in [
+        ('risk-management', '7.4.1', ['A', 'B', 'C'],
+         'the one Clause 7 requirement that reaches Class A'),
+        ('risk-management', '7.1.1', ['B', 'C'], 'Clause 7 analysis is B/C only'),
+        ('risk-management', '7.4.3', ['B', 'C'], 'B/C only'),
+        ('detailed-design', '5.4.1', ['B', 'C'],
+         'subdividing into units reaches Class B'),
+        ('detailed-design', '5.4.2', ['C'], 'detailed design itself is C only'),
+        ('architecture', '5.3.5', ['C'], 'segregation is C only'),
+        ('system-testing', '5.7.1', ['A', 'B', 'C'],
+         'Amendment 1 moved 5.7 to all classes'),
+        ('maintenance', '6.2.3', ['A', 'B', 'C'],
+         'Amendment 1 moved 6.2.3 to all classes'),
+        ('release', '5.8.3', ['B', 'C'], 'still B/C after Amendment 1'),
+        ('release', '5.8.7', ['A', 'B', 'C'],
+         'Amendment 1 moved archiving to all classes'),
+        ('planning', '5.1.4', ['C'], 'standards/methods/tools planning is C only'),
+        ('planning', '5.1.12', ['B', 'C'], 'new in Amendment 1, B/C'),
+    ]:
+        sc = sub(cid, ref)
+        R.check('%s is %s — %s' % (ref, '/'.join(expect), why),
+                sc is not None and sc['classes'] == expect,
+                sc['classes'] if sc else 'missing')
+
+    # Clause 5.3 must contain no Class A requirement whatsoever.
+    a_in_53 = [sc['ref'] for sc in app['architecture'] if 'A' in sc.get('classes', [])]
+    R.check('Clause 5.3 has no Class A requirement at all', not a_in_53, a_in_53)
+
+    # In Clause 7, exactly one requirement reaches Class A.
+    a_in_7 = [sc['ref'] for sc in app['risk-management'] if 'A' in sc.get('classes', [])]
+    R.check('exactly one Clause 7 requirement reaches Class A',
+            a_in_7 == ['7.4.1'], a_in_7)
+
+    # Deleted sub-clauses are recorded rather than dropped.
+    voids = [sc['ref'] for sc in app['risk-management'] if not sc.get('classes')]
+    R.check('7.1.5 and 7.3.2 recorded as removed by Amendment 1',
+            voids == ['7.1.5', '7.3.2'], voids)
+
+    R.group('applicability — rendered on the page')
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+
+    R.check('a sub-clause table per process area',
+            pg.locator('.sc-table').count() == len(topics),
+            pg.locator('.sc-table').count())
+    expected_rows = sum(len(app[p['id']]) for p in topics)
+    R.check('every sub-clause has a row (%d total)' % expected_rows,
+            pg.locator('.sc-table tbody tr').count() == expected_rows,
+            pg.locator('.sc-table tbody tr').count())
+
+    for cls in ['A', 'B', 'C']:
+        buckets = classify(topics, app, cls)
+        pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
+        pg.wait_for_timeout(250)
+        R.check('Class %s: %d cards visible' % (cls, len(buckets['full']) + len(buckets['partial'])),
+                pg.locator('.phase-card:not(.hidden)').count()
+                == len(buckets['full']) + len(buckets['partial']),
+                pg.locator('.phase-card:not(.hidden)').count())
+        R.check('Class %s: %d cards marked as applying in part' % (cls, len(buckets['partial'])),
+                pg.locator('.phase-card:not(.hidden).partial-applicability').count()
+                == len(buckets['partial']),
+                pg.locator('.phase-card:not(.hidden).partial-applicability').count())
+
+    # The specific case that started all this: at Class A, Clause 7 must be
+    # VISIBLE, flagged as partial, with 7.4.1 highlighted and the rest dimmed.
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    pg.wait_for_timeout(250)
+    card = pg.locator('#phase-risk-management')
+    R.check('Clause 7 is visible at Class A', card.is_visible())
+    R.check('Clause 7 is flagged as applying in part at Class A',
+            'partial-applicability' in (card.get_attribute('class') or ''))
+    rows = pg.evaluate("""() => [...document.querySelectorAll('#phase-risk-management .sc-table tbody tr')]
+        .map(tr => ({ ref: tr.querySelector('.sc-ref').textContent.trim(),
+                      dimmed: tr.classList.contains('sc-row-filtered') }))""")
+    by_ref = {r['ref']: r['dimmed'] for r in rows}
+    R.check('7.4.1 is NOT dimmed at Class A', by_ref.get('7.4.1') is False, by_ref.get('7.4.1'))
+    R.check('7.1.1 IS dimmed at Class A', by_ref.get('7.1.1') is True, by_ref.get('7.1.1'))
+    R.check('deleted 7.1.5 is not treated as filtered out',
+            by_ref.get('7.1.5') is False, by_ref.get('7.1.5'))
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    R.group('applicability — the site refuses to render on contradictory data')
+
+    # REGRESSION TEST for the original defect. Put the old, wrong value back and
+    # the page must fail loudly rather than quietly teaching something incorrect.
+    broken = json.loads(json.dumps(raw))
+    for sc in broken['clauses']['risk-management']:
+        if sc['ref'] == '7.4.1':
+            sc['classes'] = ['B', 'C']
+    ctx, pg = new_page(browser)
+    pg.route('**/applicability.json', lambda route: route.fulfill(
+        status=200, content_type='application/json', body=json.dumps(broken)))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    msg = pg.locator('#phases-error-message').inner_text()
+    R.check('reintroducing the Clause 7 error is caught', 'Clause 7' in msg, msg[:150])
+    R.check('the error names both files', 'phases.json' in msg and 'applicability.json' in msg,
+            msg[:200])
+    R.check('no cards render on contradictory data',
+            pg.locator('.phase-card').count() == 0)
+    ctx.close()
+
+    # A clause missing from the mapping must also be fatal, not silently skipped.
+    missing_map = json.loads(json.dumps(raw))
+    del missing_map['clauses']['architecture']
+    ctx, pg = new_page(browser)
+    pg.route('**/applicability.json', lambda route: route.fulfill(
+        status=200, content_type='application/json', body=json.dumps(missing_map)))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    R.check('a clause missing from the mapping is fatal',
+            'Clause 5.3' in pg.locator('#phases-error-message').inner_text(),
+            pg.locator('#phases-error-message').inner_text()[:150])
+    ctx.close()
+
+    # And a missing mapping file must not fall back to rendering unchecked content.
+    ctx, pg = new_page(browser)
+    pg.route('**/applicability.json', lambda route: route.fulfill(status=404, body='x'))
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('#phases-error:not(.hidden)', timeout=10000)
+    R.check('a missing mapping file is fatal',
+            'applicability.json' in pg.locator('#phases-error-message').inner_text(),
+            pg.locator('#phases-error-message').inner_text()[:150])
+    R.check('no cards render without the mapping', pg.locator('.phase-card').count() == 0)
+    ctx.close()
+
+
+# ============================================================
+# GROUP 3 — LEARN PAGE
 # ============================================================
 
 def test_learn(browser, base):
@@ -388,19 +634,29 @@ def test_learn(browser, base):
     R.check('switching back restores intro bullets',
             pg.locator('#phase-details-general-requirements li').first.inner_text() == intro_first)
 
-    # safety class filter. Class C legitimately matches all 13 topics, so Class A
-    # is the discriminating case — three topics are B/C only.
-    pg.locator('.filter-btn[data-filter="A"]').click()
-    R.check('Class A filter shows 10 of 13',
-            pg.locator('.phase-card:not(.hidden)').count() == 10,
-            pg.locator('.phase-card:not(.hidden)').count())
-    pg.locator('.filter-btn[data-filter="C"]').click()
-    R.check('Class C filter shows all 13 (every area applies to C)',
-            pg.locator('.phase-card:not(.hidden)').count() == 13,
-            pg.locator('.phase-card:not(.hidden)').count())
+    # SAFETY CLASS FILTER
+    # Expected counts are read from data/phases.json rather than written in here.
+    # An earlier version of this test hardcoded "Class A shows 10 of 13", which
+    # meant the suite asserted a count that was itself wrong — Clause 7 was
+    # incorrectly marked as not applying to Class A, and the test locked that
+    # error in and would have failed when it was corrected. A test that repeats
+    # a value from the data cannot detect an error in the data; deriving it means
+    # the test checks the FILTER logic, which is all it should be checking.
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        all_topics = json.load(f)
+
+    for cls in ['A', 'B', 'C']:
+        expected = len([p for p in all_topics if cls in p['classes']])
+        pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
+        pg.wait_for_timeout(150)
+        R.check('Class %s filter shows %d of %d cards' % (cls, expected, len(all_topics)),
+                pg.locator('.phase-card:not(.hidden)').count() == expected,
+                pg.locator('.phase-card:not(.hidden)').count())
+
     pg.locator('.filter-btn[data-filter="all"]').click()
     R.check('All filter restores every card',
-            pg.locator('.phase-card:not(.hidden)').count() == 13)
+            pg.locator('.phase-card:not(.hidden)').count() == len(all_topics),
+            pg.locator('.phase-card:not(.hidden)').count())
 
     # ---- FILTER NOTICE ----
     # Expected counts are derived from the JSON rather than hardcoded, so the
@@ -408,35 +664,47 @@ def test_learn(browser, base):
     with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
         topics = json.load(f)
 
+    app = applicability()
     notice = pg.locator('#filter-notice')
     pg.locator('.filter-btn[data-filter="all"]').click()
     R.check('filter notice hidden when showing all', notice.is_hidden())
 
     for cls in ['A', 'B', 'C']:
-        expected_omitted = [p for p in topics if cls not in p['classes']]
-        expected_shown = [p for p in topics if cls in p['classes']]
+        buckets = classify(topics, app, cls)
         pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
-        pg.wait_for_timeout(200)
+        pg.wait_for_timeout(250)
         R.check('Class %s shows the filter notice' % cls, notice.is_visible())
         text = norm(notice.inner_text())
         R.check('Class %s notice names the class' % cls,
                 'class ' + cls.lower() in text, text[:60])
 
-        if expected_omitted:
+        shown = buckets['full'] + buckets['partial']
+        if buckets['omitted'] or buckets['partial']:
             R.check('Class %s notice states the shown/total count' % cls,
-                    '%d of %d' % (len(expected_shown), len(topics)) in text, text[:110])
-            for p in expected_omitted:
-                R.check('Class %s notice lists %s as omitted' % (cls, p['clause']),
-                        norm(p['clause']) in text and norm(p['title']) in text,
-                        p['clause'])
-            # Nothing that IS shown should be listed as omitted.
-            listed = norm(pg.locator('.filter-notice-list').inner_text())
-            wrongly = [p['title'] for p in expected_shown if norm(p['title']) in listed]
-            R.check('Class %s notice does not list applicable areas as omitted' % cls,
-                    not wrongly, wrongly)
+                    '%d of %d' % (len(shown), len(topics)) in text, text[:130])
         else:
-            R.check('Class %s notice says nothing is omitted' % cls,
-                    'nothing is omitted' in text, text[:110])
+            R.check('Class %s notice says nothing omitted or reduced' % cls,
+                    'nothing is omitted' in text, text[:130])
+
+        if buckets['partial']:
+            R.check('Class %s notice states how many apply only in part' % cls,
+                    '%d' % len(buckets['partial']) in text and 'in part' in text, text[:140])
+            for p in buckets['partial']:
+                R.check('Class %s notice lists %s as applying in part' % (cls, p['clause']),
+                        norm(p['clause']) in text and norm(p['title']) in text, p['clause'])
+
+        for p in buckets['omitted']:
+            R.check('Class %s notice lists %s as not applying' % (cls, p['clause']),
+                    norm(p['clause']) in text and norm(p['title']) in text, p['clause'])
+
+        # A clause that applies in full must never be described as omitted.
+        # There are now up to TWO of these lists (applies-in-part, and
+        # does-not-apply), so all matches are joined rather than assuming one.
+        if buckets['omitted'] or buckets['partial']:
+            listed = norm(' '.join(pg.locator('.filter-notice-list').all_inner_texts()))
+            wrongly = [p['title'] for p in buckets['full'] if norm(p['title']) in listed]
+            R.check('Class %s notice does not list fully-applicable areas' % cls,
+                    not wrongly, wrongly)
 
         # The regulatory caution must appear for every class, including C.
         R.check('Class %s notice carries the ISO 14971 caution' % cls,
@@ -1178,6 +1446,17 @@ def test_a11y(browser, base, axe_src):
     R.check('learn expanded card has no violations', not v, [x['id'] for x in v])
     ctx.close()
 
+    # The safety-class filter notice only exists once a filter is applied, so an
+    # audit of the default page state would never see it.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('.filter-btn[data-filter="A"]').click()
+    pg.wait_for_timeout(300)
+    v = axe_violations(pg, axe_src)
+    R.check('learn Class A filter notice has no violations', not v, [x['id'] for x in v])
+    ctx.close()
+
     ctx, pg = new_page(browser)
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'A11y Test')
@@ -1383,6 +1662,8 @@ def main():
             try:
                 if 'data' in groups:
                     test_data()
+                if 'applicability' in groups:
+                    test_applicability(browser, base)
                 if 'learn' in groups:
                     test_learn(browser, base)
                 if 'quiz' in groups:

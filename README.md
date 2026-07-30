@@ -25,10 +25,55 @@ all of this, so it cannot quietly disappear in a redesign.
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from a JSON file; toggle between Introductory and Advanced depth; filter by safety class (A/B/C); study progress tracker
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; study progress tracker
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button
+
+## Safety Class Applicability
+
+IEC 62304 assigns requirements to safety classes **per sub-clause**, not per clause,
+and the site now models it that way. [data/applicability.json](data/applicability.json)
+records every sub-clause of Clauses 4–9 with the classes it applies to, taken from
+**Table A.1 as amended** and cross-checked line by line against the `[Class …]` tags
+in the normative text. Where the two could differ the normative text governs, since
+the standard states Table A.1 is provided for convenience only.
+
+**Why this file exists.** The site previously carried one list of classes per clause,
+maintained by hand. Clause 7 (Software Risk Management) was recorded as Class B and C
+only, so filtering to Class A hid the whole clause and implied Class A software needs
+no risk management — the reverse of the truth, since §7.4.1 applies to every class and
+the classification is itself an *output* of risk analysis. Checking against the
+standard turned up two more: **Clause 5.3** was marked as reaching Class A when it has
+no Class A requirement at all, and **Clause 5.4** was marked Class C only when §5.4.1
+reaches Class B.
+
+None of the three was detectable in the old model, because a single hand-maintained
+list has nothing to disagree with. Two things now prevent a recurrence:
+
+- The clause-level `classes` in `phases.json` **must equal the union** of that
+  clause's sub-clause classes. If they disagree the Learn page refuses to render and
+  names the offending clause. A loud failure beats a page that quietly teaches
+  something wrong.
+- The `applicability` test group asserts the mapping and includes a **regression test
+  that puts the original Clause 7 error back** and requires the site to reject it.
+
+**What it changes for the reader.** The filter now answers three questions rather than
+two — applies in full, applies in part, does not apply — and names the specific
+sub-clauses. "Clause 7 applies to Class A" is true and nearly useless; "of Clause 7,
+only 7.4.1 applies at Class A" is the actual answer. Each expanded card carries a
+table of its requirements against A/B/C, with rows dimmed when they carry no
+requirement at the class being filtered.
+
+**Amendment 1 traps.** The file flags the places where a reader working from a 2006
+copy would get it wrong: 5.7 (all requirements) moved from B,C to **A,B,C**; 6.2.3
+moved to **A,B,C**, making Clause 6 uniformly all-classes; 5.8.1, 5.8.2, 5.8.7 and
+5.8.8 moved to **A,B,C**; 5.1.12 is new at B,C; and 7.1.5 and 7.3.2 were removed.
+
+**One open item**, recorded in the file's `_openItems`: Amendment 1 replaced 5.7.5 in
+full and its `[Class …]` tag was not legible in the copy consulted. It is recorded as
+A/B/C, consistent with the rest of 5.7 and with Table A.1, but is flagged as needing
+confirmation against the printed page.
 
 ## Data Protection
 
@@ -360,7 +405,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **235 checks** covering content
+The site ships with an automated test suite: **317 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -398,7 +443,8 @@ python tests/test_site.py --group data --group a11y   # or several
 | Group | Checks |
 |---|---|
 | `data` | JSON parses; 13 topics and 2×15 questions; no duplicate ids or questions; every `correct` index within range; all required fields present |
-| `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
+| `applicability` | Sub-clause mapping is complete and well formed; **clause-level classes equal the union of their sub-clauses**; spot checks against the standard (7.4.1, 5.4.1, 5.3.5, 5.7.1, 6.2.3 …); 97 rendered rows; per-class visible/partial counts; and a **regression test that reintroduces the original Clause 7 error and requires the site to reject it** |
+| `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
 | `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data |
@@ -450,9 +496,10 @@ Being honest about the limits matters more than a green tick:
 | `quiz.js` | Quiz engine — async question loading with prefetch, shuffle, timer, scoring, results, certificate |
 | `contact.js` | Form validation and asynchronous submission with timeout and error handling |
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
+| `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9 and the safety classes it applies to |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 235 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 317 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |
@@ -466,6 +513,7 @@ guarantees `delay()` and `fetchJSON()` exist before any page script calls them.
 Content is now separate from code, so no JavaScript knowledge is needed to change it.
 
 - **Change a topic or clause reference** — edit `data/phases.json`
+- **Change which safety classes a requirement applies to** — edit `data/applicability.json`. If you change a sub-clause's classes such that the clause-level roll-up changes, you must update `classes` in `phases.json` to match, or the Learn page will refuse to render and tell you which clause disagrees. That is deliberate.
 - **Add or reword a quiz question** — edit the relevant file in `data/`
 
 JSON is stricter than JavaScript, and two rules catch most people:

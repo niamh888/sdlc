@@ -1,0 +1,151 @@
+{
+  "_about": "Which IEC 62304 requirements apply to which software safety class, at sub-clause level. Kept separate from phases.json so this mapping can be reviewed on its own, and because it is regulatory fact rather than course content.",
+  "_source": "IEC 62304:2006+AMD1:2015, Table A.1 (informative), cross-checked line by line against the [Class ...] tags in the normative text of Clauses 5 to 9. Where the two could differ the normative text governs, as the standard states Table A.1 is provided for convenience only.",
+  "_crossCheckedOn": "2026-07-30",
+  "_openItems": [
+    "5.7.5 - Amendment 1 replaced this sub-clause in full and the trailing [Class ...] tag was not legible in the copy consulted. Recorded as A/B/C because every other part of 5.7 is A/B/C and Table A.1 gives '5.7 All requirements' for all three classes. TO BE CONFIRMED against the printed page."
+  ],
+  "_notes": [
+    "Clause 4 carries no per-requirement [Class ...] tags; the standard's note says the tags appear in the clauses and subclauses that FOLLOW Clause 4. Table A.1 gives Clause 4 as all classes.",
+    "Amendment 1 changed applicability in several places that a reader working from a 2006 copy would get wrong: 5.7 (all requirements) moved from B,C to A,B,C; 6.2.3 moved from B,C to A,B,C, making Clause 6 uniformly all-classes; and 5.8.1, 5.8.2, 5.8.7 and 5.8.8 moved from B,C to A,B,C. 5.1.12 is new in Amendment 1 at B,C.",
+    "An empty classes array means the sub-clause was removed by Amendment 1 and carries no requirement."
+  ],
+
+  "clauses": {
+    "general-requirements": [
+      { "ref": "4.1", "title": "Quality management system", "classes": ["A", "B", "C"] },
+      { "ref": "4.2", "title": "Risk management", "classes": ["A", "B", "C"] },
+      { "ref": "4.3", "title": "Software safety classification", "classes": ["A", "B", "C"] },
+      { "ref": "4.4", "title": "Legacy software", "classes": ["A", "B", "C"], "note": "Added by Amendment 1" }
+    ],
+
+    "planning": [
+      { "ref": "5.1.1", "title": "Software development plan", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.2", "title": "Keep software development plan updated", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.3", "title": "Software development plan reference to system design and development", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.4", "title": "Software development standards, methods and tools planning", "classes": ["C"] },
+      { "ref": "5.1.5", "title": "Software integration and integration testing planning", "classes": ["B", "C"] },
+      { "ref": "5.1.6", "title": "Software verification planning", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.7", "title": "Software risk management planning", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.8", "title": "Documentation planning", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.9", "title": "Software configuration management planning", "classes": ["A", "B", "C"] },
+      { "ref": "5.1.10", "title": "Supporting items to be controlled", "classes": ["B", "C"] },
+      { "ref": "5.1.11", "title": "Software configuration item control before verification", "classes": ["B", "C"] },
+      { "ref": "5.1.12", "title": "Identification and avoidance of common software defects", "classes": ["B", "C"], "note": "Added by Amendment 1" }
+    ],
+
+    "requirements": [
+      { "ref": "5.2.1", "title": "Define and document software requirements from system requirements", "classes": ["A", "B", "C"] },
+      { "ref": "5.2.2", "title": "Software requirements content", "classes": ["A", "B", "C"] },
+      { "ref": "5.2.3", "title": "Include risk control measures in software requirements", "classes": ["B", "C"] },
+      { "ref": "5.2.4", "title": "Re-evaluate medical device risk analysis", "classes": ["A", "B", "C"] },
+      { "ref": "5.2.5", "title": "Update requirements", "classes": ["A", "B", "C"], "note": "Retitled by Amendment 1" },
+      { "ref": "5.2.6", "title": "Verify software requirements", "classes": ["A", "B", "C"] }
+    ],
+
+    "architecture": [
+      { "ref": "5.3.1", "title": "Transform software requirements into an architecture", "classes": ["B", "C"] },
+      { "ref": "5.3.2", "title": "Develop an architecture for the interfaces of software items", "classes": ["B", "C"] },
+      { "ref": "5.3.3", "title": "Specify functional and performance requirements of SOUP item", "classes": ["B", "C"] },
+      { "ref": "5.3.4", "title": "Specify system hardware and software required by SOUP item", "classes": ["B", "C"] },
+      { "ref": "5.3.5", "title": "Identify segregation necessary for risk control", "classes": ["C"] },
+      { "ref": "5.3.6", "title": "Verify software architecture", "classes": ["B", "C"] }
+    ],
+
+    "detailed-design": [
+      { "ref": "5.4.1", "title": "Subdivide software into software units", "classes": ["B", "C"], "note": "Retitled by Amendment 1; this is the only part of 5.4 that reaches Class B" },
+      { "ref": "5.4.2", "title": "Develop detailed design for each software unit", "classes": ["C"] },
+      { "ref": "5.4.3", "title": "Develop detailed design for interfaces", "classes": ["C"] },
+      { "ref": "5.4.4", "title": "Verify detailed design", "classes": ["C"] }
+    ],
+
+    "implementation": [
+      { "ref": "5.5.1", "title": "Implement each software unit", "classes": ["A", "B", "C"] },
+      { "ref": "5.5.2", "title": "Establish software unit verification process", "classes": ["B", "C"] },
+      { "ref": "5.5.3", "title": "Software unit acceptance criteria", "classes": ["B", "C"] },
+      { "ref": "5.5.4", "title": "Additional software unit acceptance criteria", "classes": ["C"] },
+      { "ref": "5.5.5", "title": "Software unit verification", "classes": ["B", "C"] }
+    ],
+
+    "integration": [
+      { "ref": "5.6.1", "title": "Integrate software units", "classes": ["B", "C"] },
+      { "ref": "5.6.2", "title": "Verify software integration", "classes": ["B", "C"] },
+      { "ref": "5.6.3", "title": "Software integration testing", "classes": ["B", "C"], "note": "Retitled by Amendment 1" },
+      { "ref": "5.6.4", "title": "Software integration testing content", "classes": ["B", "C"], "note": "Retitled by Amendment 1" },
+      { "ref": "5.6.5", "title": "Evaluate software integration test procedures", "classes": ["B", "C"], "note": "Retitled by Amendment 1" },
+      { "ref": "5.6.6", "title": "Conduct regression tests", "classes": ["B", "C"] },
+      { "ref": "5.6.7", "title": "Integration test record contents", "classes": ["B", "C"] },
+      { "ref": "5.6.8", "title": "Use software problem resolution process", "classes": ["B", "C"] }
+    ],
+
+    "system-testing": [
+      { "ref": "5.7.1", "title": "Establish tests for software requirements", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.7.2", "title": "Use software problem resolution process", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.7.3", "title": "Retest after changes", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.7.4", "title": "Evaluate software system testing", "classes": ["A", "B", "C"], "note": "Retitled by Amendment 1, which also moved it from B,C to all classes" },
+      { "ref": "5.7.5", "title": "Software system test record contents", "classes": ["A", "B", "C"], "note": "Replaced in full by Amendment 1. Class tag to be confirmed - see _openItems" }
+    ],
+
+    "release": [
+      { "ref": "5.8.1", "title": "Ensure software verification is complete", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.8.2", "title": "Document known residual anomalies", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.8.3", "title": "Evaluate known residual anomalies", "classes": ["B", "C"] },
+      { "ref": "5.8.4", "title": "Document released versions", "classes": ["A", "B", "C"] },
+      { "ref": "5.8.5", "title": "Document how released software was created", "classes": ["B", "C"] },
+      { "ref": "5.8.6", "title": "Ensure activities and tasks are complete", "classes": ["B", "C"] },
+      { "ref": "5.8.7", "title": "Archive software", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
+      { "ref": "5.8.8", "title": "Assure reliable delivery of released software", "classes": ["A", "B", "C"], "note": "Retitled by Amendment 1, which also moved it from B,C to all classes" }
+    ],
+
+    "maintenance": [
+      { "ref": "6.1", "title": "Establish software maintenance plan", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.1.1", "title": "Monitor feedback", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.1.2", "title": "Document and evaluate feedback", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.1.3", "title": "Evaluate problem report's effects on safety", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.2", "title": "Use software problem resolution process", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.3", "title": "Analyse change requests", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes, making Clause 6 uniformly all-classes" },
+      { "ref": "6.2.4", "title": "Change request approval", "classes": ["A", "B", "C"] },
+      { "ref": "6.2.5", "title": "Communicate to users and regulators", "classes": ["A", "B", "C"] },
+      { "ref": "6.3.1", "title": "Use established process to implement modification", "classes": ["A", "B", "C"] },
+      { "ref": "6.3.2", "title": "Re-release modified software system", "classes": ["A", "B", "C"] }
+    ],
+
+    "risk-management": [
+      { "ref": "7.1.1", "title": "Identify software items that could contribute to a hazardous situation", "classes": ["B", "C"] },
+      { "ref": "7.1.2", "title": "Identify potential causes of contribution to a hazardous situation", "classes": ["B", "C"] },
+      { "ref": "7.1.3", "title": "Evaluate published SOUP anomaly lists", "classes": ["B", "C"] },
+      { "ref": "7.1.4", "title": "Document potential causes", "classes": ["B", "C"] },
+      { "ref": "7.1.5", "title": "Deleted by Amendment 1", "classes": [], "note": "No requirement text" },
+      { "ref": "7.2.1", "title": "Define risk control measures", "classes": ["B", "C"] },
+      { "ref": "7.2.2", "title": "Risk control measures implemented in software", "classes": ["B", "C"] },
+      { "ref": "7.3.1", "title": "Verify risk control measures", "classes": ["B", "C"] },
+      { "ref": "7.3.2", "title": "Not used (Amendment 1)", "classes": [], "note": "No requirement text" },
+      { "ref": "7.3.3", "title": "Document traceability", "classes": ["B", "C"] },
+      { "ref": "7.4.1", "title": "Analyse changes to medical device software with respect to safety", "classes": ["A", "B", "C"], "note": "The only requirement in Clause 7 that applies to Class A" },
+      { "ref": "7.4.2", "title": "Analyse impact of software changes on existing risk control measures", "classes": ["B", "C"] },
+      { "ref": "7.4.3", "title": "Perform risk management activities based on analyses", "classes": ["B", "C"] }
+    ],
+
+    "configuration": [
+      { "ref": "8.1.1", "title": "Establish means to identify configuration items", "classes": ["A", "B", "C"] },
+      { "ref": "8.1.2", "title": "Identify SOUP", "classes": ["A", "B", "C"] },
+      { "ref": "8.1.3", "title": "Identify system configuration documentation", "classes": ["A", "B", "C"] },
+      { "ref": "8.2.1", "title": "Approve change requests", "classes": ["A", "B", "C"] },
+      { "ref": "8.2.2", "title": "Implement changes", "classes": ["A", "B", "C"] },
+      { "ref": "8.2.3", "title": "Verify changes", "classes": ["A", "B", "C"] },
+      { "ref": "8.2.4", "title": "Provide means for traceability of change", "classes": ["A", "B", "C"] },
+      { "ref": "8.3", "title": "Configuration status accounting", "classes": ["A", "B", "C"] }
+    ],
+
+    "problem-resolution": [
+      { "ref": "9.1", "title": "Prepare problem reports", "classes": ["A", "B", "C"] },
+      { "ref": "9.2", "title": "Investigate the problem", "classes": ["A", "B", "C"] },
+      { "ref": "9.3", "title": "Advise relevant parties", "classes": ["A", "B", "C"] },
+      { "ref": "9.4", "title": "Use change control process", "classes": ["A", "B", "C"] },
+      { "ref": "9.5", "title": "Maintain records", "classes": ["A", "B", "C"] },
+      { "ref": "9.6", "title": "Analyse problems for trends", "classes": ["A", "B", "C"] },
+      { "ref": "9.7", "title": "Verify software problem resolution", "classes": ["A", "B", "C"] },
+      { "ref": "9.8", "title": "Test documentation contents", "classes": ["A", "B", "C"] }
+    ]
+  }
+}

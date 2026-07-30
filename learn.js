@@ -22,7 +22,17 @@
 // ============================================================
 
 // ---------- CONFIG ----------
+// Two data files, deliberately separate:
+//   phases.json        — the course content (what each process area is about)
+//   applicability.json — which requirements apply to which safety class
+//
+// They are split because they are different kinds of thing with different review
+// needs. The content is editorial; the applicability mapping is regulatory fact
+// transcribed from IEC 62304 Table A.1 and cross-checked against the [Class ...]
+// tags in the normative text. Keeping the mapping in its own file means it can be
+// checked against the standard on its own, without wading through prose.
 const PHASES_URL = 'data/phases.json';
+const APPLICABILITY_URL = 'data/applicability.json';
 
 // Minimum time (ms) the loading indicator stays on screen.
 // Without this, a fast load makes the spinner appear and vanish within a
@@ -64,40 +74,113 @@ let activeLevel = 'intro';
 // propagate up to it. Catching an error somewhere you cannot act on it is
 // how bugs get hidden.
 async function loadPhases() {
-  // Promise.all() takes an array of Promises and returns a single Promise
-  // that fulfils when EVERY one of them has fulfilled. Both jobs below run
-  // CONCURRENTLY — they start together and overlap, so the total wait is
-  // the longer of the two, not the sum. Written as two separate awaits
-  // instead, the delay would not begin until the fetch had finished, and
-  // the page would be needlessly slower.
+  // Promise.all() takes an array of Promises and returns a single Promise that
+  // fulfils when EVERY one of them has fulfilled. All three jobs below run
+  // CONCURRENTLY — they start together and overlap, so the total wait is the
+  // longest of the three, not the sum. Written as separate awaits instead, each
+  // download would wait for the previous one to finish and the page would be
+  // needlessly slower for no benefit: neither file depends on the other.
   //
-  // The second entry is the anti-flicker pause described above. We want
-  // "data has arrived AND at least 250ms has passed", which is exactly what
+  // The third entry is the anti-flicker pause described above. We want "both
+  // files have arrived AND at least 250ms has passed", which is exactly what
   // Promise.all expresses.
   //
   // The square brackets on the left are array destructuring: Promise.all
-  // resolves to an array of results in the same order as the input, so
-  // element 0 is the parsed JSON. delay() resolves to nothing useful, so we
-  // simply do not name element 1.
+  // resolves to an array of results in the same order as the input. delay()
+  // resolves to nothing useful, so element 2 is simply not named.
   //
   // One subtlety: Promise.all rejects IMMEDIATELY if any of its Promises
-  // rejects — it does not wait for the others. So a failed fetch surfaces
-  // the error straight away instead of sitting through the 250ms pause.
-  const [loadedPhases] = await Promise.all([
+  // rejects — it does not wait for the others. So a failed fetch surfaces the
+  // error straight away instead of sitting through the 250ms pause.
+  const [loadedPhases, applicability] = await Promise.all([
     fetchJSON(PHASES_URL),
+    fetchJSON(APPLICABILITY_URL),
     delay(MIN_LOADING_MS)
   ]);
 
-  // Defensive check. The file could parse as valid JSON yet still not be
-  // the shape we expect (an object instead of an array, or an empty array).
-  // Validating at the boundary — right where external data enters the
-  // program — means the rest of the code can trust `phases` completely.
+  // Defensive check. A file can parse as valid JSON yet still not be the shape
+  // we expect (an object instead of an array, or an empty array). Validating at
+  // the boundary — right where external data enters the program — means the rest
+  // of the code can trust `phases` completely.
   if (!Array.isArray(loadedPhases) || loadedPhases.length === 0) {
     throw new Error(PHASES_URL + ' did not contain a list of topics.');
   }
+  if (!applicability || !applicability.clauses) {
+    throw new Error(APPLICABILITY_URL + ' did not contain a clauses map.');
+  }
+
+  mergeApplicability(loadedPhases, applicability.clauses);
 
   phases = loadedPhases;
   renderPhases();
+}
+
+// Attaches the sub-clause mapping to each topic and CHECKS THE TWO FILES AGREE.
+//
+// This function exists because of a real bug. Clause 7 (Software Risk Management)
+// was recorded as applying only to Class B and C, which is wrong — §7.4.1 applies
+// to every class. The filter silently hid the whole clause from Class A users,
+// implying that Class A software needs no risk management, which is the opposite
+// of the truth. Two further errors were found the same way: Clause 5.3 was marked
+// as applying to Class A when it has no Class A requirement at all, and Clause 5.4
+// was marked Class C only when §5.4.1 reaches Class B.
+//
+// The lesson: a single hand-maintained list of classes per clause had no way to be
+// wrong *visibly*. Nothing contradicted it, so nothing caught it. Now the
+// clause-level list must equal the union of its sub-clause classes, and if the two
+// disagree the page refuses to render and says which clause is at fault. A loud
+// failure on a data error is far better than a page that quietly teaches something
+// incorrect — especially here, where a reader could take the wrong lesson into a
+// real regulatory submission.
+function mergeApplicability(loadedPhases, clauseMap) {
+  const classOrder = ['A', 'B', 'C'];
+
+  loadedPhases.forEach(function (phase) {
+    const subClauses = clauseMap[phase.id];
+
+    if (!Array.isArray(subClauses) || subClauses.length === 0) {
+      throw new Error('No sub-clause applicability recorded for ' + phase.clause +
+                      ' (id "' + phase.id + '") in ' + APPLICABILITY_URL + '.');
+    }
+
+    // A sub-clause with an empty classes array was removed by Amendment 1 and
+    // carries no requirement, so it must not count towards the roll-up.
+    const live = subClauses.filter(function (sc) {
+      return Array.isArray(sc.classes) && sc.classes.length > 0;
+    });
+
+    const derived = classOrder.filter(function (cls) {
+      return live.some(function (sc) { return sc.classes.indexOf(cls) !== -1; });
+    });
+
+    if (derived.join('') !== phase.classes.slice().sort().join('')) {
+      throw new Error(
+        phase.clause + ': the safety classes in phases.json (' + phase.classes.join('/') +
+        ') do not match the sub-clauses in applicability.json (' + derived.join('/') +
+        '). One of the two files is wrong — check against the standard before publishing.'
+      );
+    }
+
+    phase.subClauses = subClauses;
+  });
+}
+
+// ---------- APPLICABILITY HELPERS ----------
+// How a whole clause relates to one safety class. Three answers, not two, which
+// is the point of the sub-clause data: "Clause 5.4 applies to Class B" is true but
+// misleading on its own, because only §5.4.1 of it does.
+//   'full'    every requirement in the clause applies at this class
+//   'partial' some do and some do not
+//   'none'    the clause has no requirement at this class
+function applicabilityAt(phase, cls) {
+  const live = (phase.subClauses || []).filter(function (sc) {
+    return Array.isArray(sc.classes) && sc.classes.length > 0;
+  });
+  if (live.length === 0) return 'none';
+
+  const applying = live.filter(function (sc) { return sc.classes.indexOf(cls) !== -1; });
+  if (applying.length === 0) return 'none';
+  return applying.length === live.length ? 'full' : 'partial';
 }
 
 // initPhases() wraps loadPhases() with all the user-facing state handling:
@@ -197,9 +280,13 @@ function renderPhases() {
           '<div class="phase-summary">' + phase.summary + '</div>' +
           '<div class="phase-classes">' + classBadges + '</div>' +
         '</div>' +
+        '<span class="partial-badge hidden" aria-live="polite"></span>' +
         '<span class="phase-chevron" aria-hidden="true">&#9660;</span>' +
       '</div>' +
-      '<div class="phase-details" id="phase-details-' + phase.id + '"><ul>' + detailItems + '</ul></div>' +
+      '<div class="phase-details" id="phase-details-' + phase.id + '">' +
+        '<ul>' + detailItems + '</ul>' +
+        buildSubClauseTable(phase) +
+      '</div>' +
       '<div class="phase-footer">' +
         '<span class="studied-badge">&#10003; Studied</span>' +
         '<button class="btn btn-secondary mark-studied-btn" data-id="' + phase.id + '"' + (isStudied ? ' disabled' : '') + '>' +
@@ -213,6 +300,67 @@ function renderPhases() {
   document.getElementById('progress-total').textContent = phases.length;
   applyFilter(activeFilter);
   updateProgress();
+}
+
+// ---------- SUB-CLAUSE TABLE ----------
+// Shows, requirement by requirement, which safety classes it applies to.
+//
+// This is the detail the old single-list-of-classes model could not express, and
+// it is where the real lesson lives: applicability in IEC 62304 is assigned per
+// requirement, not per clause. A card saying "Clause 5.4 — Class B and C" invites
+// the reader to assume all of 5.4 applies at Class B, when only §5.4.1 does.
+//
+// A real <table> is used rather than styled divs because this is genuinely tabular
+// data — requirements down the side, classes across the top. Screen readers can
+// then announce "Class B, applies" for a cell instead of leaving the user to infer
+// meaning from a tick's position.
+function buildSubClauseTable(phase) {
+  if (!phase.subClauses || phase.subClauses.length === 0) return '';
+
+  let rows = '';
+  phase.subClauses.forEach(function (sc) {
+    const deleted = !Array.isArray(sc.classes) || sc.classes.length === 0;
+
+    let cells = '';
+    ['A', 'B', 'C'].forEach(function (cls) {
+      if (deleted) {
+        // aria-hidden on the dash, plus sr-only text, so a screen reader hears
+        // words rather than punctuation it may or may not announce.
+        cells += '<td class="sc-cell sc-void"><span aria-hidden="true">&mdash;</span>' +
+                 '<span class="sr-only">not applicable</span></td>';
+      } else if (sc.classes.indexOf(cls) !== -1) {
+        cells += '<td class="sc-cell sc-yes"><span aria-hidden="true">&#10003;</span>' +
+                 '<span class="sr-only">Class ' + cls + ': applies</span></td>';
+      } else {
+        cells += '<td class="sc-cell sc-no"><span aria-hidden="true">&middot;</span>' +
+                 '<span class="sr-only">Class ' + cls + ': does not apply</span></td>';
+      }
+    });
+
+    const noteHtml = sc.note
+      ? ' <span class="sc-note">' + sc.note + '</span>'
+      : '';
+
+    rows += '<tr' + (deleted ? ' class="sc-row-void"' : '') + '>' +
+              '<th scope="row" class="sc-ref">' + sc.ref + '</th>' +
+              '<td class="sc-title">' + sc.title + noteHtml + '</td>' +
+              cells +
+            '</tr>';
+  });
+
+  return '' +
+    '<div class="phase-subclauses">' +
+      '<table class="sc-table">' +
+        '<caption>Which safety classes each requirement of ' + phase.clause +
+          ' applies to, per IEC&nbsp;62304 Table&nbsp;A.1 and the normative text.</caption>' +
+        '<thead><tr>' +
+          '<th scope="col">Ref</th>' +
+          '<th scope="col">Requirement</th>' +
+          '<th scope="col">A</th><th scope="col">B</th><th scope="col">C</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+    '</div>';
 }
 
 // ---------- LEVEL TOGGLE ----------
@@ -328,9 +476,177 @@ function applyFilter(classFilter) {
   phases.forEach(function (phase) {
     const card = document.getElementById('phase-' + phase.id);
     if (!card) return;
-    const visible = classFilter === 'all' || phase.classes.indexOf(classFilter) !== -1;
-    card.classList.toggle('hidden', !visible);
+
+    // applicabilityAt() rather than phase.classes, so the filter and the notice
+    // both read from the same sub-clause data and cannot disagree with each other.
+    const state = classFilter === 'all' ? 'full' : applicabilityAt(phase, classFilter);
+    card.classList.toggle('hidden', state === 'none');
+
+    // Mark cards that apply only in part, so the grid itself carries the nuance
+    // and not just the notice above it.
+    card.classList.toggle('partial-applicability', state === 'partial');
+    const badge = card.querySelector('.partial-badge');
+    if (badge) {
+      badge.classList.toggle('hidden', state !== 'partial');
+      badge.textContent = 'Applies in part at Class ' + classFilter;
+    }
+
+    // Grey out the sub-clause rows that carry no requirement at the active class,
+    // so an expanded card answers "which parts of this apply to me?" directly.
+    card.querySelectorAll('.sc-table tbody tr').forEach(function (row, i) {
+      const sc = phase.subClauses[i];
+      if (!sc) return;
+      const off = classFilter !== 'all' &&
+                  Array.isArray(sc.classes) &&
+                  sc.classes.length > 0 &&
+                  sc.classes.indexOf(classFilter) === -1;
+      row.classList.toggle('sc-row-filtered', off);
+    });
   });
+
+  updateFilterNotice(classFilter);
+}
+
+// ---------- FILTER NOTICE ----------
+// Explains what the filter did, and carries the regulatory caution that goes
+// with it. Two problems this solves:
+//
+// 1. Hiding cards further down a long page is invisible feedback. A user who
+//    clicked "Class A" had no way of knowing whether anything happened, how
+//    many topics were removed, or which ones.
+//
+// 2. More seriously, silently hiding Clause 7 (Software Risk Management) from a
+//    Class A view invites exactly the wrong conclusion — that Class A software
+//    needs no risk management. It is the reverse: you cannot arrive at Class A
+//    WITHOUT a risk analysis establishing that the software item cannot
+//    contribute to a hazardous situation. The classification is an output of
+//    ISO 14971 work, not a shortcut around it.
+//
+// The omitted list is derived from the same data that drives the filtering, so
+// it cannot fall out of step with what is actually on screen.
+function updateFilterNotice(classFilter) {
+  const notice = document.getElementById('filter-notice');
+  const label = document.getElementById('filter-notice-label');
+  const body = document.getElementById('filter-notice-body');
+  if (!notice || !label || !body) return;
+
+  // No filter, or no data yet — nothing meaningful to report.
+  if (classFilter === 'all' || phases.length === 0) {
+    notice.classList.add('hidden');
+    label.textContent = '';
+    body.innerHTML = '';
+    return;
+  }
+
+  // Three buckets, from the sub-clause data. The middle one is the whole reason
+  // this feature was rebuilt: previously a clause either appeared or vanished, so
+  // "Clause 7 applies to Class A" and "one requirement of Clause 7 applies to
+  // Class A" looked identical, and the difference is exactly what a learner needs.
+  const full = phases.filter(function (p) { return applicabilityAt(p, classFilter) === 'full'; });
+  const partial = phases.filter(function (p) { return applicabilityAt(p, classFilter) === 'partial'; });
+  const omitted = phases.filter(function (p) { return applicabilityAt(p, classFilter) === 'none'; });
+  const shown = full.concat(partial);
+
+  // Reveal the panel BEFORE writing the text. A live region that is
+  // display:none when its content changes is unreliably announced; changing the
+  // text while it is already visible is what prompts the announcement.
+  notice.classList.remove('hidden');
+  label.textContent = 'Filtered to Class ' + classFilter;
+
+  let html = '';
+
+  // ---- Headline count ----
+  if (omitted.length === 0 && partial.length === 0) {
+    html += '<p class="filter-notice-count">All <strong>' + phases.length +
+            '</strong> process areas apply to Class ' + classFilter +
+            ' software in full. Class C carries the complete set of IEC 62304 requirements — ' +
+            'nothing is omitted and nothing is reduced.</p>';
+  } else {
+    html += '<p class="filter-notice-count">Showing <strong>' + shown.length + ' of ' +
+            phases.length + '</strong> process areas for Class ' + classFilter + ' software';
+    if (partial.length > 0) {
+      html += ', of which <strong>' + partial.length + '</strong> ' +
+              (partial.length === 1 ? 'applies' : 'apply') + ' only in part';
+    }
+    html += '.</p>';
+  }
+
+  // ---- Applies, but only in part ----
+  // Naming the specific sub-clauses is the difference between a filter and a
+  // teaching tool. "Clause 7 applies to Class A" is true and nearly useless;
+  // "of Clause 7, only 7.4.1 applies at Class A" is the actual answer.
+  if (partial.length > 0) {
+    html += '<p class="filter-notice-subheading">Applies in part &mdash; only some requirements ' +
+            'of these areas are assigned to Class ' + classFilter + ':</p>';
+    html += '<ul class="filter-notice-list">';
+    partial.forEach(function (p) {
+      const live = p.subClauses.filter(function (sc) { return sc.classes.length > 0; });
+      const applying = live.filter(function (sc) { return sc.classes.indexOf(classFilter) !== -1; });
+      html += '<li><strong>' + p.clause + '</strong> &mdash; ' + p.title +
+              ' <span class="filter-notice-applies">(' + applying.length + ' of ' + live.length +
+              ' requirements: ' + applying.map(function (sc) { return sc.ref; }).join(', ') +
+              ')</span></li>';
+    });
+    html += '</ul>';
+  }
+
+  // ---- Does not apply at all ----
+  if (omitted.length > 0) {
+    html += '<p class="filter-notice-subheading">Hidden &mdash; IEC 62304 assigns no requirement ' +
+            'in these areas to Class ' + classFilter + ':</p>';
+    html += '<ul class="filter-notice-list">';
+    omitted.forEach(function (p) {
+      html += '<li><strong>' + p.clause + '</strong> &mdash; ' + p.title +
+              ' <span class="filter-notice-applies">(required for Class ' +
+              p.classes.join(' and ') + ')</span></li>';
+    });
+    html += '</ul>';
+  }
+
+  // ---- THE CAUTION ----
+  // Shown for every class, including C, because the classification has to stay
+  // valid for the life of the product, not just at the moment it was assigned.
+  html += '<div class="filter-notice-caution">';
+  html += '<strong class="filter-notice-caution-heading">&#9888;&#xFE0E; Confirm your classification still holds</strong>';
+
+  // Triggered by the CLASS, not by which areas happen to be hidden.
+  //
+  // This paragraph originally fired when Clause 7 appeared in the omitted list.
+  // That was fragile as well as wrong-headed: correcting Clause 7 to apply to
+  // all classes removed it from the omitted list, which would have silently
+  // switched off the very warning that matters most. Tying it to Class A means
+  // it cannot disappear as a side effect of a data change.
+  if (classFilter === 'A') {
+    html += '<p><strong>Class A does not mean risk management is out of scope.</strong> ' +
+            'The safety classification is an <em>output</em> of your ISO&nbsp;14971 risk analysis, not an ' +
+            'alternative to it. Under &#167;4.3, Class A may only be assigned where the risk management ' +
+            'process has established that the software item <em>cannot</em> contribute to a hazardous ' +
+            'situation. &#167;4.2 requires an ISO&nbsp;14971 risk management process for every class, and ' +
+            'within Clause&nbsp;7 itself &#167;7.4.1 &mdash; analyse changes to the software with respect ' +
+            'to safety &mdash; applies to Class&nbsp;A as well as B and C.</p>';
+  }
+
+  html += '<p>Re-check and re-validate your ISO&nbsp;14971 risk management file whenever the intended use, ' +
+          'requirements, architecture, risk controls or SOUP components change. ';
+
+  // Only refer to "the processes above" when some were actually listed —
+  // at Class C nothing is omitted, so that phrase would point at nothing.
+  if (omitted.length > 0) {
+    html += 'If the analysis shows a software item could contribute to a hazardous situation, the safety ' +
+            'class rises and the ' + (omitted.length === 1 ? 'process' : 'processes') +
+            ' listed above ' + (omitted.length === 1 ? 'becomes' : 'become') + ' applicable. ';
+  } else {
+    html += 'Class C is already the most demanding classification, so no further process areas can be ' +
+            'added — but the analysis must still show that the classification remains correct, and that ' +
+            'every risk control implemented in software is still effective. ';
+  }
+
+  html += 'Classification is not a one-off decision &mdash; it is a conclusion that must remain justified ' +
+          'throughout the lifecycle, and re-checking it is a Clause&nbsp;6 maintenance obligation after ' +
+          'any change to released software.</p>';
+  html += '</div>';
+
+  body.innerHTML = html;
 }
 
 // ---------- PROGRESS BAR ----------

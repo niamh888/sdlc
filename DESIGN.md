@@ -46,10 +46,17 @@ Page-specific JavaScript:
 
 Content data, loaded at runtime rather than hardcoded in the scripts:
 ```
-data/phases.json               13 lifecycle process areas
+data/phases.json               13 lifecycle process areas (course content)
+data/applicability.json        safety class applicability, per sub-clause (regulatory mapping)
 data/questions-intro.json      15 introductory quiz questions
 data/questions-advanced.json   15 advanced quiz questions
 ```
+
+`phases.json` and `applicability.json` are separate on purpose. One is editorial
+content; the other is regulatory fact transcribed from the standard. They have
+different review needs — the mapping has to be checkable against IEC 62304 without
+wading through prose — and the Learn page cross-checks one against the other on every
+load. See "Safety class applicability" below.
 
 Because content is fetched over the network, the site must be served over HTTP;
 opening the HTML files directly from disk no longer works. See the README.
@@ -101,7 +108,36 @@ The notice also now states which edition the course covers, since that is the po
 **Interactive features:**
 1. **Expand/collapse cards** — clicking the card header reveals the detailed requirements list. Implemented with event delegation on the grid container (one listener, not 13).
 2. **Introductory / Advanced level toggle** — switches all card detail bullets between an overview level and clause-referenced, audit-context content. Level changes update bullet content in place (without rebuilding the card DOM) so expanded state and studied progress are preserved. The chosen level is persisted in `localStorage` so it survives page reloads and is available to the quiz page when printing the certificate.
-3. **Safety class filter** — buttons filter the visible cards by Class A, B, or C. Class C requires all 13 process areas; Class A requires only a subset. Implemented with `classList.toggle('hidden')`.
+3. **Safety class filter** — buttons filter the visible cards by Class A, B, or C, driven by the sub-clause applicability data rather than a per-clause list. Class C requires all 13 process areas in full; Class B requires all 13 but four only in part; Class A requires 10, five of those only in part. Implemented with `classList.toggle('hidden')` plus a `partial-applicability` class on cards that apply only in part.
+
+   **Filter notice.** Selecting a class reveals a panel directly beneath the filter buttons naming every process area that has been hidden and why. This addressed two separate problems. The first was plain usability: hiding cards further down a long page is invisible feedback, so a user who clicked "Class A" had no way of knowing whether anything had happened, how many topics were removed, or which ones. Screen reader users got no feedback at all, which the panel's `role="status"` with `aria-live="polite"` now fixes — polite rather than assertive because the user initiated the change themselves.
+
+   The second problem was more serious. Filtering to Class A hides **Clause 7, Software Risk Management**, which invites precisely the wrong conclusion: that Class A software needs no risk management. The reverse is true — you cannot arrive at Class A *without* a risk analysis establishing that the software item cannot contribute to a hazardous situation. The panel therefore carries a caution, shown for every class including C, stating that the classification is an *output* of the ISO 14971 risk analysis rather than an alternative to it, and that the risk management file must be re-checked whenever intended use, requirements, architecture, risk controls or SOUP change. At Class A an additional paragraph rebuts the "no risk management" reading directly and cites §4.3 and §4.2.
+
+   The omitted list is generated from the same data that drives the filtering, so it cannot fall out of step with what is actually on screen. Tests derive their expected counts from the data files for the same reason.
+
+---
+
+### Safety class applicability
+
+**The model.** IEC 62304 assigns requirements to safety classes per *sub-clause*, not per clause. `data/applicability.json` records all 97 sub-clauses of Clauses 4–9 with the classes each applies to, sourced from Table A.1 as amended and cross-checked line by line against the `[Class …]` tags in the normative text. Where the two could differ the normative text governs, because the standard states Table A.1 is provided for convenience only.
+
+**Why it was rebuilt.** The original model carried one hand-maintained list of classes per clause. Clause 7 (Software Risk Management) was recorded as Class B and C only, so filtering to Class A hid the entire clause and implied that Class A software needs no risk management — the reverse of the truth, since §7.4.1 applies to every class and the classification is itself an output of ISO 14971 risk analysis. Worse, a filter notice had been built on top of that data which specifically drew attention to Clause 7 being hidden, amplifying the error rather than catching it.
+
+Checking the mapping against the standard found two more: **Clause 5.3** was recorded as reaching Class A when it has no Class A requirement at all, and **Clause 5.4** was recorded as Class C only when §5.4.1 reaches Class B.
+
+**Why none of them was caught.** A single list has nothing to disagree with. The data was wrong, the UI faithfully rendered the wrong data, and the test suite — which hardcoded "Class A shows 10 of 13" — asserted the wrong count and would have *failed* when the error was fixed. A test that repeats a value from the data cannot detect an error in the data.
+
+**The two guards now in place:**
+
+- **A cross-file invariant.** The clause-level `classes` in `phases.json` must equal the union of that clause's sub-clause classes in `applicability.json`. `mergeApplicability()` checks this on every page load and throws if they disagree, naming the clause. The Learn page then shows its error panel and renders no cards. Failing loudly on a data error is strictly better than a page that quietly teaches something incorrect — particularly here, where a reader might carry the wrong conclusion into a real regulatory submission.
+- **A regression test.** The `applicability` group puts the original Clause 7 value back and asserts the site rejects it. Every other expected value in that group is derived from the data files rather than written out.
+
+**What the reader gains.** Three states instead of two — applies in full, applies in part, does not apply — with the specific sub-clauses named. "Clause 7 applies to Class A" is true and nearly useless; "of Clause 7, only 7.4.1 applies at Class A" is the answer someone can act on. Each expanded card carries a real `<table>` of its requirements against A/B/C, with `scope` attributes and screen-reader text in every cell so meaning does not depend on a tick's position or on colour. Rows are dimmed rather than removed when they carry no requirement at the filtered class, because hiding them would recreate the original problem of invisible omissions.
+
+**Expanded cards span the grid.** The card grid packs at a minimum of 320px, which is fine for a collapsed summary but far too narrow for a five-column requirements table. `.phase-card.expanded { grid-column: 1 / -1 }` gives the open card the full row.
+
+**Provenance and open items are recorded in the data file itself** (`_source`, `_crossCheckedOn`, `_openItems`), so anyone reviewing it can see where the mapping came from and what is still unconfirmed — currently 5.7.5, whose class tag was not legible in the copy consulted.
 4. **Progress tracker** — each card has a "Mark as Studied" button. Clicking it marks the card with a green left border and updates the progress bar. Progress is stored in a JavaScript `Set` during the session.
 
 **Data model:** All 13 topics live in `data/phases.json` and are fetched when the page loads. Each object holds the clause number, title, icon, summary, two detail arrays (`introDetails` and `advancedDetails`), and an array of applicable safety classes (`["A","B","C"]`, `["B","C"]`, or `["C"]`). The DOM is built entirely from this data using `createElement` and `innerHTML`.

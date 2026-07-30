@@ -78,9 +78,10 @@
       "Define and document interfaces between software items",
       "Verify that the architecture implements all requirements",
       "Identify and document SOUP (Software of Unknown Provenance)",
-      "Required for Class B and C; Class A has reduced documentation requirements"
+      "Required for Class B and C only — Clause 5.3 contains no requirements for Class A software"
     ],
     "advancedDetails": [
+      "Applies to Class B and C only. Every requirement in §5.3 is assigned to Class B and C, except §5.3.5 (segregation necessary for risk control) which is Class C alone — there is no architectural design requirement for Class A software",
       "The architectural design must decompose the software system into software items at a level sufficient to assign safety class, allocate requirements, and plan integration testing; each item must be uniquely identified",
       "All SOUP must be listed in the architecture with: name, manufacturer, version/revision identifier, intended use within the system, the functional and performance requirements it must meet, and the hardware/software environment it requires",
       "For Class B and C, the architecture must show how safety-related software items are segregated or protected — e.g., separation of safety-critical functions, use of watchdog timers, partitioned memory spaces, or access controls",
@@ -88,7 +89,7 @@
       "Architectural design verification is required (typically a formal design review) — the review must confirm that all software requirements are allocated to one or more software items and that the architecture is internally consistent",
       "Traceability from software requirements to architectural design elements must be established and maintained; this bidirectional trace is inspected during regulatory submissions and audits"
     ],
-    "classes": ["A", "B", "C"]
+    "classes": ["B", "C"]
   },
   {
     "id": "detailed-design",
@@ -101,17 +102,18 @@
       "Define precise interfaces between software units",
       "Ensure the detailed design correctly implements the architectural design",
       "Document design decisions and their rationale",
-      "Required only for Class C software"
+      "Subdividing the software into software units (5.4.1) is required for Class B and C; the detailed design requirements themselves (5.4.2 to 5.4.4) are Class C only"
     ],
     "advancedDetails": [
-      "Required for Class C only — the detailed design must specify software units at a level where a qualified engineer can implement them without making design decisions, only coding decisions",
+      "Applies to Class B and C, but only in part. §5.4.1 (subdivide the software until it is represented by software units) is assigned to Class B and C; §5.4.2, §5.4.3 and §5.4.4 — the detailed design of each unit, of its interfaces, and verification of that design — are Class C alone. Class B therefore requires the subdivision but not the detailed design documentation",
+      "For Class C, the detailed design must specify software units at a level where a qualified engineer can implement them without making design decisions, only coding decisions",
       "Detailed design must include: algorithms, data structures, state machines, error handling logic, and the precise API or calling convention for each unit’s interface — pseudocode, UML, or structured text are all acceptable formats",
       "All Class C software units must have documented acceptance criteria defined before implementation begins; these criteria directly drive unit verification activities in §5.5",
       "A detailed design review is required; the review must check that the design correctly implements the architectural design and that all design decisions are traceable to requirements or have documented rationale",
       "Traceability must extend downward: from architectural design elements to software units in the detailed design; this completes the bidirectional trace from system requirements all the way to individual code units",
       "Any design decision that deviates from a requirement, or that adds undocumented behaviour, must be raised as a problem report under the Clause 9 problem resolution process rather than resolved informally"
     ],
-    "classes": ["C"]
+    "classes": ["B", "C"]
   },
   {
     "id": "implementation",
@@ -249,7 +251,7 @@
       "SOUP anomalies must be evaluated: for each known anomaly in a SOUP item, the manufacturer must assess whether the anomaly could contribute to a hazardous situation in the intended use environment and document the assessment with a conclusion",
       "Residual risk from software failures must be evaluated at the device level after all risk controls are in place — the decision that residual risk is acceptable must be made in the context of the overall device risk-benefit analysis per ISO 14971 §8"
     ],
-    "classes": ["B", "C"]
+    "classes": ["A", "B", "C"]
   },
   {
     "id": "configuration",

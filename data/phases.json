@@ -7,17 +7,17 @@
     "summary": "Establish the QMS context, risk management integration, software safety classification, and SOUP framework that underpins all lifecycle activities.",
     "introDetails": [
       "Your software lifecycle must operate within an ISO 13485 quality management system (QMS)",
-      "Classify each software item as Class A, B, or C based on the worst-case harm if it fails",
-      "Class A: no injury or damage to health possible; Class B: non-serious injury; Class C: death or serious injury possible",
+      "Classify each software item as Class A, B, or C using the risk-based test in §4.3 as amended: can it contribute to a hazardous situation, and does unacceptable risk remain once risk controls outside the software are taken into account?",
+      "Class A: cannot contribute to a hazardous situation, or can but leaves no unacceptable risk after external risk controls; Class B: unacceptable risk remains and the possible harm is non-serious injury; Class C: unacceptable risk remains and the possible harm is death or serious injury",
       "SOUP (Software of Unknown Provenance) is any third-party or pre-existing software component — it must be identified and controlled throughout the lifecycle",
-      "Amendment 1 (2015) added Legacy Software provisions: software already deployed before IEC 62304 was applied can still be brought into compliance without full retrospective documentation"
+      "Amendment 1 (2015) added Legacy Software provisions: software already on the market without sufficient evidence that it was developed to the current standard can be brought into compliance without full retrospective documentation"
     ],
     "advancedDetails": [
       "§4.1 QMS: All software lifecycle processes must be within, or consistent with, the manufacturer’s ISO 13485 QMS — procedures, records, training, and audit scope must all encompass software development activities",
       "§4.2 Risk Management: Software risk activities must be an integral part of the ISO 14971 device risk management process — not a parallel track; the software risk management file feeds directly into the device-level risk management file",
       "§4.3 Safety Classification (original): Class A = no injury or damage to health possible; Class B = non-serious injury possible; Class C = death or serious injury possible. Classification is based on worst-case severity after considering all non-software risk controls at device level",
       "§4.3 Safety Classification (Amendment 1 update): Refined to focus on hazardous situations. A software item that could contribute to a hazardous situation must be Class B minimum; if it is the sole control measure preventing serious injury or death, it must be Class C. Software items that cannot contribute to any hazardous situation may be Class A",
-      "§4.4 Legacy Software (Amendment 1 addition): Software already deployed and in use before IEC 62304 was applied may be brought into compliance by documenting its development history, evaluating it against the standard’s requirements, and addressing identified gaps — full retrospective development documentation is not required"
+      "§4.4 Legacy Software (Amendment 1 addition): Definition 3.36 defines legacy software as software legally placed on the market and still marketed, but for which there is insufficient objective evidence that it was developed in compliance with the current version of the standard — the test is missing evidence, not age. §4.4 provides an alternative to applying Clauses 5 to 9 in full: risk management activities (§4.4.2), a gap analysis of available deliverables against §5.2, §5.3, §5.7 and Clause 7 (§4.4.3), a plan to close the identified gaps with software system test records as the minimum deliverable (§4.4.4), and a documented rationale for continued use (§4.4.5)"
     ],
     "classes": ["A", "B", "C"]
   },
@@ -200,7 +200,7 @@
     "advancedDetails": [
       "Before release, a formal gate review or checklist must confirm: all planned development activities are complete (or formally waived with rationale), all anomalies are resolved or accepted, and all traceability records are up to date",
       "The software version identifier must uniquely identify the released version; it must appear in the software itself and in all associated documentation — semantic versioning (MAJOR.MINOR.PATCH) is widely adopted",
-      "The known anomalies list (Software Problem Report Summary) must be formally evaluated: each open anomaly must be assessed for patient safety impact, and the decision to release with open items must be made by appropriate authority and documented",
+      "The known anomalies list must be formally handled: §5.8.2 requires all known residual anomalies to be documented for every safety class, and §5.8.3 requires the manufacturer to ensure they have been evaluated to confirm they do not contribute to an unacceptable risk (Class B and C). IEC 62304 does not itself say who authorises the release — that is a quality management system matter under ISO 13485, not a requirement of this standard",
       "The software archive must preserve: the exact source code, build instructions, build tools and their versions, and all SOUP at the exact versions used — sufficient to reproduce the released build for a regulatory investigation years later",
       "Release notes must include: version identifier, release date, a summary of changes from the previous version, and all anomalies that remain open at release with their assessed safety impact",
       "For Class C, the release gate must also confirm that software risk management activities are complete and that the residual risk has been evaluated as acceptable within the ISO 14971 risk management plan"

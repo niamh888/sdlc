@@ -70,10 +70,15 @@ copy would get it wrong: 5.7 (all requirements) moved from B,C to **A,B,C**; 6.2
 moved to **A,B,C**, making Clause 6 uniformly all-classes; 5.8.1, 5.8.2, 5.8.7 and
 5.8.8 moved to **A,B,C**; 5.1.12 is new at B,C; and 7.1.5 and 7.3.2 were removed.
 
-**One open item**, recorded in the file's `_openItems`: Amendment 1 replaced 5.7.5 in
-full and its `[Class …]` tag was not legible in the copy consulted. It is recorded as
-A/B/C, consistent with the rest of 5.7 and with Table A.1, but is flagged as needing
-confirmation against the printed page.
+**One entry rests on a different basis, and the file says so.** Amendment 1 replaced
+5.7.5 in full and assigned it **no `[Class …]` tag at all**. It is recorded as A/B/C on
+three grounds: Table A.1 assigns "5.7 All requirements" to all three classes, every
+other sub-clause of 5.7 is explicitly tagged all-classes, and software system testing
+applies to all classes so a record-keeping requirement supporting it does too. That is
+the one value in the file derived from the annex plus the absence of a restriction
+rather than from a normative tag, and it is recorded in `_resolvedItems` so anyone who
+asks where it came from gets a straight answer. `_openItems` is now empty, and the test
+suite asserts it stays that way.
 
 ## Data Protection
 

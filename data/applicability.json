@@ -2,8 +2,9 @@
   "_about": "Which IEC 62304 requirements apply to which software safety class, at sub-clause level. Kept separate from phases.json so this mapping can be reviewed on its own, and because it is regulatory fact rather than course content.",
   "_source": "IEC 62304:2006+AMD1:2015, Table A.1 (informative), cross-checked line by line against the [Class ...] tags in the normative text of Clauses 5 to 9. Where the two could differ the normative text governs, as the standard states Table A.1 is provided for convenience only.",
   "_crossCheckedOn": "2026-07-30",
-  "_openItems": [
-    "5.7.5 - Amendment 1 replaced this sub-clause in full and the trailing [Class ...] tag was not legible in the copy consulted. Recorded as A/B/C because every other part of 5.7 is A/B/C and Table A.1 gives '5.7 All requirements' for all three classes. TO BE CONFIRMED against the printed page."
+  "_openItems": [],
+  "_resolvedItems": [
+    "5.7.5 - CONFIRMED 30 July 2026. The normative text carries NO [Class ...] tag for this sub-clause; Amendment 1 replaced it in full and did not assign one. A/B/C is recorded on three grounds: Table A.1 assigns '5.7 All requirements' to all three classes; every other sub-clause of 5.7 (5.7.1 to 5.7.4) is explicitly tagged [Class A, B, C]; and software system testing applies to all classes, so a record-keeping requirement supporting it logically does too. Note this is the ONE entry in this file derived from the annex plus the absence of a restriction, rather than from a normative tag - worth knowing if anyone ever asks where it comes from."
   ],
   "_notes": [
     "Clause 4 carries no per-requirement [Class ...] tags; the standard's note says the tags appear in the clauses and subclauses that FOLLOW Clause 4. Table A.1 gives Clause 4 as all classes.",
@@ -83,7 +84,7 @@
       { "ref": "5.7.2", "title": "Use software problem resolution process", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
       { "ref": "5.7.3", "title": "Retest after changes", "classes": ["A", "B", "C"], "note": "Amendment 1 moved this from B,C to all classes" },
       { "ref": "5.7.4", "title": "Evaluate software system testing", "classes": ["A", "B", "C"], "note": "Retitled by Amendment 1, which also moved it from B,C to all classes" },
-      { "ref": "5.7.5", "title": "Software system test record contents", "classes": ["A", "B", "C"], "note": "Replaced in full by Amendment 1. Class tag to be confirmed - see _openItems" }
+      { "ref": "5.7.5", "title": "Software system test record contents", "classes": ["A", "B", "C"], "note": "Replaced in full by Amendment 1, which assigned no [Class ...] tag. All classes per Table A.1 and the rest of 5.7 - see _resolvedItems" }
     ],
 
     "release": [

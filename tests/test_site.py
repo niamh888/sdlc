@@ -412,6 +412,11 @@ def test_applicability(browser, base):
     R.check('provenance recorded in the file',
             bool(raw.get('_source')) and 'Table A.1' in raw['_source'])
     R.check('cross-check date recorded', bool(raw.get('_crossCheckedOn')))
+    # An empty _openItems is a meaningful state, not a missing key: it says the
+    # cross-check finished with nothing unresolved. The key must therefore exist.
+    R.check('no unresolved items in the mapping',
+            isinstance(raw.get('_openItems'), list) and not raw['_openItems'],
+            raw.get('_openItems'))
 
     missing = [p['id'] for p in topics if p['id'] not in app]
     R.check('every process area has a sub-clause mapping', not missing, missing)
@@ -473,6 +478,8 @@ def test_applicability(browser, base):
          'Amendment 1 moved archiving to all classes'),
         ('planning', '5.1.4', ['C'], 'standards/methods/tools planning is C only'),
         ('planning', '5.1.12', ['B', 'C'], 'new in Amendment 1, B/C'),
+        ('system-testing', '5.7.5', ['A', 'B', 'C'],
+         'no normative tag; all classes per Table A.1 and the rest of 5.7'),
     ]:
         sc = sub(cid, ref)
         R.check('%s is %s — %s' % (ref, '/'.join(expect), why),

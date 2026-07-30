@@ -8,13 +8,13 @@
       "The software item was developed before the current regulatory framework applied"
     ],
     "correct": 1,
-    "explanation": "Amendment 1 revised §4.3 so that Class A requires the product/system risk management process to explicitly determine that the software item cannot contribute to a hazardous situation. It is not sufficient to assume low risk based on functionality — the risk analysis must make this determination."
+    "explanation": "Amendment 1 revised §4.3 a) so that Class A must be established by the risk management process, not assumed from functionality. Note there are two routes to Class A, and this is the first: either the software system cannot contribute to a hazardous situation at all, or it can but the resulting risk is not unacceptable once risk control measures external to the software have been considered. Either way the determination has to come out of the risk analysis — it cannot be inferred from the software looking harmless."
   },
   {
-    "q": "Under §4.3 (Amendment 1), if a software item is the sole control measure preventing serious injury or death, which safety class must it be assigned?",
+    "q": "Under Amendment 1, a software item is the only measure controlling a risk of serious injury or death. Which safety class must it be assigned?",
     "options": ["Class A", "Class B", "Class C", "The class is determined by the hardware platform it runs on"],
     "correct": 2,
-    "explanation": "Amendment 1's revised §4.3 states that a software item that is the sole control measure preventing serious injury or death must be Class C, regardless of other risk controls elsewhere in the device. This reflects the sole-reliance principle from ISO 14971."
+    "explanation": "Class C — but the citation catches people out. Amendment 1 marked §4.3 b) as 'Not used' and moved this requirement into §7.2.2 b), which requires a software item contributing to the implementation of a risk control measure to be assigned a safety class based on the risk that the measure is controlling, referring back to §4.3 a). Under §4.3 a) as amended, the class is C where unacceptable risk remains after risk controls external to the software and the possible harm is death or serious injury — which is the position when the software is the only thing controlling that risk."
   },
   {
     "q": "Amendment 1 introduced a clarified distinction between two key terms. Which pairing is correct?",
@@ -75,12 +75,12 @@
     "q": "Under §5.8, under what condition may a manufacturer release software that has unresolved known anomalies?",
     "options": [
       "Never — all anomalies must be resolved before release is permitted",
-      "Only for Class A software where no injury is possible",
-      "When each open anomaly has been evaluated for safety impact and the decision to release has been made by appropriate authority and documented",
+      "Only for Class A software",
+      "When every known residual anomaly has been documented and evaluated to confirm it does not contribute to an unacceptable risk",
       "Only when the anomalies are user interface issues with no functional impact"
     ],
     "correct": 2,
-    "explanation": "§5.8 does not require zero open anomalies at release. It requires that all known anomalies are evaluated for patient safety impact, and that the decision to release with open items is made by appropriate authority with the rationale documented. This is a common area of confusion in regulatory submissions."
+    "explanation": "§5.8 does not require zero open anomalies at release. §5.8.2 requires all known residual anomalies to be documented, for every safety class. §5.8.3 then requires the manufacturer to ensure those anomalies have been evaluated to confirm they do not contribute to an unacceptable risk, for Class B and C. Note what the standard does not say: IEC 62304 does not itself prescribe who authorises the release. That sits with the manufacturer's quality management system under ISO 13485."
   },
   {
     "q": "During a §5.5 unit verification activity for Class C software, a defect is found and silently fixed by the developer without logging a problem report. Is this acceptable under IEC 62304?",
@@ -113,7 +113,7 @@
       "Acceptable if the output is reviewed and approved by a second engineer"
     ],
     "correct": 2,
-    "explanation": "§5.4 detailed design must be specified before implementation begins — it is the basis for implementation, not a retrospective description of it. Extracting documentation from existing code reverses the required sequence, does not demonstrate planned design intent, and has been highlighted in the IEC 62304 2nd edition design specification as a known misuse that the revision aims to address."
+    "explanation": "§5.4.2 requires a design documented in enough detail to allow correct implementation of each software unit — it is the basis for implementation, not a retrospective description of it. §5.4.4 then requires the detailed design to be verified as implementing the software architecture and as free from contradiction with it, a check that is meaningless if the design was generated from the finished code. Extracting documentation from existing code reverses the required sequence and demonstrates no planned design intent."
   },
   {
     "q": "Under §6, a change request is received to add a new clinical feature to released Class C software. Which development activities are required?",
@@ -130,12 +130,12 @@
     "q": "Which of the following correctly defines \"legacy software\" as introduced in §4.4 (Amendment 1)?",
     "options": [
       "Software that was developed more than 10 years before the current review",
-      "Software that was deployed and in use before IEC 62304 was applied to it",
+      "Software legally placed on the market and still marketed, but without sufficient objective evidence that it was developed in compliance with the current version of the standard",
       "Software that was developed for a previous device version and reused without modification",
       "Software that has not been validated for the current intended use of the device"
     ],
     "correct": 1,
-    "explanation": "§4.4 (added in Amendment 1) defines legacy software as software already deployed and in use before IEC 62304 was applied. Such software can be brought into compliance by documenting its development history, evaluating it against the standard's requirements, and addressing identified gaps — full retrospective development documentation is not required."
+    "explanation": "Definition 3.36, added by Amendment 1, defines legacy software as medical device software legally placed on the market and still marketed today, but for which there is insufficient objective evidence that it was developed in compliance with the current version of the standard. The test is missing evidence of compliance — not the software's age, and not merely that it predates the standard. §4.4 then offers a route to compliance: risk management activities, a gap analysis of available deliverables against §5.2, §5.3, §5.7 and Clause 7, a plan to close the gaps with software system test records as the minimum deliverable, and a documented rationale for continued use — instead of full retrospective development documentation."
   },
   {
     "q": "Under §9, a problem is investigated and determined not to be a software defect. What does IEC 62304 require?",

@@ -25,7 +25,14 @@ index.html      Home — introduction and entry points
 learn.html      Learn — 13 lifecycle topic cards (Clauses 4–9)
 quiz.html       Quiz — 15-question timed assessment
 contact.html    Contact — feedback form
+privacy.html    Privacy and data protection notice
 ```
+
+`privacy.html` is reachable from the footer of every page rather than the main
+navigation. The main nav is kept to the four learning destinations so it stays
+scannable; a legal notice belongs where users conventionally look for one. It is
+deliberately not a nav item, and `nav.js` needs no change to accommodate this —
+when no nav link matches the current page, nothing is highlighted.
 
 Shared across all pages:
 - `style.css`      — all visual styling
@@ -144,6 +151,21 @@ Each question is validated on load (question text present, options an array, `co
 **Spam and quota protection:** A `_gotcha` honeypot field is hidden from real users with `display:none`, `tabindex="-1"` and `aria-hidden="true"` — invisible to keyboard and screen reader users as well as sighted ones. Bots read the HTML and fill it in; Formspree discards those submissions. This protects the free plan's monthly submission limit. A `_subject` field sets the notification email subject so messages are identifiable in an inbox.
 
 **Demo mode:** Blanking `CONTACT_ENDPOINT` switches submission to a simulated awaited delay, for working on the form locally without spending real submissions. The confirmation wording changes to match — it reports the message as *validated* and states that nothing was transmitted, rather than claiming "Message Sent!" untruthfully.
+
+---
+
+### Privacy (privacy.html)
+
+**Purpose:** Disclose what personal information the site handles, where it goes, and what rights visitors have. This page became necessary when the contact form was connected to a live Formspree endpoint — before that the form transmitted nothing, so there was no personal data to disclose.
+
+**Layout:** Single centred prose column capped at 760px. Lines much longer than roughly 90 characters are measurably harder to read, since the eye loses its place returning to the left margin — a real consideration for a page of continuous text, unlike the card grids elsewhere on the site.
+
+**Key decisions:**
+- **Plain-language summary first.** A highlighted box at the top states the five things that matter most, so nobody has to read the full page to learn what happens to their data. A privacy notice that is technically complete but practically unread does not achieve transparency.
+- **Notice at the point of collection.** A linked page alone is not really sufficient: data protection law expects people to be informed when they are asked for their information, not to go looking for a separate page afterwards. A short note beneath the Send button names Formspree, states that data leaves the EEA, and links here.
+- **The transfer outside the EEA is stated plainly, not buried.** Formspree is US-based, so submitting the form sends personal data to the United States. The page offers direct email as an alternative for anyone who would rather their data stayed in the EEA.
+- **The quiz is explicitly addressed.** Users reasonably assume a scored assessment with a named certificate must be recording something. It is not — the name and score live in browser memory only. Stating this is more reassuring than omitting it.
+- **No cookie banner.** The site sets no cookies, and the two `localStorage` values exist solely to honour a preference the user has set, which is exempt as strictly necessary. Adding a consent banner would be theatre.
 
 ---
 

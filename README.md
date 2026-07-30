@@ -16,6 +16,28 @@ This course is designed for software developers, quality engineers, and regulato
 - **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from a JSON file; toggle between Introductory and Advanced depth; filter by safety class (A/B/C); study progress tracker
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
+- **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button
+
+## Data Protection
+
+Because the contact form sends real personal data (name, email, message) to a
+third-party processor outside the EEA, the site carries a privacy notice at
+[privacy.html](privacy.html), linked from the footer of every page and summarised
+at the point of collection beneath the Send button.
+
+What the site actually processes, in full:
+
+| Data | Where it goes |
+|---|---|
+| Name, email, role, message | Formspree (United States), then email to the site owner |
+| IP address, user agent | GitHub Pages server logs; Formspree on submission |
+| Quiz name, answers, score | **Nowhere** — browser memory only, discarded when the tab closes |
+| `62304_trainingLevel`, `62304_bannerDismissed` | **Nowhere** — browser localStorage only |
+
+No cookies, no analytics, no tracking, and no external fonts or CDNs — every file
+a page loads is served from this site. That is why no cookie consent banner is
+required: the two localStorage values exist solely to honour a preference the user
+has set, which is exempt as strictly necessary.
 
 ---
 
@@ -332,6 +354,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 | `learn.html` | Lifecycle process area cards |
 | `quiz.html` | Timed knowledge assessment |
 | `contact.html` | Feedback and contact form |
+| `privacy.html` | Privacy and data protection notice, linked from every footer |
 | `style.css` | Shared CSS — professional medical theme, responsive layout, loading and error states |
 | `async-utils.js` | **Shared async helpers** — `delay()` and `fetchJSON()`, plus the main explanation of how asynchronous JavaScript works |
 | `nav.js` | Shared navigation — highlights active page link |

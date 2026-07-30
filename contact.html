@@ -109,6 +109,20 @@
           <!-- The button needs an id so contact.js can disable it and change
                its label to "Sending…" while the request is in flight. -->
           <button type="submit" class="btn btn-primary btn-full" id="submit-message">Send Message</button>
+
+          <!-- Privacy notice AT THE POINT OF COLLECTION. A linked policy page on
+               its own is not really enough: data protection law expects people to
+               be told what happens to their information at the moment they are
+               asked for it, not to have to go looking for a separate page. The
+               two facts most worth stating here are where the data goes
+               (including that it leaves the EEA) and that it is used only to
+               reply. -->
+          <p class="form-privacy-note">
+            Your name, email address and message are sent via Formspree (based in the
+            United States) and used only to reply to you. We delete them no later than
+            48 hours after replying. See our
+            <a href="privacy.html">Privacy &amp; Data Protection</a> page for details.
+          </p>
         </form>
 
         <!-- ASYNC SUCCESS STATE. The heading and message are written by
@@ -129,6 +143,7 @@
   <footer class="site-footer">
     <div class="container">
       <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></p>
     </div>
   </footer>
 

@@ -73,7 +73,7 @@ FORMSPREE_GLOB = 'https://formspree.io/**'
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
-GROUPS = ['data', 'learn', 'quiz', 'contact', 'privacy', 'a11y', 'responsive']
+GROUPS = ['data', 'learn', 'quiz', 'contact', 'privacy', 'version', 'a11y', 'responsive']
 
 
 # ============================================================
@@ -188,6 +188,24 @@ def fetch_axe():
 # ============================================================
 # PAGE HELPERS
 # ============================================================
+
+def norm(text):
+    """Normalise rendered text before asserting on it.
+
+    Two things bite here, and both did while this suite was being written:
+
+      * CSS text-transform. The version chip is styled uppercase, so
+        inner_text() returns "EDITION 1 · 2006+A1:2015" even though the HTML
+        says "Edition 1". Comparisons must be case-insensitive.
+      * Non-breaking spaces. The markup uses &nbsp; to stop "Edition 1" and
+        "IEC 62304" splitting across lines, and those arrive as \\xa0, which does
+        NOT equal a normal space. `'Edition 1' in text` fails silently.
+
+    Normalising once here is far safer than remembering to handle it at every
+    assertion, and stops tests failing for reasons that have nothing to do with
+    whether the site is correct."""
+    return ' '.join(text.replace('\xa0', ' ').split()).lower()
+
 
 def new_page(browser, width=1280, height=900, **kw):
     """A fresh browser context per test, which means empty localStorage every
@@ -969,7 +987,79 @@ def test_privacy(browser, base):
 
 
 # ============================================================
-# GROUP 6 — ACCESSIBILITY
+# GROUP 6 — VERSION DISCLOSURE
+# The course teaches Edition 1 (IEC 62304:2006+AMD1:2015) while Edition 2 is in
+# development, so a learner who cannot tell which version they are studying could
+# revise the wrong standard. These checks treat that disclosure as a
+# CORRECTNESS requirement, not decoration — if a future redesign drops the chip
+# from a page, the suite says so.
+# ============================================================
+
+def test_version(browser, base):
+    R.group('version — which edition the course covers')
+
+    for page in PAGES:
+        ctx, pg = new_page(browser)
+        stub_formspree(pg)
+        pg.goto(base + '/' + page)
+        chip = pg.locator('.version-chip')
+        R.check('%s shows the version chip' % page, chip.count() == 1, chip.count())
+        if chip.count():
+            text = norm(chip.first.inner_text())
+            R.check('%s chip names Edition 1' % page, 'edition 1' in text, text)
+            R.check('%s chip names the amendment year' % page, '2015' in text, text)
+            R.check('%s chip is visible, not hidden' % page, chip.first.is_visible())
+        ctx.close()
+
+    # The home page is where a first-time visitor forms their understanding.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    hero = norm(pg.inner_text('.hero-content'))
+    R.check('home hero states the edition covered', 'edition 1' in hero, hero[:90])
+    R.check('home hero gives the full designation',
+            '62304:2006' in hero and '2015' in hero, hero[:120])
+    R.check('home hero says Edition 2 is NOT covered',
+            'edition 2' in hero and 'not covered' in hero, hero[:160])
+    ctx.close()
+
+    # The Edition 2 notice must read as a notice and must say which edition the
+    # course itself covers — that is the point most likely to be misread.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    banner = pg.locator('#update-banner')
+    R.check('Edition 2 notice shown on first visit', banner.is_visible())
+    R.check('notice carries a labelled header strip',
+            'notice' in norm(pg.locator('.update-banner-label').inner_text()),
+            pg.locator('.update-banner-label').inner_text())
+    R.check('notice is a bounded card, not a full-width band',
+            pg.evaluate("""() => {
+                const card = document.querySelector('.update-banner-card');
+                return card.getBoundingClientRect().width < document.documentElement.clientWidth - 40;
+            }"""))
+    btext = norm(banner.inner_text())
+    R.check('notice states the course covers Edition 1',
+            'covers edition 1' in btext, btext[:120])
+    R.check('notice marks the Edition 2 changes as proposed', 'proposed' in btext)
+    R.check('notice is announced as a note, not an urgent alert',
+            banner.get_attribute('role') == 'note', banner.get_attribute('role'))
+    R.check('notice has an accessible name',
+            bool(banner.get_attribute('aria-label')), banner.get_attribute('aria-label'))
+    R.check('close button lives in the header strip',
+            pg.evaluate("() => !!document.querySelector('.update-banner-bar #update-banner-close')"))
+    ctx.close()
+
+    # The footer already cites the standard; keep that in step with the chip.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/index.html')
+    R.check('footer cites the same version',
+            '2006+AMD1:2015' in pg.inner_text('.site-footer'),
+            pg.inner_text('.site-footer')[:80])
+    ctx.close()
+
+
+# ============================================================
+# GROUP 7 — ACCESSIBILITY
 # axe-core covers the mechanical WCAG checks: contrast, names, roles, landmarks,
 # heading structure. It is NOT a clean bill of health — automated tools catch
 # roughly a third to a half of real accessibility problems, and cannot judge
@@ -1238,6 +1328,8 @@ def main():
                     test_contact(browser, base)
                 if 'privacy' in groups:
                     test_privacy(browser, base)
+                if 'version' in groups:
+                    test_version(browser, base)
                 if 'a11y' in groups:
                     test_a11y(browser, base, axe_src)
                 if 'responsive' in groups:

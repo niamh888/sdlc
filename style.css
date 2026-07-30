@@ -100,6 +100,26 @@ a {
   letter-spacing: -0.02em;
 }
 
+/* VERSION CHIP — states which edition of the standard the course teaches.
+   "IEC 62304" on its own is ambiguous now that Edition 2 is in development, and
+   a learner who lands straight on the quiz would otherwise never be told. White
+   on the navy header is 11.6:1, so it is legible despite being small. */
+.version-chip {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 5px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .logo-sub {
   /* Raised from 0.75rem (12px), which was the smallest text anywhere on the
      site. The opacity below already marks it as secondary, so it did not need
@@ -231,6 +251,23 @@ a {
   margin-bottom: 48px;
 }
 
+/* Version statement beneath the hero subtitle. Bordered rather than merely
+   indented so it reads as a distinct fact about the course, not more prose. */
+.hero-version {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-white);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 16px;
+  margin-bottom: 26px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.hero-version strong {
+  color: var(--primary);
+}
+
 .hero-tag {
   display: inline-block;
   background: #e8f4fd;
@@ -328,48 +365,89 @@ a {
 
 /* ===== UPDATE BANNER ===== */
 
+/* The outer element no longer paints anything — it only provides the vertical
+   gap around the card. Previously it was a full-bleed pale band with a bottom
+   border, which is the visual language of a page SECTION, so readers took it for
+   part of the content. A bounded, shadowed card reads as something placed on top
+   of the page instead. */
 .update-banner {
-  background: #fef9e7;
-  border-bottom: 3px solid #c9a227;
-  padding: 16px 0;
+  padding: 24px 0 8px;
 }
 
-.update-banner-inner {
+.update-banner-card {
+  max-width: 820px;
+  margin: 0 auto;
+  background: #fef9e7;
+  border: 1px solid #e0cd8a;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden; /* keeps the bar's square corners inside the rounded card */
+}
+
+/* The solid header strip is the main "this is a notice" signal — the one thing
+   the old design lacked. #8a6d1f is a darker shade of the amber used elsewhere
+   in this block, chosen because white label text on it reaches 4.90:1 and so
+   clears WCAG AA. The brighter #c9a227 would have needed dark text. */
+.update-banner-bar {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
+  background: #8a6d1f;
+  padding: 9px 16px;
+}
+
+.update-banner-icon {
+  font-size: 1rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.update-banner-label {
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-right: auto; /* pushes the close button to the far edge */
 }
 
 .update-banner-content {
-  flex: 1;
+  padding: 18px 22px 20px;
 }
 
 .update-banner-heading {
   display: block;
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  color: #7d5a00;
-  margin-bottom: 6px;
+  color: #6b4e00;
+  margin-bottom: 8px;
+  line-height: 1.35;
 }
 
 .update-banner-intro {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* Draws the eye to the version statement, which is the sentence readers most
+   need to take away from this notice. */
+.update-banner-intro strong {
+  color: #6b4e00;
 }
 
 .update-banner-list {
   list-style: none;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .update-banner-list li {
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: var(--text);
-  padding: 4px 0 4px 18px;
+  padding: 5px 0 5px 18px;
   position: relative;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .update-banner-list li::before {
@@ -381,32 +459,32 @@ a {
 }
 
 .update-banner-link {
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--accent);
-  text-decoration: none;
-}
-
-.update-banner-link:hover {
   text-decoration: underline;
 }
 
+.update-banner-link:hover {
+  text-decoration: none;
+}
+
+/* Sits inside the coloured bar, so it is styled for a dark background. */
 .update-banner-close {
-  background: transparent;
-  border: 1px solid #c9a227;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   cursor: pointer;
-  color: #7d5a00;
-  font-size: 0.85rem;
-  padding: 4px 10px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 5px 9px;
   border-radius: var(--radius);
   flex-shrink: 0;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
+  transition: background 0.2s;
 }
 
 .update-banner-close:hover {
-  background: #c9a227;
-  color: white;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* ===== LEARN: CONTROLS ===== */

@@ -10,6 +10,18 @@ Hosted on GitHub Pages: [https://niamh888.github.io/sdlc/](https://niamh888.gith
 
 This course is designed for software developers, quality engineers, and regulatory affairs professionals working on medical device software. It covers the 13 process areas defined in IEC 62304:2006+AMD1:2015 across Clauses 4–9.
 
+### Which version of the standard this covers
+
+**Edition 1 — IEC 62304:2006 together with Amendment 1:2015**, the version
+currently in force. The consolidated text carries the designation Edition 1.1.
+
+**Edition 2 is under development and is not covered.** Because "IEC 62304" alone
+is now ambiguous, the version is stated in three places: a chip in the site
+header on every page, an explicit statement in the home page hero, and the
+Edition 2 notice on the Learn page, which summarises the proposed changes and
+says plainly that they are not yet confirmed. The `version` test group asserts
+all of this, so it cannot quietly disappear in a redesign.
+
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
@@ -390,6 +402,7 @@ python tests/test_site.py --group data --group a11y   # or several
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
 | `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data |
+| `version` | Version chip present and visible on all five pages; home hero states Edition 1 and that Edition 2 is not covered; Edition 2 notice is a bounded card with a labelled header strip and `role="note"` |
 | `a11y` | axe-core (WCAG 2.1 A/AA + best practice) on all five pages **and** the loading, error, mid-quiz, feedback and results states; skip link; focus indicators verified before/after; `aria-current`; `prefers-reduced-motion` |
 | `responsive` | No horizontal overflow at 1280/768/480/360px; form fields ≥16px to prevent iOS auto-zoom; tap target heights; usable at a 200% zoom equivalent |
 

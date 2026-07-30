@@ -71,6 +71,15 @@ opening the HTML files directly from disk no longer works. See the README.
 **Key decisions:**
 - The stat cards give the user an immediate sense of scope before they commit to either activity
 - The hero uses a two-column grid (content left, stats right) that collapses to single-column on mobile
+- **The version the course covers is stated in the hero.** The hero tag carries the designation (`Edition 1 · IEC 62304:2006+AMD1:2015`) and a bordered statement below the subtitle spells out what that means, because "Edition 1" alone does not tell most people that the amendment is included. It also says explicitly that Edition 2 is not covered. With Edition 2 in development, someone could otherwise study the wrong version of the standard — a content-correctness problem rather than a presentational one, which is why the `version` test group asserts it
+
+---
+
+### Version disclosure (site-wide)
+
+A `.version-chip` in the site header on all five pages reads `Edition 1 · 2006+A1:2015`.
+
+It is site-wide rather than home-page-only because a learner can arrive directly on the quiz from a link or a bookmark and would otherwise never be told which edition they are being assessed on. It sits in the header rather than in a strip below it to avoid spending vertical space on every page, and rather than in the footer because a version people need *before* they start studying should not be below the fold. White on the navy header measures 11.6:1, so it stays legible at 0.68rem.
 
 ---
 
@@ -82,6 +91,12 @@ opening the HTML files directly from disk no longer works. See the README.
 - Page header with description
 - Controls bar: progress tracker (left) + level toggle + filter buttons (right)
 - Responsive card grid (auto-fill, minimum 320px per card)
+
+**Edition 2 notice:** Originally a full-width pale band with a bottom border, which is the visual language of a page *section* — so readers took it for part of the content rather than a notice. It is now a bounded, shadowed card with a solid amber header strip labelled "Important notice", capped at 820px so it clearly sits *on* the page rather than being part of it. The close button moved into that strip.
+
+Three details worth recording. The colour `#8a6d1f` was chosen by calculation, not eye: white label text on it reaches 4.90:1, where the brighter `#c9a227` used elsewhere in the block manages only 2.42:1 with white and would have needed dark text. The title is a `<strong>`, not a heading, because the notice sits above the page's `<h1>` and a heading there would place an `h2` before the `h1` and muddle the document outline — `role="note"` with an `aria-label` conveys "this is an aside" without that cost. And `role="note"` is deliberate rather than `role="alert"`: the information is advisory and present on load, whereas an alert role is for something urgent appearing in response to a user action, and would interrupt a screen reader unnecessarily.
+
+The notice also now states which edition the course covers, since that is the point a reader is most likely to get wrong.
 
 **Interactive features:**
 1. **Expand/collapse cards** — clicking the card header reveals the detailed requirements list. Implemented with event delegation on the grid container (one listener, not 13).

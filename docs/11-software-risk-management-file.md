@@ -128,6 +128,36 @@ singled out in [01 — General Requirements](01-general-requirements-and-classif
 it is the one Clause 7 requirement that would still matter even under the
 literal (out-of-scope) classification this project would actually receive.
 
+## Escalations from the problem log
+
+7.3.3's traceability chain ends at "verification" for a hazard already known
+about. What closes the loop for a hazard found *later*, by a test that starts
+failing, is [13 — Problem Resolution](13-software-problem-resolution.md)'s
+anomaly log — but only if a defect found there is actually connected back to
+this file, rather than living out its whole life as a line in a CSV nobody
+with risk-management responsibility ever reads.
+
+So every check in [`tests/test_site.py`](../tests/test_site.py) that verifies
+something in this file's hazard model — the safety-class mapping, the
+deliverables data derived from it, and the cross-file invariant and
+regression test that are this file's own risk controls (§7.2.1–7.3.1 above)
+— is tagged `risk=True`. Any anomaly raised by one of those checks is
+escalated here automatically, by id, for as long as it stays open:
+
+<!-- ANOMALY-ESCALATIONS:START -->
+*No risk-of-harm anomalies currently open — see [`tests/anomaly_log.csv`](../tests/anomaly_log.csv) for the full history.*
+<!-- ANOMALY-ESCALATIONS:END -->
+
+This section is **generated**, by `escalate_risk_anomalies()` in
+`tests/test_site.py`, every time the suite runs — the table above (or the
+"none open" line) is rewritten in full each time, the same way the anomaly
+log itself is. Do not hand-edit between the markers; a manual change there
+is overwritten on the next run. Which checks carry the `risk=True` tag is
+the thing to edit instead — see the `Results.group()`/`Results.check()`
+docstrings in `tests/test_site.py` for the exact criterion, and
+[README.md — Anomaly log](../README.md#anomaly-log) for how the tagging and
+escalation mechanics work together.
+
 ## Gaps
 
 - This risk management file covers **one** category of hazard (incorrect

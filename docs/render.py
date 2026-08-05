@@ -151,7 +151,18 @@ def is_new_block_start(line):
     stripped = line.strip()
     if not stripped:
         return True
-    return bool(re.match(r'^(#{1,6}\s|>|\d+\.\s|-\s)', line)) or stripped.startswith('|')
+    return (bool(re.match(r'^(#{1,6}\s|>|\d+\.\s|-\s)', line))
+            or stripped.startswith('|') or stripped.startswith('<!--'))
+
+
+def is_html_comment(line):
+    """A single-line HTML comment, e.g. the ANOMALY-ESCALATIONS markers
+    escalate_risk_anomalies() writes into docs/11. These are structural
+    markers for a script to find, the same role an HTML comment plays in
+    real HTML — meant to be invisible on the rendered page, exactly as
+    GitHub's own markdown renderer treats them, not printed as literal text
+    the way an un-special-cased paragraph line would."""
+    return bool(re.match(r'^<!--.*-->\s*$', line.strip()))
 
 
 def render_blocks(lines, seen_slugs):
@@ -163,6 +174,10 @@ def render_blocks(lines, seen_slugs):
         line = lines[i]
 
         if not line.strip():
+            i += 1
+            continue
+
+        if is_html_comment(line):
             i += 1
             continue
 

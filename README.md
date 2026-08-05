@@ -641,15 +641,31 @@ re-checked. The console prints a summary after every run:
 
 ```
 ANOMALY LOG  : tests\anomaly_log.csv
-  ANOM-0004 [NEW     ] applicability — the mapping itself: sub-clause references are unique within a clause
+  ANOM-0004 [NEW     ] applicability — the mapping itself: sub-clause references are unique within a clause  [ISO 14971 risk of harm]
   ANOM-0007 [CLOSED  ] learn — features: progress bar width updates
   2 anomalies open in total
+  1 escalated to docs/11-software-risk-management-file.md: ANOM-0004
 ```
 
 The CSV itself (`id, status, group, test, first_seen, last_seen, times_seen,
-closed_on, detail`) is committed to the repo, so its history — what broke, when,
-and how long it stayed broken — is part of the project's record, the same as
-any other file.
+closed_on, risk_of_harm, detail`) is committed to the repo, so its history —
+what broke, when, and how long it stayed broken — is part of the project's
+record, the same as any other file.
+
+**Risk-of-harm escalation.** Every check is tagged, in `tests/test_site.py`,
+with whether its failure would be a potential ISO 14971 risk of harm under
+this project's reflexive hazard model (see
+[docs/11 — Reframing the hazard](docs/11-software-risk-management-file.md#reframing-the-hazard)):
+a reader forming an incorrect belief about what IEC 62304 requires. Anomalies
+from a `risk=True` check get `risk_of_harm=Yes` in the CSV and are escalated
+automatically, by `ANOM-####` id, into a generated section of
+[docs/11](docs/11-software-risk-management-file.md#escalations-from-the-problem-log)
+— rewritten in full on every run, so a fixed risk anomaly disappears from
+that list the same way it closes in the CSV. This is deliberately coarse
+(the tag is binary, set on the check, not inferred by the tooling) rather
+than silently wrong — see
+[docs/13 — §9.1](docs/13-software-problem-resolution.md#91--problem-reports)
+for exactly what it does and does not cover.
 
 ### What it does *not* cover
 

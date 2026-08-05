@@ -75,7 +75,14 @@ AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js'
 FORMSPREE_GLOB = 'https://formspree.io/**'
 ANOMALY_LOG = os.path.join(ROOT, 'tests', 'anomaly_log.csv')
 ANOMALY_FIELDS = ['id', 'status', 'group', 'test', 'first_seen', 'last_seen',
-                   'times_seen', 'closed_on', 'detail']
+                   'times_seen', 'closed_on', 'risk_of_harm', 'detail']
+
+# Where risk-of-harm anomalies get escalated to — see escalate_risk_anomalies()
+# below and docs/11-software-risk-management-file.md's "Escalations from the
+# problem log" section, which these markers delimit.
+RISK_FILE = os.path.join(ROOT, 'docs', '11-software-risk-management-file.md')
+RISK_ESCALATION_START = '<!-- ANOMALY-ESCALATIONS:START -->'
+RISK_ESCALATION_END = '<!-- ANOMALY-ESCALATIONS:END -->'
 
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
@@ -92,17 +99,31 @@ GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'learn', 'quiz', 'con
 
 class Results:
     def __init__(self):
-        self.rows = []          # (group, label, passed, detail)
+        self.rows = []          # (group, label, passed, detail, risk_of_harm)
         self.current_group = ''
+        self.current_group_risk = False
 
-    def group(self, name):
+    def group(self, name, risk=False):
+        """risk=True marks every check in this group, by default, as one
+        whose FAILURE would be a potential ISO 14971 risk of harm under this
+        project's reflexive hazard model (see docs/11-software-risk-management-file.md,
+        "Reframing the hazard"): a reader forming an incorrect belief about
+        what IEC 62304 requires. Only set on groups that are ENTIRELY about
+        regulatory content correctness or the controls that protect it — a
+        group with a genuine mix (e.g. `learn — features`, which covers both
+        UI mechanics and the safety-class filter's content) is left at the
+        default and the specific checks that matter are tagged individually
+        via check(..., risk=True) instead, rather than over-flagging an
+        entire mixed group."""
         self.current_group = name
+        self.current_group_risk = risk
         print('\n' + '-' * 72)
         print(name.upper())
         print('-' * 72)
 
-    def check(self, label, passed, detail=''):
-        self.rows.append((self.current_group, label, bool(passed), str(detail)))
+    def check(self, label, passed, detail='', risk=None):
+        is_risk = self.current_group_risk if risk is None else risk
+        self.rows.append((self.current_group, label, bool(passed), str(detail), is_risk))
         mark = 'PASS' if passed else 'FAIL'
         line = '  [%s] %s' % (mark, label)
         if detail and not passed:
@@ -121,8 +142,9 @@ class Results:
         print('%d passed, %d failed, %d total' % (passed, len(fails), len(self.rows)))
         if fails:
             print('\nFAILURES')
-            for group, label, _, detail in fails:
-                print('  %-11s %s' % (group + ':', label))
+            for group, label, _, detail, risk in fails:
+                flag = '  [ISO 14971 risk of harm]' if risk else ''
+                print('  %-11s %s%s' % (group + ':', label, flag))
                 if detail:
                     print('              got: %s' % detail[:200])
         print('=' * 72)
@@ -173,17 +195,24 @@ def reconcile_anomaly_log(results):
     this time: if you run `--group quiz` on its own, anomalies belonging to
     groups that were not exercised must be left exactly as they were, not
     marked fixed just because they were not re-checked.
+
+    Each anomaly also carries risk_of_harm: Yes if the check that failed is
+    tagged risk=True (see Results.group()/check()) — under this project's
+    reflexive ISO 14971 hazard model, a check whose failure means a reader
+    could form an incorrect belief about what IEC 62304 requires. Anomalies
+    still Open with risk_of_harm=Yes are escalated into the risk management
+    file by escalate_risk_anomalies(), linked by their ANOM-#### id.
     """
     existing = load_anomaly_log()
     next_num = 1 + max([int(r['id'].split('-')[1]) for r in existing.values()], default=0)
     today = datetime.date.today().isoformat()
 
-    failing = {(g, l): detail for g, l, _, detail in results.failures()}
-    groups_seen = {g for g, l, _p, _d in results.rows}
+    failing = {(g, l): (detail, risk) for g, l, _, detail, risk in results.failures()}
+    groups_seen = {g for g, l, _p, _d, _r in results.rows}
 
-    report = []  # (id, tag, group, test) for everything failing right now, for the console
+    report = []  # (id, tag, group, test, risk) for everything failing right now, for the console
 
-    for key, detail in failing.items():
+    for key, (detail, risk) in failing.items():
         group, label = key
         row = existing.get(key)
         if row is None:
@@ -201,7 +230,12 @@ def reconcile_anomaly_log(results):
         row['last_seen'] = today
         row['times_seen'] = str(int(row.get('times_seen') or 0) + 1)
         row['detail'] = detail[:300]
-        report.append((row['id'], tag, group, label))
+        # Reclassified on every occurrence, not just on creation — if the risk
+        # tag on the underlying check is later changed, existing anomalies
+        # should reflect the updated understanding, the same way `detail`
+        # reflects the latest failure rather than the first one.
+        row['risk_of_harm'] = 'Yes' if risk else 'No'
+        report.append((row['id'], tag, group, label, risk))
 
     closed_now = []
     for key, row in existing.items():
@@ -217,12 +251,63 @@ def reconcile_anomaly_log(results):
         w.writeheader()
         w.writerows(rows)
 
+    escalated = escalate_risk_anomalies(existing)
+
     report.sort(key=lambda t: t[0])
     return {
         'report': report,
         'closed_now': closed_now,
         'total_open': sum(1 for r in existing.values() if r['status'] == 'Open'),
+        'escalated': escalated,
     }
+
+
+def escalate_risk_anomalies(existing):
+    """Writes every currently-Open, risk_of_harm=Yes anomaly into the marked
+    block in docs/11-software-risk-management-file.md, linked by ANOM-#### id.
+
+    Rewrites the block in full each run rather than appending, for the same
+    reason reconcile_anomaly_log() rewrites the CSV in full: a closed risk
+    anomaly must disappear from the escalation list, not linger there having
+    been fixed. The rest of the file — everything outside the two markers —
+    is left untouched.
+
+    Returns the list of escalated (id, test) pairs, or None if the markers
+    were not found, so a docs/11 edit that accidentally removes them shows up
+    as a visible gap in the console summary rather than a silent no-op.
+    """
+    open_risk = sorted(
+        (r for r in existing.values() if r['status'] == 'Open' and r.get('risk_of_harm') == 'Yes'),
+        key=lambda r: int(r['id'].split('-')[1]))
+
+    if open_risk:
+        header = '| ID | First seen | Times seen | Group | Check |\n|---|---|---|---|---|\n'
+        rows = ''.join(
+            '| [%s](../tests/anomaly_log.csv) | %s | %s | %s | %s |\n' %
+            (r['id'], r['first_seen'], r['times_seen'], r['group'], r['test'])
+            for r in open_risk)
+        block = header + rows
+    else:
+        block = ('*No risk-of-harm anomalies currently open — see '
+                  '[`tests/anomaly_log.csv`](../tests/anomaly_log.csv) for the full history.*\n')
+
+    if not os.path.exists(RISK_FILE):
+        return None
+    with open(RISK_FILE, encoding='utf-8') as f:
+        text = f.read()
+
+    start = text.find(RISK_ESCALATION_START)
+    end = text.find(RISK_ESCALATION_END)
+    if start == -1 or end == -1 or end < start:
+        return None
+
+    start += len(RISK_ESCALATION_START)
+    new_text = text[:start] + '\n' + block + text[end:]
+    if new_text != text:
+        with open(RISK_FILE, 'w', encoding='utf-8') as f:
+            f.write(new_text)
+
+    return [(r['id'], r['test']) for r in open_risk]
 
 
 # ============================================================
@@ -460,7 +545,7 @@ def answer_all_questions(pg, pick=0):
 # ============================================================
 
 def test_data():
-    R.group('data — content files')
+    R.group('data — content files', risk=True)
 
     files = {
         'phases': os.path.join(ROOT, 'data', 'phases.json'),
@@ -561,7 +646,7 @@ def test_data():
 # ============================================================
 
 def test_applicability(browser, base):
-    R.group('applicability — the mapping itself')
+    R.group('applicability — the mapping itself', risk=True)
 
     path = os.path.join(ROOT, 'data', 'applicability.json')
     try:
@@ -617,7 +702,7 @@ def test_applicability(browser, base):
                               % (p['clause'], '/'.join(p['classes']), '/'.join(union)))
     R.check('clause-level classes match the sub-clause union', not mismatches, mismatches)
 
-    R.group('applicability — spot checks against the standard')
+    R.group('applicability — spot checks against the standard', risk=True)
 
     def sub(cid, ref):
         for sc in app[cid]:
@@ -667,7 +752,7 @@ def test_applicability(browser, base):
     R.check('7.1.5 and 7.3.2 recorded as removed by Amendment 1',
             voids == ['7.1.5', '7.3.2'], voids)
 
-    R.group('applicability — rendered on the page')
+    R.group('applicability — rendered on the page', risk=True)
 
     ctx, pg = new_page(browser)
     pg.goto(base + '/learn.html')
@@ -713,7 +798,7 @@ def test_applicability(browser, base):
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
 
-    R.group('applicability — the site refuses to render on contradictory data')
+    R.group('applicability — the site refuses to render on contradictory data', risk=True)
 
     # REGRESSION TEST for the original defect. Put the old, wrong value back and
     # the page must fail loudly rather than quietly teaching something incorrect.
@@ -774,7 +859,7 @@ def test_applicability(browser, base):
 # ============================================================
 
 def test_deliverables(browser, base):
-    R.group('deliverables — the data behind the list')
+    R.group('deliverables — the data behind the list', risk=True)
 
     app = applicability()
     with open(os.path.join(ROOT, 'data', 'applicability.json'), encoding='utf-8') as f:
@@ -796,7 +881,7 @@ def test_deliverables(browser, base):
     R.check('the data file records that document names are NOT prescribed',
             'does not prescribe' in notes and 'convention' in notes, notes[-200:])
 
-    R.group('deliverables — rendered panel')
+    R.group('deliverables — rendered panel', risk=True)
 
     ctx, pg = new_page(browser, 1180, 900)
     pg.goto(base + '/learn.html')
@@ -910,7 +995,7 @@ def test_deliverables(browser, base):
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
 
-    R.group('deliverables — CSV export')
+    R.group('deliverables — CSV export', risk=True)
 
     ctx = browser.new_context(viewport={'width': 1180, 'height': 900}, accept_downloads=True)
     pg = ctx.new_page()
@@ -1192,12 +1277,12 @@ def test_learn(browser, base):
         pg.wait_for_timeout(150)
         R.check('Class %s filter shows %d of %d cards' % (cls, expected, len(all_topics)),
                 pg.locator('.phase-card:not(.hidden)').count() == expected,
-                pg.locator('.phase-card:not(.hidden)').count())
+                pg.locator('.phase-card:not(.hidden)').count(), risk=True)
 
     pg.locator('.filter-btn[data-filter="all"]').click()
     R.check('All filter restores every card',
             pg.locator('.phase-card:not(.hidden)').count() == len(all_topics),
-            pg.locator('.phase-card:not(.hidden)').count())
+            pg.locator('.phase-card:not(.hidden)').count(), risk=True)
 
     # ---- FILTER NOTICE ----
     # Expected counts are derived from the JSON rather than hardcoded, so the
@@ -1214,29 +1299,29 @@ def test_learn(browser, base):
         buckets = classify(topics, app, cls)
         pg.locator('.filter-btn[data-filter="%s"]' % cls).click()
         pg.wait_for_timeout(250)
-        R.check('Class %s shows the filter notice' % cls, notice.is_visible())
+        R.check('Class %s shows the filter notice' % cls, notice.is_visible(), risk=True)
         text = norm(notice.inner_text())
         R.check('Class %s notice names the class' % cls,
-                'class ' + cls.lower() in text, text[:60])
+                'class ' + cls.lower() in text, text[:60], risk=True)
 
         shown = buckets['full'] + buckets['partial']
         if buckets['omitted'] or buckets['partial']:
             R.check('Class %s notice states the shown/total count' % cls,
-                    '%d of %d' % (len(shown), len(topics)) in text, text[:130])
+                    '%d of %d' % (len(shown), len(topics)) in text, text[:130], risk=True)
         else:
             R.check('Class %s notice says nothing omitted or reduced' % cls,
-                    'nothing is omitted' in text, text[:130])
+                    'nothing is omitted' in text, text[:130], risk=True)
 
         if buckets['partial']:
             R.check('Class %s notice states how many apply only in part' % cls,
-                    '%d' % len(buckets['partial']) in text and 'in part' in text, text[:140])
+                    '%d' % len(buckets['partial']) in text and 'in part' in text, text[:140], risk=True)
             for p in buckets['partial']:
                 R.check('Class %s notice lists %s as applying in part' % (cls, p['clause']),
-                        norm(p['clause']) in text and norm(p['title']) in text, p['clause'])
+                        norm(p['clause']) in text and norm(p['title']) in text, p['clause'], risk=True)
 
         for p in buckets['omitted']:
             R.check('Class %s notice lists %s as not applying' % (cls, p['clause']),
-                    norm(p['clause']) in text and norm(p['title']) in text, p['clause'])
+                    norm(p['clause']) in text and norm(p['title']) in text, p['clause'], risk=True)
 
         # A clause that applies in full must never be described as omitted.
         # There are now up to TWO of these lists (applies-in-part, and
@@ -1245,13 +1330,13 @@ def test_learn(browser, base):
             listed = norm(' '.join(pg.locator('.filter-notice-list').all_inner_texts()))
             wrongly = [p['title'] for p in buckets['full'] if norm(p['title']) in listed]
             R.check('Class %s notice does not list fully-applicable areas' % cls,
-                    not wrongly, wrongly)
+                    not wrongly, wrongly, risk=True)
 
         # The regulatory caution must appear for every class, including C.
         R.check('Class %s notice carries the ISO 14971 caution' % cls,
-                'iso 14971' in text and 're-check' in text, text[-160:])
+                'iso 14971' in text and 're-check' in text, text[-160:], risk=True)
         R.check('Class %s caution mentions re-validating after changes' % cls,
-                'soup' in text and 'architecture' in text, text[-200:])
+                'soup' in text and 'architecture' in text, text[-200:], risk=True)
 
     # Class A is the dangerous case: Clause 7 is hidden, so the notice must say
     # explicitly that this does not mean risk management is out of scope.
@@ -1259,11 +1344,11 @@ def test_learn(browser, base):
     pg.wait_for_timeout(200)
     atext = norm(notice.inner_text())
     R.check('Class A notice rebuts "no risk management"',
-            'does not mean risk management is out of scope' in atext, atext[:200])
+            'does not mean risk management is out of scope' in atext, atext[:200], risk=True)
     R.check('Class A notice cites 4.3 for the classification basis',
-            '4.3' in atext, atext[:250])
+            '4.3' in atext, atext[:250], risk=True)
     R.check('Class A notice says the class is an output of risk analysis',
-            'output' in atext and 'risk analysis' in atext, atext[:250])
+            'output' in atext and 'risk analysis' in atext, atext[:250], risk=True)
 
     R.check('filter notice is a polite live region',
             notice.get_attribute('role') == 'status'
@@ -2663,14 +2748,25 @@ def main():
     summary = reconcile_anomaly_log(R)
     print('\nANOMALY LOG  : %s' % os.path.relpath(ANOMALY_LOG, ROOT))
     if summary['report']:
-        for anomaly_id, tag, group, label in summary['report']:
-            print('  %-9s [%-8s] %s: %s' % (anomaly_id, tag, group, label))
+        for anomaly_id, tag, group, label, risk in summary['report']:
+            flag = '  [ISO 14971 risk of harm]' if risk else ''
+            print('  %-9s [%-8s] %s: %s%s' % (anomaly_id, tag, group, label, flag))
     for anomaly_id, group, label in summary['closed_now']:
         print('  %-9s [CLOSED  ] %s: %s' % (anomaly_id, group, label))
     if not summary['report'] and not summary['closed_now']:
         print('  no change — nothing newly failing or newly fixed')
     print('  %d anomal%s open in total' % (summary['total_open'],
                                             'y' if summary['total_open'] == 1 else 'ies'))
+
+    if summary['escalated'] is None:
+        print('  ! could not find the escalation markers in %s — risk anomalies were '
+              'NOT escalated' % os.path.relpath(RISK_FILE, ROOT))
+    elif summary['escalated']:
+        print('  %d escalated to %s: %s' % (
+            len(summary['escalated']), os.path.relpath(RISK_FILE, ROOT),
+            ', '.join(i for i, _ in summary['escalated'])))
+    else:
+        print('  0 escalated to %s' % os.path.relpath(RISK_FILE, ROOT))
 
     return exit_code
 

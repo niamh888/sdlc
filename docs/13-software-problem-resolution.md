@@ -37,12 +37,17 @@ the full mechanics. Each row carries an id (`ANOM-####`), the failing detail
 captured at the moment of failure, and how many consecutive runs it has
 failed (`times_seen`).
 
-**What 9.1 asks for that the row does not currently have: a criticality
-statement.** The anomaly log's fields are `id, status, group, test,
-first_seen, last_seen, times_seen, closed_on, detail` — there is no severity
-or criticality field. Every anomaly is currently treated as equally urgent by
-the tooling; a human reading the log supplies the judgement of "how bad is
-this" that 9.1 expects the report itself to carry. Recorded as a gap below.
+**9.1 also asks for a criticality statement — now partly present.** The
+anomaly log's fields are `id, status, group, test, first_seen, last_seen,
+times_seen, closed_on, risk_of_harm, detail`. `risk_of_harm` is a binary, not
+the graded severity scale 9.1 more fully implies: Yes if the failing check is
+tagged `risk=True` — under this project's reflexive ISO 14971 hazard model, a
+check whose failure means a reader could form an incorrect belief about what
+IEC 62304 requires (see
+[11 — Risk Management File](11-software-risk-management-file.md#reframing-the-hazard)).
+Everything else is still treated as equally urgent by the tooling; a human
+reading the log supplies the finer-grained judgement of "how bad is this"
+that 9.1 expects the report itself to carry. Recorded as a partial gap below.
 
 ## 9.2 — Investigation
 
@@ -74,11 +79,17 @@ a fix is a git commit, reviewed the same way any other change is.
 `tests/anomaly_log.csv` **is** the problem-report-and-resolution record —
 committed to the repository, so its history is retrievable the way 8.3 asks
 of any configuration item (see [12](12-software-configuration-management-plan.md#83--configuration-status-accounting)).
-What 9.5 also asks for — an **updated risk management file** — is not linked
-automatically: when an anomaly's root cause touches the safety-class data,
-updating [11 — Risk Management File](11-software-risk-management-file.md)'s
-traceability table is a manual step a maintainer has to remember to do, not
-one the tooling prompts for.
+What 9.5 also asks for — an **updated risk management file** — is now linked
+automatically for anomalies the risk model actually covers:
+`escalate_risk_anomalies()` rewrites the
+["Escalations from the problem log"](11-software-risk-management-file.md#escalations-from-the-problem-log)
+section of [11](11-software-risk-management-file.md) on every run, listing
+every currently-open `risk_of_harm=Yes` anomaly by id. What is still manual
+is upstream of that: 11's own traceability table (the hazard → cause → risk
+control → verification chain for the *known* risks) is not regenerated from
+the anomaly log and still needs a maintainer to update it by hand when a new
+kind of hazard is found — the escalation section surfaces that a risk-tagged
+check is failing, it does not write the analysis of why.
 
 ## 9.6 — Trend analysis
 
@@ -119,13 +130,25 @@ the anomaly log's own `first_seen`/`last_seen` columns.
 
 ## Gaps
 
-- **No criticality/severity field** on anomaly records (9.1).
+- **Criticality/severity is now recorded, but only as a binary** (9.1) — a
+  `risk_of_harm` column (Yes/No), set from whether the failing check is
+  tagged `risk=True` in `tests/test_site.py`, not the graded severity scale
+  (e.g. critical/major/minor) 9.1 more fully implies. See
+  [11 — Risk Management File](11-software-risk-management-file.md#escalations-from-the-problem-log).
 - **No "investigated, no action needed" closure path** distinct from
   "the check passes again" (9.2).
 - **No cross-anomaly trend analysis** (9.6) — data exists (`times_seen`,
   dates) but nothing currently aggregates it into a signal.
-- **No automatic prompt to update the risk management file** when a closed
-  anomaly's cause was safety-class data (9.5).
+- **The risk management file now updates itself automatically** (9.5) — no
+  longer a gap in the case it originally named: `reconcile_anomaly_log()`
+  escalates every open `risk_of_harm=Yes` anomaly into
+  [11](11-software-risk-management-file.md#escalations-from-the-problem-log)
+  by id, on every run. What remains manual is upstream of that: deciding
+  whether a *given* check's failure belongs in the hazard model in the first
+  place is a judgement made once, when the check is written, not something
+  the tooling infers — a genuinely safety-relevant check that was never
+  tagged `risk=True` would still not escalate.
 
-None of these four are silently missing — this document is where they are
-recorded, per the very process it describes.
+Three of these four are no longer silently missing; the fourth (9.6) still
+is — this document is where all four are recorded either way, per the very
+process it describes.

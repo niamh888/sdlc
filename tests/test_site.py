@@ -50,6 +50,7 @@ handling, it is decoration.
 
 import argparse
 import csv
+import datetime
 import functools
 import http.server
 import io
@@ -72,6 +73,9 @@ except ImportError:
 ROOT = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js'
 FORMSPREE_GLOB = 'https://formspree.io/**'
+ANOMALY_LOG = os.path.join(ROOT, 'tests', 'anomaly_log.csv')
+ANOMALY_FIELDS = ['id', 'status', 'group', 'test', 'first_seen', 'last_seen',
+                   'times_seen', 'closed_on', 'detail']
 
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
@@ -126,6 +130,99 @@ class Results:
 
 
 R = Results()
+
+
+# ============================================================
+# ANOMALY LOG
+#
+# IEC 62304 §9 (Software problem resolution process) expects failures found
+# during verification to be recorded, tracked and closed out — not just fixed
+# quietly and forgotten. This gives the test suite that record: every failing
+# check becomes a row in tests/anomaly_log.csv with its own ANOM-#### id, and
+# that id stays with it across runs so it can be referred to the way a ticket
+# number would be ("fixed in ANOM-0007").
+#
+# The log is a standing registry, not a per-run report — it is READ at the
+# start of reconcile_anomaly_log() and WRITTEN BACK IN FULL at the end, rather
+# than appended to, so that:
+#   * a check that fails in ten consecutive runs is one row with times_seen=10,
+#     not ten rows — otherwise the file would be unreadable within a week;
+#   * a check that used to fail and now passes is marked Closed automatically,
+#     with the date, instead of silently vanishing with no trace it ever failed;
+#   * a check that fails, gets "fixed", and later breaks again reopens its
+#     original id rather than being handed a new one.
+# ============================================================
+
+def load_anomaly_log():
+    """Read the current anomaly log into {(group, test): row}, or {} if the
+    file does not exist yet (first run on a fresh checkout)."""
+    if not os.path.exists(ANOMALY_LOG):
+        return {}
+    with open(ANOMALY_LOG, newline='', encoding='utf-8') as f:
+        return {(row['group'], row['test']): row for row in csv.DictReader(f)}
+
+
+def reconcile_anomaly_log(results):
+    """Bring tests/anomaly_log.csv up to date with this run's results.
+
+    Each anomaly is identified by (group, test label) — the same pair the
+    console report already groups failures by — so it is always obvious which
+    check an anomaly id refers to without needing to cross-reference anything.
+
+    Closing an anomaly requires the group it belongs to to have actually run
+    this time: if you run `--group quiz` on its own, anomalies belonging to
+    groups that were not exercised must be left exactly as they were, not
+    marked fixed just because they were not re-checked.
+    """
+    existing = load_anomaly_log()
+    next_num = 1 + max([int(r['id'].split('-')[1]) for r in existing.values()], default=0)
+    today = datetime.date.today().isoformat()
+
+    failing = {(g, l): detail for g, l, _, detail in results.failures()}
+    groups_seen = {g for g, l, _p, _d in results.rows}
+
+    report = []  # (id, tag, group, test) for everything failing right now, for the console
+
+    for key, detail in failing.items():
+        group, label = key
+        row = existing.get(key)
+        if row is None:
+            row = {'id': 'ANOM-%04d' % next_num, 'status': 'Open', 'group': group,
+                   'test': label, 'first_seen': today, 'closed_on': '', 'times_seen': '0'}
+            next_num += 1
+            existing[key] = row
+            tag = 'NEW'
+        elif row['status'] == 'Closed':
+            row['status'] = 'Open'
+            row['closed_on'] = ''
+            tag = 'REOPENED'
+        else:
+            tag = 'OPEN'
+        row['last_seen'] = today
+        row['times_seen'] = str(int(row.get('times_seen') or 0) + 1)
+        row['detail'] = detail[:300]
+        report.append((row['id'], tag, group, label))
+
+    closed_now = []
+    for key, row in existing.items():
+        group, label = key
+        if row['status'] == 'Open' and key not in failing and group in groups_seen:
+            row['status'] = 'Closed'
+            row['closed_on'] = today
+            closed_now.append((row['id'], group, label))
+
+    rows = sorted(existing.values(), key=lambda r: int(r['id'].split('-')[1]))
+    with open(ANOMALY_LOG, 'w', newline='', encoding='utf-8') as f:
+        w = csv.DictWriter(f, fieldnames=ANOMALY_FIELDS)
+        w.writeheader()
+        w.writerows(rows)
+
+    report.sort(key=lambda t: t[0])
+    return {
+        'report': report,
+        'closed_now': closed_now,
+        'total_open': sum(1 for r in existing.values() if r['status'] == 'Open'),
+    }
 
 
 # ============================================================
@@ -2404,7 +2501,21 @@ def main():
     finally:
         httpd.shutdown()
 
-    return R.report()
+    exit_code = R.report()
+
+    summary = reconcile_anomaly_log(R)
+    print('\nANOMALY LOG  : %s' % os.path.relpath(ANOMALY_LOG, ROOT))
+    if summary['report']:
+        for anomaly_id, tag, group, label in summary['report']:
+            print('  %-9s [%-8s] %s: %s' % (anomaly_id, tag, group, label))
+    for anomaly_id, group, label in summary['closed_now']:
+        print('  %-9s [CLOSED  ] %s: %s' % (anomaly_id, group, label))
+    if not summary['report'] and not summary['closed_now']:
+        print('  no change — nothing newly failing or newly fixed')
+    print('  %d anomal%s open in total' % (summary['total_open'],
+                                            'y' if summary['total_open'] == 1 else 'ies'))
+
+    return exit_code
 
 
 if __name__ == '__main__':

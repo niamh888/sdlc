@@ -559,6 +559,43 @@ not error handling, it is decoration. Testing only the happy path is the usual
 mistake, and it is why a site can work perfectly on a fast laptop and fall apart
 on hospital wifi.
 
+### Anomaly log
+
+Every time the suite runs, it reconciles `tests/anomaly_log.csv` — a standing
+record of which checks are currently failing, matching the "software problem
+resolution" record-keeping IEC 62304 §9 expects from a real project, rather
+than letting a failure be fixed quietly with no trace it ever happened.
+
+Each distinct failure (identified by its group and check name) gets its own
+`ANOM-####` id the first time it appears, and **keeps that id across runs** —
+it is not a fresh log per run, it is one continuously-updated file:
+
+- a check failing for the first time **opens** a new anomaly;
+- a check that keeps failing updates its `last_seen` date and `times_seen`
+  count on the *same* row, rather than adding a new one — the file stays
+  readable after a hundred runs instead of growing a row per failure per run;
+- a check that used to fail and now passes is **closed** automatically, with
+  the date, so there is a permanent record of when it was fixed;
+- a check that was closed and fails again **reopens its original id**, so the
+  id can be quoted in a commit message or a standup note and still mean the
+  same thing weeks later.
+
+Closing only ever happens for a group that actually ran, so `--group quiz`
+cannot mark anomalies in other groups fixed just because they were not
+re-checked. The console prints a summary after every run:
+
+```
+ANOMALY LOG  : tests\anomaly_log.csv
+  ANOM-0004 [NEW     ] applicability — the mapping itself: sub-clause references are unique within a clause
+  ANOM-0007 [CLOSED  ] learn — features: progress bar width updates
+  2 anomalies open in total
+```
+
+The CSV itself (`id, status, group, test, first_seen, last_seen, times_seen,
+closed_on, detail`) is committed to the repo, so its history — what broke, when,
+and how long it stayed broken — is part of the project's record, the same as
+any other file.
+
 ### What it does *not* cover
 
 Being honest about the limits matters more than a green tick:
@@ -595,6 +632,7 @@ Being honest about the limits matters more than a green tick:
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
 | `tests/test_site.py` | Automated test suite — 391 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
+| `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |
 

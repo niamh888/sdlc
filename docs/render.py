@@ -268,6 +268,32 @@ def render_blocks(lines, seen_slugs):
     return '\n'.join(html_parts)
 
 
+DISCLAIMER_MARKER = '> **Training example only.**'
+
+
+def strip_rendered_disclaimer(lines):
+    """Every doc opens with a one-line "training example only" note — kept in
+    the raw markdown so a downloaded or GitHub-read .md file is still
+    self-disclosing on its own. The HTML page does not need it a second time:
+    PAGE_TEMPLATE already puts the full version of the same statement in a
+    banner at the top of every rendered page, so showing it again immediately
+    below, in the body, would just be the same sentence twice in a row.
+
+    A handful of documents (04, 10, 11) chain a second, DOC-SPECIFIC paragraph
+    onto the same block quote — that part is not boilerplate and is kept,
+    becoming its own block quote once the generic first paragraph is removed.
+    """
+    for idx, line in enumerate(lines):
+        if line.startswith(DISCLAIMER_MARKER):
+            end = idx
+            while end < len(lines) and lines[end].startswith('>') and lines[end].strip() != '>':
+                end += 1
+            if end < len(lines) and lines[end].strip() == '>':
+                end += 1  # also drop the blank line separating the paragraphs
+            return lines[:idx] + lines[end:]
+    return lines
+
+
 def convert(md_text):
     """Returns (title, body_html). The document's first line must be a level-1
     heading — that becomes the page title and is rendered into .page-header,
@@ -276,7 +302,7 @@ def convert(md_text):
     lines = md_text.splitlines()
     assert lines[0].startswith('# '), 'every doc must open with a level-1 heading'
     title = lines[0][2:].strip()
-    body_html = render_blocks(lines[1:], {})
+    body_html = render_blocks(strip_rendered_disclaimer(lines[1:]), {})
     return title, body_html
 
 

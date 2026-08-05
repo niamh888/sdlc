@@ -6,6 +6,13 @@ An interactive, self-paced training course covering the IEC 62304 medical device
 
 The project serves a dual purpose: it satisfies the UCD JavaScript module brief (HTML/CSS/JS, interactivity, DOM manipulation, GitHub Pages), and it is a genuinely useful domain-specific tool that could be expanded into a full certification prep platform.
 
+This document explains *design* decisions — layout, interaction, visual and
+JavaScript architecture. For a demonstration of the project's own IEC
+62304-style lifecycle *documentation* (development plan, requirements,
+architecture, verification, risk management, problem resolution and the
+rest, applied reflexively to this project's own development), see
+[docs/README.md](docs/README.md).
+
 ---
 
 ## Target Audience

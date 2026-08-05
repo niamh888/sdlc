@@ -30,6 +30,56 @@ all of this, so it cannot quietly disappear in a redesign.
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
 
+## Screenshots
+
+Captured straight from the running site with the same Playwright automation the
+test suite uses (`tests/capture_screenshots.py`), not mocked up — so what you
+see below is what `python -m http.server` would actually show you. Regenerate
+them after a visual change with:
+
+```bash
+python tests/capture_screenshots.py
+```
+
+### Home
+
+| Light | Dark |
+|---|---|
+| ![Home page, light theme](docs/assets/screenshots/index-light.png) | ![Home page, dark theme](docs/assets/screenshots/index-dark.png) |
+
+### Learn — process area cards, safety class filter, deliverables list
+
+The flagship feature: filtering to Class A dims the sub-clauses of Clause 7
+that don't apply at that class while keeping §7.4.1 highlighted, and the
+deliverables panel (expanded here) lists the documented output each
+applicable requirement calls for.
+
+![Learn page filtered to Class A, Clause 7 expanded, deliverables list open](docs/assets/screenshots/learn-classA-deliverables-light.png)
+
+| Light (default view) | Dark |
+|---|---|
+| ![Learn page, light theme](docs/assets/screenshots/learn-light.png) | ![Learn page, dark theme](docs/assets/screenshots/learn-dark.png) |
+
+### Quiz — timed assessment with immediate feedback
+
+| Start screen | Question in progress | Feedback on an answer |
+|---|---|---|
+| ![Quiz start screen, light theme](docs/assets/screenshots/quiz-start-light.png) | ![Quiz question screen](docs/assets/screenshots/quiz-question-light.png) | ![Quiz feedback after answering](docs/assets/screenshots/quiz-feedback-light.png) |
+
+Dark theme, for comparison:
+
+![Quiz start screen, dark theme](docs/assets/screenshots/quiz-start-dark.png)
+
+### Contact
+
+| Light | Dark |
+|---|---|
+| ![Contact form, light theme](docs/assets/screenshots/contact-light.png) | ![Contact form, dark theme](docs/assets/screenshots/contact-dark.png) |
+
+### Privacy
+
+![Privacy notice page](docs/assets/screenshots/privacy-light.png)
+
 ## Safety Class Applicability
 
 IEC 62304 assigns requirements to safety classes **per sub-clause**, not per clause,
@@ -633,6 +683,8 @@ Being honest about the limits matters more than a green tick:
 | `tests/test_site.py` | Automated test suite — 391 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
+| `tests/capture_screenshots.py` | Generates the PNGs under `docs/assets/screenshots/` used in [Screenshots](#screenshots) above |
+| `docs/` | The project's own IEC 62304-style lifecycle document set — see [docs/README.md](docs/README.md) |
 | `DESIGN.md` | Design decisions and page-by-page rationale |
 | `learn_pseudocode.md` | Pseudocode walkthrough of `learn.js` |
 

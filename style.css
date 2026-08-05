@@ -1535,11 +1535,22 @@ a {
 
 .phase-footer {
   display: flex;
+  flex-wrap: wrap; /* lets .field-error below drop to its own full-width row */
   align-items: center;
   justify-content: flex-end;
   padding: 12px 20px;
   border-top: 1px solid var(--bg);
-  gap: 12px;
+  gap: 4px 12px;
+}
+
+/* The "preview the document first" message. flex-basis: 100% forces it onto
+   its own row above the badge/button regardless of source order, matching
+   how a form field's error sits on its own line under the field it belongs
+   to rather than squeezed into the same row. */
+.phase-footer .field-error {
+  flex: 1 0 100%;
+  text-align: right;
+  margin-top: 0;
 }
 
 /* FIX: was --success-light (#27ae60) on a white card — 2.87:1 at 12.5px. Another

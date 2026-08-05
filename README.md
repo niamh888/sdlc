@@ -25,7 +25,7 @@ all of this, so it cannot quietly disappear in a redesign.
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as markdown, clearly marked as a training example and not a genuine regulatory deliverable (see [docs/](docs/README.md)); study progress tracker
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as markdown, clearly marked as a training example and not a genuine regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
@@ -55,6 +55,10 @@ deliverables panel (expanded here) lists the documented output each
 applicable requirement calls for.
 
 ![Learn page filtered to Class A, Clause 7 expanded, deliverables list open](docs/assets/screenshots/learn-classA-deliverables-light.png)
+
+Marking a topic studied is blocked until its example document has been opened at least once — the attempt below auto-expanded the card and moved focus to the Preview link:
+
+![Learn page: marking a topic studied is blocked with an inline message until the example document has been opened](docs/assets/screenshots/learn-studied-blocked-light.png)
 
 | Light (default view) | Dark |
 |---|---|
@@ -548,7 +552,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **601 checks** covering content
+The site ships with an automated test suite: **606 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -589,7 +593,7 @@ python tests/test_site.py --group data --group a11y   # or several
 | `deliverables` | Per-class output counts derived from the data; panel hidden until a class is chosen; collapse/expand with `aria-expanded`; requirements with no artefact listed and labelled rather than dropped; CSV filename, UTF-8 BOM, CRLF, eight columns, comma escaping, and correct inclusion of 5.4.1 / 7.4.1 and exclusion of 5.1.4 and removed sub-clauses; print output; the §4.1 / §4.2 cross-references cite ISO 13485 and ISO 14971 on screen and in the CSV, **assert ISO 9001 is not presented as a route**, and are not mislabelled "decide for yourself"; **regression test that printing a non-quiz page is no longer blank** |
 | `applicability` | Sub-clause mapping is complete and well formed; **clause-level classes equal the union of their sub-clauses**; spot checks against the standard (7.4.1, 5.4.1, 5.3.5, 5.7.1, 6.2.3 …); 97 rendered rows; per-class visible/partial counts; and a **regression test that reintroduces the original Clause 7 error and requires the site to reject it** |
 | `docs` | Every Learn card's example-document Preview/Download links resolve to the right file with the right attributes; every rendered page under `docs/` loads without a JS error, carries the training-example banner, links back to the originating card, has no horizontal overflow, and passes axe |
-| `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
+| `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker, **including that marking a topic studied is blocked until its example document has been opened (Preview or Download), with the blocked attempt auto-expanding the card and moving focus to the Preview link**; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
 | `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data; **content provenance** names the edition, the source of the class mapping and of the Edition 2 status, disclaims IEC affiliation, and states no visitor request reaches IEC |
@@ -681,7 +685,7 @@ Being honest about the limits matters more than a green tick:
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 601 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 606 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
 | `tests/capture_screenshots.py` | Generates the PNGs under `docs/assets/screenshots/` used in [Screenshots](#screenshots) above |

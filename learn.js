@@ -55,6 +55,13 @@ let phases = [];
 // which phase IDs the user has marked as studied (no duplicates possible).
 const studiedPhases = new Set();
 
+// Which phases the visitor has actually opened the example document for —
+// via either the Preview link or the Download link, either one counts as
+// having engaged with it. Checked by markStudied() before it allows a topic
+// to be marked studied. Not persisted, the same as studiedPhases: both are
+// scoped to the current page visit.
+const previewedDocs = new Set();
+
 // Tracks the currently active safety-class filter so applyFilter() always
 // knows which button to highlight when the grid re-renders.
 let activeFilter = 'all';
@@ -289,6 +296,12 @@ function renderPhases() {
         buildExampleDocBlock(phase) +
       '</div>' +
       '<div class="phase-footer">' +
+        // role="alert" makes this a live region: a screen reader announces
+        // its content the moment markStudied() fills it in, the same
+        // pattern #participant-name-error uses on the quiz page. Empty by
+        // default, and .field-error reserves its line height even then, so
+        // showing the message never shifts the button underneath it.
+        '<span class="field-error" id="studied-error-' + phase.id + '" role="alert"></span>' +
         '<span class="studied-badge">&#10003; Studied</span>' +
         '<button class="btn btn-secondary mark-studied-btn" data-id="' + phase.id + '"' + (isStudied ? ' disabled' : '') + '>' +
           (isStudied ? '&#10003; Studied' : 'Mark as Studied') +
@@ -597,10 +610,12 @@ function buildExampleDocBlock(phase) {
         'deliverable.' +
       '</p>' +
       '<div class="example-doc-actions">' +
-        '<a class="btn btn-secondary" href="' + previewHref + '" target="_blank" rel="noopener"' +
+        '<a class="btn btn-secondary example-doc-preview" href="' + previewHref + '"' +
+          ' target="_blank" rel="noopener" data-id="' + phase.id + '"' +
           ' aria-label="Preview example document for ' + phase.title + '">' +
           'Preview example document</a>' +
-        '<a class="btn btn-secondary" href="' + downloadHref + '" download' +
+        '<a class="btn btn-secondary example-doc-download" href="' + downloadHref + '" download' +
+          ' data-id="' + phase.id + '"' +
           ' aria-label="Download example document for ' + phase.title + ' as Markdown">' +
           'Download (.md)</a>' +
       '</div>' +
@@ -664,8 +679,20 @@ function setLevel(level) {
 
 // ---------- CLICK HANDLER (event delegation) ----------
 function handleCardClick(e) {
+  const docLink = e.target.closest('.example-doc-actions a');
   const studiedBtn = e.target.closest('.mark-studied-btn');
   const header = e.target.closest('.phase-header');
+
+  // Preview and Download are real <a> tags with a real href — this handler
+  // never calls preventDefault, so the browser still opens the tab or starts
+  // the download on its own. All this does is RECORD that it happened, which
+  // is what markStudied() checks before it allows the topic to be studied.
+  if (docLink && docLink.dataset.id) {
+    previewedDocs.add(docLink.dataset.id);
+    const err = document.getElementById('studied-error-' + docLink.dataset.id);
+    if (err) err.textContent = '';
+    return;
+  }
 
   if (studiedBtn) {
     markStudied(studiedBtn.dataset.id);
@@ -690,14 +717,48 @@ function togglePhaseCard(id) {
 }
 
 // ---------- MARK AS STUDIED ----------
+//
+// A topic can only be marked studied once its example document has been
+// opened at least once — Preview or Download, either counts (see
+// handleCardClick). This is enforced here rather than by disabling the
+// button up front: the quiz's name field validates the same way, on the
+// attempt rather than by pre-emptively disabling Begin Assessment, because a
+// disabled control gives a screen reader user no way to discover why it is
+// inert. Only enforced for phases that actually HAVE an example document —
+// buildExampleDocBlock() already guards the same condition, so a future
+// topic added without one is simply not gated.
 function markStudied(id) {
   if (studiedPhases.has(id)) return;
-
-  studiedPhases.add(id);
 
   const card = document.getElementById('phase-' + id);
   if (!card) return;
 
+  const errorEl = document.getElementById('studied-error-' + id);
+  const hasExampleDoc = !!card.querySelector('.example-doc');
+
+  if (hasExampleDoc && !previewedDocs.has(id)) {
+    if (errorEl) {
+      errorEl.textContent = 'Preview or download the example document above before marking this topic as studied.';
+    }
+    // The example document lives inside .phase-details, which is collapsed
+    // (display: none) unless the card is expanded — clicking Mark as Studied
+    // does not require the card to be open, so without this the reader would
+    // see an error pointing at a link they cannot see. Expanding it and
+    // moving focus to the Preview link turns the error into a next step
+    // rather than a dead end.
+    if (!card.classList.contains('expanded')) {
+      card.classList.add('expanded');
+      const header = card.querySelector('.phase-header');
+      if (header) header.setAttribute('aria-expanded', 'true');
+    }
+    const previewLink = card.querySelector('.example-doc-preview');
+    if (previewLink) previewLink.focus();
+    return;
+  }
+
+  if (errorEl) errorEl.textContent = '';
+
+  studiedPhases.add(id);
   card.classList.add('studied');
 
   const btn = card.querySelector('.mark-studied-btn');

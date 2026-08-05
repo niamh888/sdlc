@@ -156,6 +156,23 @@ def main():
                 shoot(pg, 'learn-classA-deliverables-light')
                 ctx.close()
 
+                # ---- Learn: the "preview it first" requirement, blocked ----
+                # A blank card, an attempt to mark it studied without opening
+                # its example document, and the result: an inline message,
+                # the card auto-expanded, and focus on the Preview link.
+                ctx, pg = new_page(browser, 'light')
+                pg.goto(base + '/learn.html')
+                pg.wait_for_selector('.phase-card', timeout=10000)
+                pg.locator('#update-banner-close').click()
+                pg.locator('#phase-planning .mark-studied-btn').click()
+                pg.wait_for_timeout(200)
+                pg.evaluate(
+                    "() => document.querySelector('#phase-planning .example-doc')"
+                    ".scrollIntoView({block: 'center'})")
+                pg.wait_for_timeout(150)
+                shoot(pg, 'learn-studied-blocked-light')
+                ctx.close()
+
                 # ---- Quiz ----
                 ctx, pg = new_page(browser, 'light')
                 pg.goto(base + '/quiz.html')

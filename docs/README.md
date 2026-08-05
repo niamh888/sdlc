@@ -94,7 +94,7 @@ for why the mapping is recorded at this level of detail in the first place.
   [11 — Risk Management File](11-software-risk-management-file.md).
 - **[README.md](../README.md)** — features, testing, and the anomaly log.
 - **[`tests/test_site.py`](../tests/test_site.py)** — the system test suite
-  (601 checks across 12 groups) that is this project's primary verification
+  (606 checks across 12 groups) that is this project's primary verification
   evidence.
 - **[`tests/anomaly_log.csv`](../tests/anomaly_log.csv)** — the standing
   problem log described in [13 — Problem Resolution](13-software-problem-resolution.md).

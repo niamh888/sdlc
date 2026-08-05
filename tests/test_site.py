@@ -1274,7 +1274,27 @@ def test_learn(browser, base):
     pg.wait_for_timeout(200)
     R.check('returning to All hides the notice again', notice.is_hidden())
 
-    # progress tracker
+    # progress tracker — marking a topic studied now requires having opened
+    # its example document first (Preview or Download counts, see
+    # markStudied() in learn.js). The first attempt below is expected to be
+    # BLOCKED, not to succeed.
+    first_id = pg.locator('.phase-card').first.get_attribute('id').replace('phase-', '', 1)
+    pg.locator('.mark-studied-btn').first.click()
+    R.check('marking studied without previewing the document is blocked',
+            'preview or download' in norm(pg.locator('#studied-error-' + first_id).inner_text())
+            and pg.locator('#progress-count').inner_text() == '0',
+            pg.locator('#studied-error-' + first_id).inner_text())
+    R.check('a blocked attempt auto-expands the card so the document is visible',
+            'expanded' in (pg.locator('.phase-card').first.get_attribute('class') or ''))
+    R.check('focus moves to the Preview link',
+            pg.evaluate("() => document.activeElement.classList.contains('example-doc-preview')"))
+
+    with pg.expect_popup() as preview_popup:
+        pg.locator('.example-doc-preview').first.click()
+    preview_popup.value.close()
+    R.check('the block clears once the document has been opened',
+            pg.locator('#studied-error-' + first_id).inner_text() == '')
+
     pg.locator('.mark-studied-btn').first.click()
     R.check('marking studied increments the count',
             pg.locator('#progress-count').inner_text() == '1',
@@ -1285,6 +1305,21 @@ def test_learn(browser, base):
     R.check('progress bar width updates', width and width != '0%', width)
     R.check('progressbar exposes aria-valuenow',
             pg.locator('.progress-bar-container').get_attribute('aria-valuenow') is not None)
+
+    # Downloading (rather than previewing) must satisfy the same requirement —
+    # either action demonstrates the document was actually opened.
+    ctx2, pg2 = new_page(browser, accept_downloads=True)
+    pg2.goto(base + '/learn.html')
+    pg2.wait_for_selector('.phase-card', timeout=10000)
+    second_id = pg2.locator('.phase-card').nth(1).get_attribute('id').replace('phase-', '', 1)
+    pg2.locator('.mark-studied-btn').nth(1).click()  # blocked; expands the card
+    with pg2.expect_download():
+        pg2.locator('.example-doc-download').nth(1).click()
+    pg2.locator('.mark-studied-btn').nth(1).click()
+    R.check('downloading the example document also satisfies the requirement',
+            pg2.locator('#progress-count').inner_text() == '1',
+            pg2.locator('#studied-error-' + second_id).inner_text())
+    ctx2.close()
 
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
@@ -2159,6 +2194,10 @@ def test_a11y_dark(browser, base, axe_src):
         ctx, pg = dark_ctx(browser, scheme)
         pg.goto(base + '/learn.html')
         pg.wait_for_selector('.phase-card', timeout=10000)
+        pg.locator('.mark-studied-btn').first.click()  # blocked; auto-expands the card
+        with pg.expect_popup() as popup:
+            pg.locator('.example-doc-preview').first.click()
+        popup.value.close()
         pg.locator('.mark-studied-btn').first.click()
         pg.wait_for_timeout(250)
         R.check('%s: card is marked studied' % scheme,

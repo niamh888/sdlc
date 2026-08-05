@@ -63,6 +63,7 @@ is the verification method for 5.2.6.
 | REQ-14 | Selecting a class generates a deliverables list (on screen, CSV, and print) of the documented outputs required at that class | `deliverables` |
 | REQ-15 | The site refuses to render Learn content if `phases.json` and `applicability.json` disagree on a clause's classes, and names the disagreement | `applicability` |
 | REQ-16 | A progress tracker lets a visitor mark topics as studied and shows a running count | `learn` |
+| REQ-16a | A topic cannot be marked studied until its example document has been opened (Preview or Download); a blocked attempt shows an inline message, expands the card, and moves focus to the Preview link | `learn` |
 
 ### Quiz (`quiz.html`)
 

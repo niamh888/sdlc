@@ -3,7 +3,13 @@
 **Status: Documented — this project's strongest evidence.**
 **Clause:** 5.7 — Software System Testing · **Register:** [docs/README.md](README.md)
 
-> Demonstration document — see [docs/README.md](README.md#what-this-is-and-is-not).
+> **Example artefact — training use only.** This project is a training
+> site, not a real medical device under any regulatory definition, and
+> nothing here is a genuine IEC 62304 deliverable. It illustrates the
+> *kind* of document a Software-as-a-Medical-Device (SaMD) or
+> Software-in-a-Medical-Device (SiMD) project would produce for this
+> process area — see [docs/README.md](README.md#what-this-is-and-is-not)
+> for the full picture.
 
 ## What the standard requires (Class C — every sub-clause of 5.7)
 
@@ -22,7 +28,7 @@ for why that history matters to how this data is maintained.)
 ## 5.7.1 — The test set
 
 [`tests/test_site.py`](../tests/test_site.py) is this project's system test
-suite: **447 checks** across 11 groups, run against a real Chrome/Chromium
+suite: **601 checks** across 12 groups, run against a real Chrome/Chromium
 browser driven by Playwright, over a server the script starts itself. Its own
 docstring states the design directly:
 
@@ -35,6 +41,7 @@ docstring states the design directly:
 | `data` | JSON parses; correct counts; no duplicate ids/questions; every `correct` index in range; all required fields present |
 | `applicability` | Sub-clause mapping is complete; clause-level classes equal the union of sub-clause classes; spot checks against the standard; rendered rows/counts; **regression test reintroducing the original Clause 7 error** |
 | `deliverables` | Per-class output counts; CSV filename/BOM/CRLF/columns/escaping; print output; §4.1/§4.2 cross-references |
+| `docs` | Every card's example-document Preview/Download links resolve correctly; every rendered page in this folder loads without a JS error, carries the training-example banner, links back to the right card, has no horizontal overflow, and passes axe |
 | `learn` | Card rendering; expand/collapse by mouse and keyboard; level toggle; class filters; filter notice; progress tracker; async failure paths (404, malformed JSON, empty list, retry) |
 | `quiz` | Name validation; scoring; timer; full pass/fail runs; certificate; shuffling; prefetch; error states |
 | `contact` | Field validation; request contents; success/422/429/404/503/network-failure paths; double-submit guard; honeypot |
@@ -54,7 +61,7 @@ tester has to remember; it happens on every run, pass or fail.
 ## 5.7.3 — Retest after changes
 
 The suite is not partitioned by "what changed" — a full run re-executes all
-447 checks every time, which is retesting by construction rather than by a
+601 checks every time, which is retesting by construction rather than by a
 documented policy of selecting which tests apply to a given change (the same
 trade-off noted for regression testing in
 [07](07-software-integration-and-testing.md#566--regression)).

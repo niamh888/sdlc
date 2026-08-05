@@ -286,6 +286,7 @@ function renderPhases() {
       '<div class="phase-details" id="phase-details-' + phase.id + '">' +
         '<ul>' + detailItems + '</ul>' +
         buildSubClauseTable(phase) +
+        buildExampleDocBlock(phase) +
       '</div>' +
       '<div class="phase-footer">' +
         '<span class="studied-badge">&#10003; Studied</span>' +
@@ -562,6 +563,47 @@ function buildSubClauseTable(phase) {
         '</tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
       '</table>' +
+    '</div>';
+}
+
+// ============================================================
+// EXAMPLE ARTEFACT LINKS
+// Every process area maps to one worked-example document under docs/ — see
+// docs/README.md for the full set and docs/render.py for how the preview
+// pages are generated. Deliberately placed at the CARD level (this whole
+// process area), not inside the per-sub-clause deliverables rows: those rows
+// intentionally never invent a document name (see the comment above
+// deliverablesFor()), and attaching one concrete example file to them would
+// blur exactly the line that feature draws. A card already has a title for
+// the whole process area, which is where a worked example belongs instead.
+// ============================================================
+function buildExampleDocBlock(phase) {
+  // Guards against a phase with no exampleDoc, the same way
+  // buildSubClauseTable() guards against a phase with no subClauses — even
+  // though every entry in phases.json currently has one, a card should not
+  // silently break if a future topic is added without it.
+  if (!phase.exampleDoc) return '';
+
+  const previewHref = 'docs/' + phase.exampleDoc + '.html';
+  const downloadHref = 'docs/' + phase.exampleDoc + '.md';
+
+  return '' +
+    '<div class="example-doc">' +
+      '<p class="example-doc-label">' +
+        '<strong>Example artefact</strong> &mdash; a worked example of the document ' +
+        'this process area would produce, from this project&rsquo;s own IEC ' +
+        '62304-style lifecycle documentation. Training example only &mdash; this ' +
+        'site is not a real medical device and this is not a genuine regulatory ' +
+        'deliverable.' +
+      '</p>' +
+      '<div class="example-doc-actions">' +
+        '<a class="btn btn-secondary" href="' + previewHref + '" target="_blank" rel="noopener"' +
+          ' aria-label="Preview example document for ' + phase.title + '">' +
+          'Preview example document</a>' +
+        '<a class="btn btn-secondary" href="' + downloadHref + '" download' +
+          ' aria-label="Download example document for ' + phase.title + ' as Markdown">' +
+          'Download (.md)</a>' +
+      '</div>' +
     '</div>';
 }
 

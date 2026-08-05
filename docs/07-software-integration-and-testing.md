@@ -3,7 +3,13 @@
 **Status: Partial — see Gaps.**
 **Clause:** 5.6 — Software Integration and Testing · **Register:** [docs/README.md](README.md)
 
-> Demonstration document — see [docs/README.md](README.md#what-this-is-and-is-not).
+> **Example artefact — training use only.** This project is a training
+> site, not a real medical device under any regulatory definition, and
+> nothing here is a genuine IEC 62304 deliverable. It illustrates the
+> *kind* of document a Software-as-a-Medical-Device (SaMD) or
+> Software-in-a-Medical-Device (SiMD) project would produce for this
+> process area — see [docs/README.md](README.md#what-this-is-and-is-not)
+> for the full picture.
 
 ## What the standard requires (Class C — every sub-clause of 5.6)
 
@@ -57,7 +63,7 @@ procedure evaluation, or record set of its own.
 ## 5.6.6 — Regression
 
 Regression is real but implicit: every run of
-[`tests/test_site.py`](../tests/test_site.py) re-checks all 447 checks, not
+[`tests/test_site.py`](../tests/test_site.py) re-checks all 601 checks, not
 only the ones related to whatever just changed, so a change to `theme.js`
 that broke `learn.js`'s rendering would be caught by the `learn` group even
 though nobody thought to re-run it deliberately. That is regression coverage

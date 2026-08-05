@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>08 — Software System Testing (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>08 — Software System Testing</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-system-testing">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="08-software-system-testing.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Status: Documented — this project's strongest evidence.</strong> <strong>Clause:</strong> 5.7 — Software System Testing · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-57">What the standard requires (Class C — every sub-clause of 5.7)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.7.1</td><td>Establish tests for software requirements</td><td>A, B, C</td><td>A set of tests covering all software requirements: input stimuli, expected outcomes, pass/fail criteria, procedures</td></tr><tr><td>5.7.2</td><td>Use software problem resolution process</td><td>A, B, C</td><td>—</td></tr><tr><td>5.7.3</td><td>Retest after changes</td><td>A, B, C</td><td>—</td></tr><tr><td>5.7.4</td><td>Evaluate software system testing</td><td>A, B, C</td><td>Recorded traceability between requirements and tests, plus evidence results meet pass/fail criteria</td></tr><tr><td>5.7.5</td><td>Test record contents</td><td>A, B, C</td><td>Test case reference, result and anomalies, software version tested, hardware/software test configuration, test tools, date, tester identity</td></tr></tbody></table></div>
+<p>(All five apply to every class — Amendment 1 moved 5.7 from B/C-only to all classes; see <a href="../index.html#safety-class-applicability">README.md — Safety Class Applicability</a> for why that history matters to how this data is maintained.)</p>
+<h2 id="571--the-test-set">5.7.1 — The test set</h2>
+<p><a href="../tests/test_site.py"><code>tests/test_site.py</code></a> is this project's system test suite: <strong>447 checks</strong> across 11 groups, run against a real Chrome/Chromium browser driven by Playwright, over a server the script starts itself. Its own docstring states the design directly:</p>
+<blockquote><p><em>"It is a black-box test suite. It does not import or inspect the site's JavaScript; it drives the pages the way a person would — clicking, typing, reading what appears — and asserts on the result."</em></p></blockquote>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Group, What it covers"><table class="legal-table"><thead><tr><th scope="col">Group</th><th scope="col">What it covers</th></tr></thead><tbody><tr><td><code>data</code></td><td>JSON parses; correct counts; no duplicate ids/questions; every <code>correct</code> index in range; all required fields present</td></tr><tr><td><code>applicability</code></td><td>Sub-clause mapping is complete; clause-level classes equal the union of sub-clause classes; spot checks against the standard; rendered rows/counts; <strong>regression test reintroducing the original Clause 7 error</strong></td></tr><tr><td><code>deliverables</code></td><td>Per-class output counts; CSV filename/BOM/CRLF/columns/escaping; print output; §4.1/§4.2 cross-references</td></tr><tr><td><code>learn</code></td><td>Card rendering; expand/collapse by mouse and keyboard; level toggle; class filters; filter notice; progress tracker; async failure paths (404, malformed JSON, empty list, retry)</td></tr><tr><td><code>quiz</code></td><td>Name validation; scoring; timer; full pass/fail runs; certificate; shuffling; prefetch; error states</td></tr><tr><td><code>contact</code></td><td>Field validation; request contents; success/422/429/404/503/network-failure paths; double-submit guard; honeypot</td></tr><tr><td><code>privacy</code></td><td>Notice content; footer links; provenance section</td></tr><tr><td><code>version</code></td><td>Version chip; Edition 2 notice; machine-readable review date</td></tr><tr><td><code>theme</code></td><td>Toggle, persistence, no-flash, print stays light</td></tr><tr><td><code>a11y</code></td><td>axe-core WCAG 2.1 A/AA + best practice, light <strong>and</strong> dark, across loading/error/mid-quiz/feedback/results states; keyboard and focus behaviour</td></tr><tr><td><code>responsive</code></td><td>No horizontal overflow at four widths; iOS auto-zoom prevention; tap target sizes; 200% zoom equivalent</td></tr></tbody></table></div>
+<h2 id="572--problem-resolution-process-used">5.7.2 — Problem resolution process used</h2>
+<p>Every failing check in a run is fed into <a href="13-software-problem-resolution.html">13 — Problem Resolution</a>'s anomaly log automatically — see <code>reconcile_anomaly_log()</code> in <a href="../tests/test_site.py"><code>tests/test_site.py</code></a>. This is not a manual step a tester has to remember; it happens on every run, pass or fail.</p>
+<h2 id="573--retest-after-changes">5.7.3 — Retest after changes</h2>
+<p>The suite is not partitioned by "what changed" — a full run re-executes all 447 checks every time, which is retesting by construction rather than by a documented policy of selecting which tests apply to a given change (the same trade-off noted for regression testing in <a href="07-software-integration-and-testing.html#566--regression">07</a>). <code>--group</code> exists to run a subset during active development, but a change is not considered verified until the full run passes.</p>
+<h2 id="574--traceability-and-evaluation">5.7.4 — Traceability and evaluation</h2>
+<p>Traceability from requirement to test exists at <strong>group</strong> granularity — see <a href="03-software-requirements-specification.html">03 — Requirements Specification</a>, where every REQ-ID cites the test group that verifies it. Evidence that results meet pass/fail criteria is the console report <code>R.report()</code> produces at the end of every run: a pass/fail count and a <code>FAILURES</code> section naming exactly which check, in which group, and what it returned instead of the expected value.</p>
+<h2 id="575--test-record-contents">5.7.5 — Test record contents</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Required field, Where it appears"><table class="legal-table"><thead><tr><th scope="col">Required field</th><th scope="col">Where it appears</th></tr></thead><tbody><tr><td>Test case reference</td><td>Each check's label, e.g. <code>"Class A: Clause 7 is visible"</code></td></tr><tr><td>Result and anomalies</td><td><code>PASS</code>/<code>FAIL</code> per check, printed and counted; failures collected in <code>tests/anomaly_log.csv</code></td></tr><tr><td>Software version tested</td><td>Not currently recorded automatically — see Gaps</td></tr><tr><td>Hardware/software test configuration</td><td>Browser name printed at the start of each run (<code>bundled Chromium</code> or <code>system Google Chrome</code>, with a note to pin the version)</td></tr><tr><td>Test tools</td><td>Playwright version pinned in <code>tests/requirements.txt</code>; axe-core version pinned by URL</td></tr><tr><td>Date</td><td>Not currently stamped in the console output — see Gaps</td></tr><tr><td>Tester identity</td><td>Not applicable in the sense the standard means it (an automated run has no human tester), but the invoking user is identifiable from CI/shell history if run there</td></tr></tbody></table></div>
+<h2 id="gaps">Gaps</h2>
+<ul><li>*<em>No persistent test </em>execution<em> record</em><em> beyond console output and the anomaly log — a full pass/fail history across runs (not just currently-open anomalies) is not retained anywhere. <code>tests/anomaly_log.csv</code> records failures with dates; it does not record that a </em>passing* run happened on a given date with a given software version, which 5.7.5 technically asks for.</li><li><strong>No automatic software-version stamp</strong> on a test run — there is no version file or git-commit stamp captured in the console output or the anomaly log. See <a href="09-software-release.html">09 — Software Release</a> for the related, larger gap this sits inside.</li></ul>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

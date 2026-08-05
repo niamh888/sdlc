@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>09 — Software Release (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>09 — Software Release</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-release">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="09-software-release.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Status: Partial — see Gaps.</strong> <strong>Clause:</strong> 5.8 — Software Release · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-58">What the standard requires (Class C — every sub-clause of 5.8)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.8.1</td><td>Ensure software verification is complete</td><td>A, B, C</td><td>—</td></tr><tr><td>5.8.2</td><td>Document known residual anomalies</td><td>A, B, C</td><td>All known residual anomalies, documented</td></tr><tr><td>5.8.3</td><td>Evaluate known residual anomalies</td><td><strong>B, C</strong></td><td>Evaluation confirming residual anomalies do not contribute to unacceptable risk</td></tr><tr><td>5.8.4</td><td>Document released versions</td><td>A, B, C</td><td>The version of the medical device software being released, documented</td></tr><tr><td>5.8.5</td><td>Document how released software was created</td><td><strong>B, C</strong></td><td>The procedure and environment used to create the released software, documented</td></tr><tr><td>5.8.6</td><td>Ensure activities and tasks are complete</td><td><strong>B, C</strong></td><td>Evidence all plan activities/tasks are complete, with associated documentation</td></tr><tr><td>5.8.7</td><td>Archive software</td><td>A, B, C</td><td>Archive of the software, configuration items and documentation, retained for the longer of software lifetime or regulatory retention</td></tr><tr><td>5.8.8</td><td>Assure reliable delivery</td><td>A, B, C</td><td>Procedures for replication, media labelling, packaging, protection, storage and delivery</td></tr></tbody></table></div>
+<h2 id="a-distinction-worth-making-before-anything-else">A distinction worth making before anything else</h2>
+<p>The version chip visible on every page (see <a href="../index.html#what-it-covers"><code>version</code> test group</a>) records <strong>which edition of the standard the course content covers</strong> — <code>Edition 1 · 2006+A1:2015</code>. That is a content fact, verified by REQ-01 in <a href="03-software-requirements-specification.html">03</a>. It is <strong>not</strong> the software's own release version, which is what 5.8.4 actually asks for. Conflating the two would misrepresent both — this document is about the latter, which, as the Gaps section below states, does not currently exist.</p>
+<h2 id="581582--verification-complete-anomalies-documented">5.8.1–5.8.2 — Verification complete, anomalies documented</h2>
+<p><a href="08-software-system-testing.html">08 — System Testing</a> is the verification-complete gate: a release is only considered ready when <a href="../tests/test_site.py"><code>tests/test_site.py</code></a>'s full run passes. Known residual anomalies are exactly what <a href="../tests/anomaly_log.csv"><code>tests/anomaly_log.csv</code></a> tracks — any row still <code>Open</code> at release time is, by definition, a known residual anomaly, with its own <code>ANOM-####</code> id, first-seen date, and detail.</p>
+<h2 id="583--evaluating-residual-anomalies">5.8.3 — Evaluating residual anomalies</h2>
+<p>This is the one step the anomaly log does not do automatically, by design — <a href="13-software-problem-resolution.html">13 — Problem Resolution</a> explains why a machine should record that an anomaly exists but a person should judge whether it's acceptable to release with it open, not the other way around. For this project that evaluation currently happens informally rather than being a documented release-gate step; recorded as a gap below.</p>
+<h2 id="584--released-versions">5.8.4 — Released versions</h2>
+<p><strong>No version identifier is currently assigned to a release.</strong> See Gaps.</p>
+<h2 id="585--how-the-software-was-created">5.8.5 — How the software was created</h2>
+<p>The environment is fully reproducible without a build step, since the site is unbundled HTML/CSS/JS served as-is (see <a href="02-software-development-plan.html#this-projects-development-plan">02 — Software Development Plan</a>, §5.1.4). Hosting is GitHub Pages, serving directly from the branch — there is no CI pipeline (<code>.github/workflows</code> does not exist in this repository) and no separate build artifact distinct from the source tree itself.</p>
+<h2 id="586--plan-activities-complete">5.8.6 — Plan activities complete</h2>
+<p>Cross-referenced against <a href="02-software-development-plan.html">02 — Software Development Plan</a>: of the planned activities, unit-level verification (<a href="06-unit-implementation-and-verification.html">06</a>) and a separate integration test phase (<a href="07-software-integration-and-testing.html">07</a>) are the two not complete as planned — recorded there, not hidden here.</p>
+<h2 id="587588--archive-and-delivery">5.8.7–5.8.8 — Archive and delivery</h2>
+<p>Git <em>is</em> the archive: every released state of every file is retrievable by commit, and GitHub Pages' deployment history provides a delivery record. What git does <strong>not</strong> currently provide is a <em>labelled</em> release boundary — see Gaps.</p>
+<h2 id="gaps">Gaps</h2>
+<ul><li><strong>No release versioning scheme.</strong> No git tags exist in this repository (<code>git tag</code> returns nothing as of this writing), no <code>CHANGELOG.md</code>, and no version string embedded in the software itself. 5.8.4's "document the version of the software being released" has no current answer beyond "the commit at the tip of <code>main</code> at deployment time."</li><li><strong>No formal release gate or checklist.</strong> Deployment to GitHub Pages happens whenever <code>main</code> is updated; there is no explicit "release" event distinct from "a commit landed," so 5.8.1's completeness check and 5.8.6's activity-completeness check are not currently performed as a discrete, recorded step.</li><li><strong>Suggested next step, not yet taken:</strong> tag each meaningfully complete state (e.g. <code>v1.0.0</code>) and record, at minimum, the anomaly log's open-anomaly count at that commit as the 5.8.2/5.8.3 evidence for that release. This is named as a suggestion rather than implemented here, consistent with <a href="05-software-detailed-design.html#gaps">05</a>'s reasoning: a process adopted at the next real release is more genuine than one backdated for this document set's sake.</li></ul>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

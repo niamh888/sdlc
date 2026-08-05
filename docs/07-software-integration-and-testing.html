@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>07 — Software Integration and Testing (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>07 — Software Integration and Testing</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-integration">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="07-software-integration-and-testing.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Status: Partial — see Gaps.</strong> <strong>Clause:</strong> 5.6 — Software Integration and Testing · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-56">What the standard requires (Class C — every sub-clause of 5.6)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.6.1</td><td>Integrate software units</td><td><strong>B, C</strong></td><td>—</td></tr><tr><td>5.6.2</td><td>Verify software integration</td><td><strong>B, C</strong></td><td>Records of evidence that units were integrated per the integration plan</td></tr><tr><td>5.6.3</td><td>Software integration testing</td><td><strong>B, C</strong></td><td>Documented results of testing the integrated software items</td></tr><tr><td>5.6.4</td><td>Integration testing content</td><td><strong>B, C</strong></td><td>—</td></tr><tr><td>5.6.5</td><td>Evaluate integration test procedures</td><td><strong>B, C</strong></td><td>—</td></tr><tr><td>5.6.6</td><td>Conduct regression tests</td><td><strong>B, C</strong></td><td>—</td></tr><tr><td>5.6.7</td><td>Integration test record contents</td><td><strong>B, C</strong></td><td>Pass/fail result and anomaly list, sufficient records to repeat the test, tester identity</td></tr><tr><td>5.6.8</td><td>Use software problem resolution process</td><td><strong>B, C</strong></td><td>—</td></tr></tbody></table></div>
+<h2 id="what-integration-means-for-this-project">What "integration" means for this project</h2>
+<p><a href="04-software-architecture.html">04 — Architecture</a> lists the real interfaces between software items: <code>fetch()</code>-and-validate against the data files, <code>localStorage</code> keys shared between <code>learn.js</code> and <code>quiz.js</code>, and the Formspree POST from <code>contact.js</code>. Those are the integration points this project actually has — there is no build step that links separately-compiled units together, so "integration" here means <em>these interfaces behaving correctly when the real files are involved</em>, not a linking or packaging step.</p>
+<h2 id="561562--integration-and-its-verification">5.6.1–5.6.2 — Integration and its verification</h2>
+<p>Each page's own script is integrated with the two shared scripts (<code>nav.js</code>, <code>async-utils.js</code>) purely by load order — <code>defer</code> guarantees document order, which is the entire integration mechanism (see <a href="04-software-architecture.html">04</a>). There is no integration <em>sequence</em> to plan beyond that ordering, because there is nothing to sequence: three scripts, one order, every time.</p>
+<p>The interfaces that carry real risk of getting integration wrong — the <code>localStorage</code> contract between <code>learn.js</code> and <code>quiz.js</code>, and the shape contract between the data files and their loaders — <strong>are</strong> exercised, but by the same test runs that verify system behaviour (see <a href="08-software-system-testing.html">08</a>'s <code>learn</code> and <code>quiz</code> groups), not by a separate integration-test pass.</p>
+<h2 id="563567--integration-testing-honestly">5.6.3–5.6.7 — Integration testing, honestly</h2>
+<p><strong>This project does not run a distinct integration test phase.</strong> The <code>learn — async loading and failure</code> group in <a href="../tests/test_site.py"><code>tests/test_site.py</code></a> exercises exactly the kind of thing 5.6.3 asks for — what happens when <code>data/phases.json</code> 404s, arrives malformed, or is empty — but it runs as part of the same suite and the same pass/fail report as system testing, with no separate integration test plan, procedure evaluation, or record set of its own.</p>
+<h2 id="566--regression">5.6.6 — Regression</h2>
+<p>Regression is real but implicit: every run of <a href="../tests/test_site.py"><code>tests/test_site.py</code></a> re-checks all 447 checks, not only the ones related to whatever just changed, so a change to <code>theme.js</code> that broke <code>learn.js</code>'s rendering would be caught by the <code>learn</code> group even though nobody thought to re-run it deliberately. That is regression coverage by construction rather than by a documented regression <em>plan</em> naming which tests must re-run after which kind of change.</p>
+<h2 id="568--problem-resolution-process-used">5.6.8 — Problem resolution process used</h2>
+<p>Where it applies: yes — see <a href="13-software-problem-resolution.html">13 — Problem Resolution</a>. Anomalies found anywhere in the test run, integration-shaped or not, flow into the same <code>tests/anomaly_log.csv</code>.</p>
+<h2 id="gaps">Gaps</h2>
+<ul><li><strong>No integration test plan or record separate from the system test suite.</strong> For a project with genuinely separate software items being linked together, this would be a real deficiency; for this project, where "integration" is three scripts in a fixed load order plus a handful of well-defined data/storage contracts, the system test suite's coverage of those same contracts substitutes for it in practice — but the standard asks for the two to be documented separately, and they are not.</li><li>*<em>No integration test </em>content<em> list</em>* in the 5.6.4 sense (what specific interface behaviours are tested, deliberately enumerated) exists outside the test code itself.</li></ul>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

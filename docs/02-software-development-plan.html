@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 — Software Development Plan (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>02 — Software Development Plan</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-planning">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="02-software-development-plan.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 5.1 — Software Development Planning · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-51">What the standard requires (Class C — every sub-clause of 5.1)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.1.1</td><td>Software development plan</td><td>A, B, C</td><td>Software development plan</td></tr><tr><td>5.1.2</td><td>Keep software development plan updated</td><td>A, B, C</td><td>Software development plan, kept updated as development proceeds</td></tr><tr><td>5.1.3</td><td>Reference to system design and development</td><td>A, B, C</td><td>System requirements referenced in the plan, and procedures for coordinating software development with system development</td></tr><tr><td>5.1.4</td><td>Standards, methods and tools planning</td><td><strong>C only</strong></td><td>Standards, methods and tools for Class C software items, included or referenced in the plan</td></tr><tr><td>5.1.5</td><td>Integration and integration testing planning</td><td>B, C</td><td>Plan to integrate the software items (including SOUP) and to test during integration</td></tr><tr><td>5.1.6</td><td>Software verification planning</td><td>A, B, C</td><td>Verification planning: deliverables requiring verification, the verification tasks, milestones, acceptance criteria</td></tr><tr><td>5.1.7</td><td>Software risk management planning</td><td>A, B, C</td><td>Plan to conduct the software risk management process, including risks relating to SOUP</td></tr><tr><td>5.1.8</td><td>Documentation planning</td><td>A, B, C</td><td>For each document: title/naming convention, purpose, and procedures/responsibilities for development, review, approval, modification</td></tr><tr><td>5.1.9</td><td>Software configuration management planning</td><td>A, B, C</td><td>What is controlled, activities, responsible organisations, when items come under control, when problem resolution is used</td></tr><tr><td>5.1.10</td><td>Supporting items to be controlled</td><td>B, C</td><td>Tools, items and settings used to develop the software, included in the items to be controlled</td></tr><tr><td>5.1.11</td><td>Configuration item control before verification</td><td>B, C</td><td>Plan to place configuration items under CM control before they are verified</td></tr><tr><td>5.1.12</td><td>Identification and avoidance of common software defects</td><td>B, C</td><td>Procedure for identifying relevant defect categories, and evidence they do not contribute to unacceptable risk</td></tr></tbody></table></div>
+<h2 id="this-projects-development-plan">This project's development plan</h2>
+<p><strong>5.1.1–5.1.2 — the plan and keeping it current.</strong> This document set <em>is</em> the plan, split by process area rather than kept as one file, so each part can be updated independently as the corresponding area of the project changes — which is itself a documentation-planning decision, covered under 5.1.8 below.</p>
+<p><strong>5.1.3 — coordination with system-level development.</strong> There is no separate "system" above the software here — the training site is the whole product. The nearest equivalent is the relationship between course <em>content</em> (<code>data/*.json</code>, sourced from the standard itself) and the <em>software</em> that presents it (<code>*.js</code>, <code>*.html</code>, <code>style.css</code>): content changes are treated as requirements changes and flow through <a href="03-software-requirements-specification.html">03 — Requirements</a> before the software is touched.</p>
+<p><strong>5.1.4 — standards, methods and tools (Class C).</strong></p>
+<ul><li><strong>Language/runtime:</strong> plain HTML5, CSS3, ES2017+ JavaScript. No framework, no build step, no bundler — a deliberate choice recorded in <a href="../DESIGN.html">DESIGN.md</a> so that "the site itself still has none" (no dependency) stays true.</li><li><strong>Test tooling:</strong> <a href="https://playwright.dev/">Playwright</a> (<code>&gt;=1.40</code>, see <a href="../tests/requirements.txt"><code>tests/requirements.txt</code></a>) driving real Chromium/Chrome; <a href="https://github.com/dequelabs/axe-core">axe-core</a> <code>4.10.2</code> for accessibility.</li><li><strong>Coding conventions:</strong> documented inline as they're established — see the "why" comments throughout <code>learn.js</code>, <code>quiz.js</code>, <code>contact.js</code> and the JavaScript Architecture section of <a href="../DESIGN.html#javascript-architecture">DESIGN.md</a>.</li><li><strong>Editor/agent tooling:</strong> developed with the assistance of Claude Code; every substantive change is reviewed against the standard's normative text before being accepted, not merely against "does it run."</li></ul>
+<p><strong>5.1.5 — integration and integration test planning.</strong> Addressed in <a href="07-software-integration-and-testing.html">07 — Integration &amp; Testing</a>, which also records why this project's page-script architecture makes a <em>separate</em> integration test phase largely redundant with system testing.</p>
+<p><strong>5.1.6 — verification planning.</strong> <a href="../tests/test_site.py"><code>tests/test_site.py</code></a>'s own docstring states the plan directly: three layers (Data, Behaviour, Quality), roughly half the checks deliberately exercising failure paths rather than only the happy path. See <a href="08-software-system-testing.html">08 — System Testing</a> for the full breakdown by group.</p>
+<p><strong>5.1.7 — risk management planning.</strong> See <a href="11-software-risk-management-file.html">11 — Risk Management File</a>. The plan, in short: every change to <code>applicability.json</code> is cross-checked line by line against the normative text before merge, because that file is where a wrong answer would cause the most harm to a reader.</p>
+<p><strong>5.1.8 — documentation planning.</strong> This document set's own convention:</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Document, Title/naming, Owner of updates"><table class="legal-table"><thead><tr><th scope="col">Document</th><th scope="col">Title/naming</th><th scope="col">Owner of updates</th></tr></thead><tbody><tr><td><code>docs/NN-*.md</code></td><td>Numbered by clause order, one file per process area</td><td>Whoever changes the corresponding area of the project</td></tr><tr><td><code>DESIGN.md</code></td><td>Page-by-page and architectural rationale</td><td>Whoever changes layout, UX, or JS structure</td></tr><tr><td><code>README.md</code></td><td>User-facing project summary, testing guide, screenshots</td><td>Whoever changes a feature, adds a test group, or changes the visuals</td></tr><tr><td><code>tests/anomaly_log.csv</code></td><td>Machine-maintained, not hand-edited</td><td>Generated by <code>tests/test_site.py</code> on every run</td></tr></tbody></table></div>
+<p><strong>5.1.9–5.1.11 — configuration management planning.</strong> See <a href="12-software-configuration-management-plan.html">12 — Configuration Management Plan</a> for the full answer; in brief, git is the configuration management system, every third-party tool used to build or test the site is version-pinned (<code>tests/requirements.txt</code>, the axe-core CDN URL), and nothing is considered "controlled" until it passes <a href="../tests/test_site.py"><code>tests/test_site.py</code></a>.</p>
+<p><strong>5.1.12 — avoiding common defect categories (Amendment 1).</strong> The categories this project actively guards against, each with a named test group in <a href="../tests/test_site.py"><code>tests/test_site.py</code></a> as evidence they don't recur: unvalidated external data (<code>data</code>, <code>learn — async loading and failure</code>), silent async failures (every <code>route(...).abort()</code> / <code>404</code> test), and regressions in previously-fixed content defects — the <code>applicability</code> group's "site refuses to render on contradictory data" tests exist specifically because this category of defect happened once already (see <a href="11-software-risk-management-file.html">11</a>).</p>
+<h2 id="cybersecurity-planning-amendment-1-addition">Cybersecurity planning (Amendment 1 addition)</h2>
+<p>The plan's security posture is small because the attack surface is small: no server-side code, no user accounts, no data at rest beyond a visitor's own <code>localStorage</code> (theme choice, training level, banner dismissal — see <a href="12-software-configuration-management-plan.html">12</a>). The one place data leaves the browser is the contact form, and its handling is planned, implemented and <em>tested</em> as a discrete concern — see <a href="03-software-requirements-specification.html">03 §Security-related requirements</a> and the <code>contact</code> test group.</p>
+<h2 id="gaps">Gaps</h2>
+<p>None specific to this document — the gaps that matter (no separate unit testing, no separate integration phase, partial detailed design, no release versioning scheme) are recorded where they're relevant, in <a href="05-software-detailed-design.html">05</a>, <a href="06-unit-implementation-and-verification.html">06</a>, <a href="07-software-integration-and-testing.html">07</a> and <a href="09-software-release.html">09</a> respectively, per 5.1.8's own principle: state a thing once, where it belongs.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

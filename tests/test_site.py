@@ -80,7 +80,7 @@ ANOMALY_FIELDS = ['id', 'status', 'group', 'test', 'first_seen', 'last_seen',
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
-GROUPS = ['data', 'applicability', 'deliverables', 'learn', 'quiz', 'contact',
+GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'learn', 'quiz', 'contact',
           'privacy', 'version', 'theme', 'a11y', 'responsive']
 
 
@@ -498,6 +498,28 @@ def test_data():
     empty = [p['id'] for p in loaded['phases']
              if not p['introDetails'] or not p['advancedDetails']]
     R.check('every topic has bullets at both levels', not empty, empty)
+
+    # Every topic must point at a real example document — see docs/README.md
+    # and buildExampleDocBlock() in learn.js. Checked here as a plain file
+    # check, before any browser test ever asks the page to link to one.
+    missing_field = [p['id'] for p in loaded['phases'] if not p.get('exampleDoc')]
+    R.check('every topic has an exampleDoc field', not missing_field, missing_field)
+
+    missing_files = []
+    for p in loaded['phases']:
+        slug = p.get('exampleDoc')
+        if not slug:
+            continue
+        for ext in ('.md', '.html'):
+            if not os.path.isfile(os.path.join(ROOT, 'docs', slug + ext)):
+                missing_files.append(slug + ext)
+    R.check('every exampleDoc has both a .md source and a rendered .html preview',
+            not missing_files, missing_files)
+
+    exampledoc_ids = [p['exampleDoc'] for p in loaded['phases'] if p.get('exampleDoc')]
+    R.check('exampleDoc values are unique (one document per topic)',
+            len(exampledoc_ids) == len(set(exampledoc_ids)),
+            [d for d in exampledoc_ids if exampledoc_ids.count(d) > 1])
 
     # A `correct` index outside the options array is the nastiest possible
     # content bug: the quiz would silently mark every answer wrong with no
@@ -1010,6 +1032,98 @@ def test_deliverables(browser, base):
             q['main'] == 'none' and q['cert'] == 'block', q)
     pg.emulate_media(media='screen')
     ctx.close()
+
+
+# ============================================================
+# GROUP — EXAMPLE ARTEFACT DOCUMENTS (docs/)
+#
+# Each Learn page card links to a worked example of the document its process
+# area would produce — see docs/README.md, docs/render.py and
+# buildExampleDocBlock() in learn.js. This group checks both ends of that
+# link: that every card actually offers a correct Preview/Download pair, and
+# that every rendered preview page it points to is a real, working page in
+# its own right — not just a file that happens to exist.
+# ============================================================
+
+def test_docs(browser, base, axe_src):
+    R.group('docs — example artefact links on the Learn page')
+
+    with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
+        topics = json.load(f)
+
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('#update-banner-close').click()
+
+    for phase in topics:
+        slug = phase['exampleDoc']
+        pg.locator('#phase-%s .phase-header' % phase['id']).click()
+        actions = pg.locator('#phase-details-%s .example-doc-actions' % phase['id'])
+        preview = actions.locator('a').nth(0)
+        download = actions.locator('a').nth(1)
+
+        R.check('%s: preview link points at the rendered page' % phase['id'],
+                preview.get_attribute('href') == 'docs/%s.html' % slug,
+                preview.get_attribute('href'))
+        R.check('%s: preview opens in a new tab' % phase['id'],
+                preview.get_attribute('target') == '_blank'
+                and 'noopener' in (preview.get_attribute('rel') or ''),
+                '%s / %s' % (preview.get_attribute('target'), preview.get_attribute('rel')))
+        R.check('%s: download link points at the markdown source' % phase['id'],
+                download.get_attribute('href') == 'docs/%s.md' % slug,
+                download.get_attribute('href'))
+        R.check('%s: download link actually downloads rather than navigates' % phase['id'],
+                download.get_attribute('download') is not None)
+
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    R.group('docs — the rendered example document pages')
+
+    # 'README' renders to index.html — see docs/render.py's is_register special
+    # case — everything else renders to its own name unchanged.
+    slugs = sorted(set(p['exampleDoc'] for p in topics)) + ['README']
+    back_targets = {p['exampleDoc']: p['id'] for p in topics}
+
+    for slug in slugs:
+        out_name = 'index' if slug == 'README' else slug
+        ctx, pg = new_page(browser, 1100, 1000)
+        pg.goto(base + '/docs/%s.html' % out_name)
+        pg.wait_for_timeout(200)
+
+        R.check('%s: page has a non-empty heading' % out_name,
+                bool(pg.locator('h1').inner_text().strip()))
+        R.check('%s: training-example banner is present' % out_name,
+                'training' in norm(pg.locator('.example-banner-content').inner_text())
+                and 'samd' in norm(pg.locator('.example-banner-content').inner_text()),
+                pg.locator('.example-banner-content').inner_text()[:160])
+
+        expected_back = ('../learn.html#phase-%s' % back_targets[slug]
+                          if slug in back_targets else '../learn.html')
+        back_link = pg.locator('.doc-preview-actions a').first
+        R.check('%s: "Back to Learn" resolves to the right card' % out_name,
+                back_link.get_attribute('href') == expected_back,
+                back_link.get_attribute('href'))
+
+        download_link = pg.locator('.doc-preview-actions a[download]')
+        R.check('%s: source download link is present' % out_name,
+                download_link.count() == 1 and
+                download_link.get_attribute('href') == '%s.md' % out_name.replace('index', 'README'),
+                download_link.get_attribute('href') if download_link.count() else 'missing')
+
+        ok = pg.evaluate(
+            '() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1')
+        R.check('%s: no horizontal overflow at 1100px' % out_name, ok)
+
+        R.check('%s: no JavaScript errors' % out_name, not pg.js_errors, pg.js_errors)
+
+        if axe_src:
+            v = axe_violations(pg, axe_src)
+            R.check('%s: no accessibility violations' % out_name, not v,
+                    [x['id'] for x in v])
+
+        ctx.close()
 
 
 # ============================================================
@@ -2467,7 +2581,9 @@ def main():
     print('Test server  : %s' % base)
     print('Groups       : %s' % ', '.join(groups))
 
-    axe_src = fetch_axe() if 'a11y' in groups else None
+    # The docs group also runs an axe scan over each rendered example
+    # document, so it needs axe-core downloaded too, not just the a11y group.
+    axe_src = fetch_axe() if ('a11y' in groups or 'docs' in groups) else None
 
     try:
         with sync_playwright() as p:
@@ -2479,6 +2595,8 @@ def main():
                     test_applicability(browser, base)
                 if 'deliverables' in groups:
                     test_deliverables(browser, base)
+                if 'docs' in groups:
+                    test_docs(browser, base, axe_src)
                 if 'learn' in groups:
                     test_learn(browser, base)
                 if 'quiz' in groups:

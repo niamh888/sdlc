@@ -1,1 +1,3 @@
 id,status,group,test,first_seen,last_seen,times_seen,closed_on,detail
+ANOM-0001,Closed,docs — the rendered example document pages,04-software-architecture: no accessibility violations,2026-08-05,2026-08-05,1,2026-08-05,['scrollable-region-focusable']
+ANOM-0002,Closed,docs — the rendered example document pages,03-software-requirements-specification: no accessibility violations,2026-08-05,2026-08-05,1,2026-08-05,['landmark-unique']

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04 — Software Architecture (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>04 — Software Architecture</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-architecture">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="04-software-architecture.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 5.3 — Software Architectural Design · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p><p>Clause 5.3 has <strong>no Class A requirement at all</strong> — every row below applies at Class B and C only, one (5.3.5) at Class C alone.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-53">What the standard requires (Class C — every sub-clause of 5.3)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.3.1</td><td>Transform requirements into an architecture</td><td>B, C</td><td>Documented architecture describing the software structure and identifying the software items</td></tr><tr><td>5.3.2</td><td>Architecture for interfaces of software items</td><td>B, C</td><td>Documented architecture for interfaces between software items and external components</td></tr><tr><td>5.3.3</td><td>Specify functional/performance requirements of SOUP</td><td>B, C</td><td>Functional and performance requirements specified for each SOUP item</td></tr><tr><td>5.3.4</td><td>Specify system hardware/software required by SOUP</td><td>B, C</td><td>System hardware and software specified as necessary to support each SOUP item</td></tr><tr><td>5.3.5</td><td>Identify segregation necessary for risk control</td><td><strong>C only</strong></td><td>Segregation between software items necessary for risk control, and how its effectiveness is ensured</td></tr><tr><td>5.3.6</td><td>Verify software architecture</td><td>B, C</td><td>Documented verification that the architecture implements requirements, supports interfaces, and supports SOUP operation</td></tr></tbody></table></div>
+<h2 id="531--software-items">5.3.1 — Software items</h2>
+<p>There is no build step and no bundler — every script <em>is</em> the software item it defines, one file each. From <a href="../index.html#files">README.md — Files</a> and <a href="../DESIGN.html#javascript-architecture">DESIGN.md — JavaScript Architecture</a>:</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Software item, Responsibility"><table class="legal-table"><thead><tr><th scope="col">Software item</th><th scope="col">Responsibility</th></tr></thead><tbody><tr><td><code>nav.js</code></td><td>Shared navigation — highlights the active page link</td></tr><tr><td><code>async-utils.js</code></td><td>Shared async helpers: <code>delay()</code>, <code>fetchJSON()</code> (centralises the <code>response.ok</code> check <code>fetch</code> doesn't do itself)</td></tr><tr><td><code>theme.js</code></td><td>Light/dark theme toggle and persistence</td></tr><tr><td><code>learn.js</code></td><td>Learn page: card rendering, level toggle, safety-class filter, deliverables list, progress tracker</td></tr><tr><td><code>quiz.js</code></td><td>Quiz page: question loading with prefetch, shuffle, timer, scoring, certificate</td></tr><tr><td><code>contact.js</code></td><td>Contact page: field validation, asynchronous submission with timeout</td></tr><tr><td><code>style.css</code></td><td>All visual presentation, including both theme palettes</td></tr></tbody></table></div>
+<p>Each page loads <code>nav.js</code>, then <code>async-utils.js</code>, then its own page script, all marked <code>defer</code> — deferred scripts run in document order, which is what guarantees the shared helpers exist before a page script calls them (see DESIGN.md for why this ordering was chosen over a bundler).</p>
+<h2 id="532--interfaces-between-software-items">5.3.2 — Interfaces between software items</h2>
+<p>There is no shared global state between pages — <a href="../DESIGN.html#javascript-architecture">DESIGN.md</a> is explicit about this. Where two items do need to communicate, the interface is one of:</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Interface, Between, Mechanism"><table class="legal-table"><thead><tr><th scope="col">Interface</th><th scope="col">Between</th><th scope="col">Mechanism</th></tr></thead><tbody><tr><td>Data loading</td><td><code>learn.js</code> / <code>quiz.js</code> ↔ <code>data/*.json</code></td><td><code>fetch()</code> via <code>fetchJSON()</code>, validated for shape on the way in</td></tr><tr><td>Cross-page state</td><td><code>learn.js</code> → <code>quiz.js</code></td><td><code>localStorage['62304_trainingLevel']</code> — the two pages share no JavaScript and communicate only through this key</td></tr><tr><td>Theme state</td><td><code>theme.js</code> ↔ every page</td><td><code>localStorage['62304_theme']</code> plus the <code>data-theme</code> attribute on <code>&lt;html&gt;</code></td></tr><tr><td>Banner dismissal</td><td><code>learn.js</code> (write) / <code>learn.js</code> (read on reload)</td><td><code>localStorage['62304_bannerDismissed']</code></td></tr><tr><td>Form submission</td><td><code>contact.js</code> → Formspree</td><td><code>fetch()</code> POST to <code>https://formspree.io/f/mpqgydrv</code>, JSON request/response</td></tr></tbody></table></div>
+<p>Every <code>localStorage</code> key is namespaced <code>62304_...</code> specifically so its owner is unambiguous in DevTools — itself a small interface-design decision worth recording, since an unprefixed key is a common source of collision when a page later gains a second script that also wants "the" storage key.</p>
+<h2 id="533534--soup">5.3.3–5.3.4 — SOUP</h2>
+<p><strong>Nothing third-party ships to a visitor's browser.</strong> The production pages load no external script, font, or stylesheet — confirmed by grep across all five HTML files, whose only external references are outbound links (to <code>stjohnlynch.com</code>, <code>iec.ch</code>, <code>dataprotection.ie</code>, and the Formspree endpoint itself) rather than resources the page depends on to render. That is a genuine architectural property, not an oversight, and it is why the SOUP table below is short:</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: SOUP item, Manufacturer, Version, Ships to visitors?, Functional/performance requirement, Environment required"><table class="legal-table"><thead><tr><th scope="col">SOUP item</th><th scope="col">Manufacturer</th><th scope="col">Version</th><th scope="col">Ships to visitors?</th><th scope="col">Functional/performance requirement</th><th scope="col">Environment required</th></tr></thead><tbody><tr><td>Playwright</td><td>Microsoft</td><td><code>&gt;=1.40</code> (see <code>tests/requirements.txt</code>)</td><td><strong>No — test-only</strong></td><td>Drives a real Chromium/Chrome to exercise the site as a user would</td><td>Python 3, a Chromium or Chrome install</td></tr><tr><td>axe-core</td><td>Deque Systems</td><td><code>4.10.2</code>, pinned by URL in <code>tests/test_site.py</code> (<code>AXE_CDN</code>)</td><td><strong>No — test-only</strong></td><td>WCAG 2.1 A/AA + best-practice accessibility scanning</td><td>Downloaded at test time; group is skipped (not failed) if unreachable</td></tr></tbody></table></div>
+<p><strong>Formspree is not SOUP</strong> in the 5.3 sense — it is not a software component embedded in the product, it is an external HTTP service the contact form calls at runtime, closer to an <em>interfacing system</em> than to third-party code under this project's control. It is documented here for completeness because a reader learning what SOUP means benefits from seeing a real example of something that is deliberately excluded and why.</p>
+<h2 id="535--segregation-for-risk-control-class-c-only">5.3.5 — Segregation for risk control (Class C only)</h2>
+<p>The one place this project asks "could a mistake here affect something that matters" is the safety-class data. <code>learn.js</code>'s <code>mergeApplicability()</code> segregates <em>rendering</em> from <em>trusting</em>: the merge step is a hard gate — if <code>phases.json</code> and <code>applicability.json</code> disagree, no card renders at all, rather than rendering with unverified data. See <a href="11-software-risk-management-file.html">11 — Risk Management File</a> for the incident that made this segregation necessary.</p>
+<h2 id="536--architecture-verification">5.3.6 — Architecture verification</h2>
+<p>There is no standalone architecture review record — the closest equivalent is that every interface listed above is exercised directly by <a href="../tests/test_site.py"><code>tests/test_site.py</code></a> (for example, the <code>learn</code> and <code>applicability</code> groups assert on the <code>localStorage</code> keys and the render-gate behaviour described above), which verifies the architecture indirectly, by verifying its observable effects, rather than by a separate design review.</p>
+<h2 id="gaps">Gaps</h2>
+<ul><li>No dedicated architecture diagram exists outside the tables above — for a project this size (seven files) a diagram would likely repeat the file table rather than add information; that trade-off would flip for a larger codebase.</li><li>5.3.6's verification is behavioural, not a formal design review with reviewer sign-off — recorded honestly rather than dressed up as one.</li></ul>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

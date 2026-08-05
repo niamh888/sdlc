@@ -3,8 +3,15 @@
 **Status: Documented — reflexive.**
 **Clause:** 7 — Software Risk Management · **Register:** [docs/README.md](README.md)
 
-> Demonstration document — see [docs/README.md](README.md#what-this-is-and-is-not).
-> This is the one document in the set that most needs its framing read first:
+> **Example artefact — training use only.** This project is a training
+> site, not a real medical device under any regulatory definition, and
+> nothing here is a genuine IEC 62304 deliverable. It illustrates the
+> *kind* of document a Software-as-a-Medical-Device (SaMD) or
+> Software-in-a-Medical-Device (SiMD) project would produce for this
+> process area — see [docs/README.md](README.md#what-this-is-and-is-not)
+> for the full picture.
+>
+> This is also the one document in the set that most needs its framing read first:
 > **this project carries no patient risk.** What follows applies Clause 7's
 > discipline to a different, real harm this project *can* cause — teaching a
 > reader something about IEC 62304 that is wrong.

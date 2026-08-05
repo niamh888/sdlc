@@ -2,9 +2,13 @@
 
 **Clause:** 4 — General Requirements · **Register:** [docs/README.md](README.md)
 
-> This document set is a demonstration built on this project's own
-> development, not a regulatory submission — see
-> [docs/README.md](README.md#what-this-is-and-is-not) before reading further.
+> **Example artefact — training use only.** This project is a training
+> site, not a real medical device under any regulatory definition, and
+> nothing here is a genuine IEC 62304 deliverable. It illustrates the
+> *kind* of document a Software-as-a-Medical-Device (SaMD) or
+> Software-in-a-Medical-Device (SiMD) project would produce for this
+> process area — see [docs/README.md](README.md#what-this-is-and-is-not)
+> for the full picture.
 
 ## What the standard requires
 

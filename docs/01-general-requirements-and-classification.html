@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01 — General Requirements & Classification (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>01 — General Requirements & Classification</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-general-requirements">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="01-general-requirements-and-classification.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 4 — General Requirements · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires">What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>4.1</td><td>Quality management system</td><td>Yes</td><td>See "seeAlso" note below — 4.1 has no <code>output</code> of its own; it is satisfied by pointing at a QMS.</td></tr><tr><td>4.2</td><td>Risk management</td><td>Yes</td><td>See "seeAlso" note below — satisfied by pointing at ISO 14971.</td></tr><tr><td>4.3</td><td>Software safety classification</td><td>Yes</td><td>"Software safety class of each software system and software item, recorded in the risk management file, with a rationale where an item is classified differently from its parent."</td></tr><tr><td>4.4</td><td>Legacy software</td><td>Yes</td><td>"Gap analysis against 5.2, 5.3, 5.7 and Clause 7; a plan to close the gaps, with software system test records as the minimum deliverable; and the legacy software version plus a documented rationale for its continued use."</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code> — Clause 4 carries no per-requirement <code>[Class ...]</code> tags in the standard itself; Table A.1 assigns all four sub-clauses to every class.)</p>
+<h2 id="41--quality-management-system">4.1 — Quality management system</h2>
+<p>The requirement is to demonstrate the ability to consistently meet customer and applicable regulatory requirements, which the standard says can be shown by an ISO 13485 QMS, a national QMS standard, or a QMS required by national regulation (full text in <a href="../data/applicability.json"><code>applicability.json</code></a>, <code>general-requirements</code> → <code>4.1</code>).</p>
+<p><strong>How this project actually works:</strong> there is no certified QMS — this is a single-maintainer repository, not a manufacturer. What stands in for it:</p>
+<ul><li>A written record of <em>why</em> a decision was made, not just what it was — <a href="../DESIGN.html">DESIGN.md</a> and this document set follow that discipline throughout, which is closer in spirit to a QMS's document-control requirement than a certificate would be on its own.</li><li>Every change to regulatory content (the safety-class mapping in <code>applicability.json</code>) is reviewed against the standard's normative text before being accepted — see <a href="11-software-risk-management-file.html">11 — Risk Management File</a>.</li><li>An automated test suite acts as the change-acceptance gate a QMS would otherwise mandate manually: <a href="../tests/test_site.py"><code>tests/test_site.py</code></a> runs before anything is considered finished.</li></ul>
+<p><strong>Gap:</strong> none of this is certified or externally audited. That is a genuine and permanent difference from a manufacturer's QMS, stated here rather than implied away.</p>
+<h2 id="42--risk-management">4.2 — Risk management</h2>
+<p>The normative text requires a risk management process complying with ISO 14971, named as the single route with no alternative offered (unlike 4.1's three routes). See <a href="11-software-risk-management-file.html">11 — Software Risk Management File</a> for how this project applies that idea to itself, reflexively: not to patient risk, since this is not a medical device, but to the risk of teaching a reader something regulatorily wrong.</p>
+<h2 id="43--software-safety-classification">4.3 — Software safety classification</h2>
+<p>This is the one sub-clause of Clause 4 worth actually working through, rather than cross-referencing, because the reasoning is the point.</p>
+<p><strong>The test, as Amendment 1 states it</strong> (from <a href="../data/phases.json"><code>data/phases.json</code></a>, <code>general-requirements</code>): <em>"A software item that could contribute to a hazardous situation must be Class B minimum; if it is the sole control measure preventing serious injury or death, it must be Class C. Software items that cannot contribute to any hazardous situation may be Class A."</em></p>
+<p><strong>Applying it to this repository, honestly:</strong> the training site cannot contribute to a hazardous situation in the sense §4.3 means — it does not control, monitor, or inform the treatment of a patient. It is content about a standard, not an implementation of one. A literal classification puts it outside IEC 62304's scope altogether: <strong>no class applies, because the standard does not apply.</strong></p>
+<p><strong>Why this document set proceeds at Class C anyway:</strong> <a href="index.html#why-class-c">docs/README.md</a> records that Class C was chosen as a <strong>teaching target</strong> for this demonstration set — the largest, most complete version of the lifecycle document list, which is more useful to a learner than the true (and much shorter) answer of "not applicable." Every document in this set says so where it matters, and none of them should be read as an actual classification record for a real device.</p>
+<p><strong>Gap:</strong> a real risk management file would record this reasoning as "rationale where an item is classified differently from its parent" per the <code>output</code> text above. This section <em>is</em> that rationale, kept here rather than duplicated in <a href="11-software-risk-management-file.html">11</a>.</p>
+<h2 id="44--legacy-software">4.4 — Legacy software</h2>
+<p>Amendment 1's legacy provisions exist for software already on the market without sufficient evidence it was developed to the current standard. This project has no such history — it has been developed from a single lifecycle model throughout, recorded in <a href="../index.html"><code>git log</code></a> and <a href="12-software-configuration-management-plan.html">12 — Configuration Management Plan</a>. <strong>Not applicable, and recorded as such rather than left blank</strong>, which is the same principle the site's own deliverables list uses for sub-clauses with no <code>output</code>: an absence is shown, not silently omitted.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

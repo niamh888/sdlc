@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>06 — Unit Implementation and Verification (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>06 — Unit Implementation and Verification</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-implementation">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="06-unit-implementation-and-verification.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Status: Partial — see Gaps.</strong> <strong>Clause:</strong> 5.5 — Unit Implementation and Verification · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-55">What the standard requires (Class C — every sub-clause of 5.5)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.5.1</td><td>Implement each software unit</td><td>A, B, C</td><td>Implemented software units</td></tr><tr><td>5.5.2</td><td>Establish unit verification process</td><td><strong>B, C</strong></td><td>Strategies, methods and procedures for verifying units, with test procedures evaluated for adequacy where verification is by testing</td></tr><tr><td>5.5.3</td><td>Unit acceptance criteria</td><td><strong>B, C</strong></td><td>Acceptance criteria for units, established before integration, and evidence the units meet them</td></tr><tr><td>5.5.4</td><td>Additional unit acceptance criteria</td><td><strong>C only</strong></td><td>Where present in the design: event sequence, data/control flow, resource allocation, fault handling, variable initialisation, self-diagnostics, memory management, boundary conditions</td></tr><tr><td>5.5.5</td><td>Software unit verification</td><td><strong>B, C</strong></td><td>Documented results of software unit verification</td></tr></tbody></table></div>
+<h2 id="551--implementation">5.5.1 — Implementation</h2>
+<p>Every unit named in <a href="04-software-architecture.html">04 — Architecture</a> is implemented and shipped: <code>nav.js</code>, <code>async-utils.js</code>, <code>theme.js</code>, <code>learn.js</code>, <code>quiz.js</code>, <code>contact.js</code>, <code>style.css</code>. Not in question — the gap in this document is 5.5.2–5.5.5, verification, not 5.5.1.</p>
+<h2 id="the-actual-gap-stated-plainly">The actual gap, stated plainly</h2>
+<p><a href="../tests/test_site.py"><code>tests/test_site.py</code></a> says this about itself, in its own docstring: <em>"It is a black-box test suite. It does not import or inspect the site's JavaScript; it drives the pages the way a person would — clicking, typing, reading what appears — and asserts on the result."</em></p>
+<p>That is a deliberate and good design for <strong>system testing</strong> (see <a href="08-software-system-testing.html">08</a>) — but it means this project has <strong>no unit-level test suite</strong>. There is no Jest, no Vitest, no isolated call into <code>deliverablesFor()</code> or <code>classify()</code> with a hand-built input and an asserted output; every one of those functions is verified only through its visible effect on a rendered page, several layers away from the function itself.</p>
+<h2 id="552555-honestly">5.5.2–5.5.5, honestly</h2>
+<ul><li><strong>5.5.2 (verification process):</strong> the process that exists is <em>review</em>, not test — a person (or an AI coding agent under review) reads the function and checks it against the requirement. That is one of the standard's own acceptable methods (<code>code review, static analysis, unit testing, or a combination</code>, per <a href="../data/phases.json"><code>data/phases.json</code></a>'s advanced detail for this clause), but it is the weakest of the three on its own, and it is what this project actually has.</li><li><strong>5.5.3 (acceptance criteria before integration):</strong> criteria exist informally — a function is expected to do what its name and comment say — but are not written down as a separate, checkable list before the function is used elsewhere.</li><li><strong>5.5.4 (Class C's additional criteria — boundary conditions, fault handling, etc.):</strong> partially covered <em>incidentally</em> by system tests that happen to exercise a boundary (empty JSON, a 404, a malformed response — see <a href="08-software-system-testing.html">08</a>), but not because a unit-level boundary-condition checklist drove them there.</li><li><strong>5.5.5 (documented results):</strong> what exists is system-test results, not unit-test results — real evidence, but evidence of a different, coarser claim ("the page behaves correctly") than 5.5.5 asks for ("this unit behaves correctly").</li></ul>
+<h2 id="why-this-gap-is-left-open-rather-than-closed-with-a-token-unit-suite">Why this gap is left open rather than closed with a token unit suite</h2>
+<p>A unit test suite added <em>after</em> the fact, purely to make this table look complete, would verify functions no differently than the system tests already do — most of <code>learn.js</code>'s functions have no meaning independent of the DOM they render into, so a "unit" test would end up re-implementing a slice of what Playwright already drives, at a maintenance cost with limited new information. The honest record of that trade-off is more useful to a learner than a unit suite that exists to fill a cell in a table.</p>
+<h2 id="gap">Gap</h2>
+<p><strong>No unit-level verification exists</strong>, distinct from the system-level verification in <a href="08-software-system-testing.html">08</a>. For a real Class C project this is a genuine, reportable finding, not a stylistic choice — the standard asks for both because a system test passing does not prove every individual unit was tested at its own boundaries, only that the system as a whole produced the right answer for the specific paths the system test happened to take.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

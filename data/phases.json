@@ -3,6 +3,7 @@
     "id": "general-requirements",
     "clause": "Clause 4",
     "title": "General Requirements",
+    "exampleDoc": "01-general-requirements-and-classification",
     "icon": "⚙️",
     "summary": "Establish the QMS context, risk management integration, software safety classification, and SOUP framework that underpins all lifecycle activities.",
     "introDetails": [
@@ -25,6 +26,7 @@
     "id": "planning",
     "clause": "Clause 5.1",
     "title": "Software Development Planning",
+    "exampleDoc": "02-software-development-plan",
     "icon": "📋",
     "summary": "Define the software development plan covering lifecycle model, deliverables, traceability, and tools.",
     "introDetails": [
@@ -48,6 +50,7 @@
     "id": "requirements",
     "clause": "Clause 5.2",
     "title": "Software Requirements Analysis",
+    "exampleDoc": "03-software-requirements-specification",
     "icon": "📝",
     "summary": "Define and document software requirements derived from the system specification.",
     "introDetails": [
@@ -71,6 +74,7 @@
     "id": "architecture",
     "clause": "Clause 5.3",
     "title": "Software Architectural Design",
+    "exampleDoc": "04-software-architecture",
     "icon": "🏗️",
     "summary": "Partition software into software items and define interfaces between them.",
     "introDetails": [
@@ -95,6 +99,7 @@
     "id": "detailed-design",
     "clause": "Clause 5.4",
     "title": "Software Detailed Design",
+    "exampleDoc": "05-software-detailed-design",
     "icon": "🔧",
     "summary": "Refine the architecture into software units that can be implemented and tested independently.",
     "introDetails": [
@@ -119,6 +124,7 @@
     "id": "implementation",
     "clause": "Clause 5.5",
     "title": "Unit Implementation and Verification",
+    "exampleDoc": "06-unit-implementation-and-verification",
     "icon": "💻",
     "summary": "Implement each software unit and verify it meets its design specification.",
     "introDetails": [
@@ -142,6 +148,7 @@
     "id": "integration",
     "clause": "Clause 5.6",
     "title": "Software Integration and Testing",
+    "exampleDoc": "07-software-integration-and-testing",
     "icon": "🔗",
     "summary": "Integrate software items in a planned sequence and verify the integrated result.",
     "introDetails": [
@@ -165,6 +172,7 @@
     "id": "system-testing",
     "clause": "Clause 5.7",
     "title": "Software System Testing",
+    "exampleDoc": "08-software-system-testing",
     "icon": "✅",
     "summary": "Test the complete software system against all documented software requirements.",
     "introDetails": [
@@ -188,6 +196,7 @@
     "id": "release",
     "clause": "Clause 5.8",
     "title": "Software Release",
+    "exampleDoc": "09-software-release",
     "icon": "🚀",
     "summary": "Confirm all development activities are complete and the software is ready for release.",
     "introDetails": [
@@ -211,6 +220,7 @@
     "id": "maintenance",
     "clause": "Clause 6",
     "title": "Software Maintenance Process",
+    "exampleDoc": "10-software-maintenance-plan",
     "icon": "🔄",
     "summary": "Plan and control modifications to released software throughout the product lifecycle.",
     "introDetails": [
@@ -234,6 +244,7 @@
     "id": "risk-management",
     "clause": "Clause 7",
     "title": "Software Risk Management",
+    "exampleDoc": "11-software-risk-management-file",
     "icon": "⚠️",
     "summary": "Identify, evaluate, and control software contributions to device hazards, integrating with ISO 14971.",
     "introDetails": [
@@ -257,6 +268,7 @@
     "id": "configuration",
     "clause": "Clause 8",
     "title": "Software Configuration Management",
+    "exampleDoc": "12-software-configuration-management-plan",
     "icon": "📦",
     "summary": "Identify, control, and track all software configuration items throughout the lifecycle.",
     "introDetails": [
@@ -280,6 +292,7 @@
     "id": "problem-resolution",
     "clause": "Clause 9",
     "title": "Problem Resolution Process",
+    "exampleDoc": "13-software-problem-resolution",
     "icon": "🛠️",
     "summary": "Systematically analyse, resolve, and document problems encountered during development and maintenance.",
     "introDetails": [

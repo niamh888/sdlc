@@ -2,7 +2,14 @@
 
 **Clause:** 5.3 — Software Architectural Design · **Register:** [docs/README.md](README.md)
 
-> Demonstration document — see [docs/README.md](README.md#what-this-is-and-is-not).
+> **Example artefact — training use only.** This project is a training
+> site, not a real medical device under any regulatory definition, and
+> nothing here is a genuine IEC 62304 deliverable. It illustrates the
+> *kind* of document a Software-as-a-Medical-Device (SaMD) or
+> Software-in-a-Medical-Device (SiMD) project would produce for this
+> process area — see [docs/README.md](README.md#what-this-is-and-is-not)
+> for the full picture.
+>
 > Clause 5.3 has **no Class A requirement at all** — every row below applies
 > at Class B and C only, one (5.3.5) at Class C alone.
 

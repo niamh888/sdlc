@@ -9,9 +9,12 @@ them, for a real (if small) piece of software?
 
 ## What this is, and is not
 
-**This repository is a training website, not a medical device.** Nothing here
-is submitted to a regulator, and nothing here should be read as a claim that
-`stjohnlynch.com`'s training site *is* medical device software. It is not.
+**This repository is a training website, not a medical device — under any
+regulatory definition, in any jurisdiction.** It is not Software as a Medical
+Device (SaMD), it is not Software in a Medical Device (SiMD), and nothing
+here is submitted to a regulator. Nothing in this folder should be read as a
+claim that `stjohnlynch.com`'s training site *is* medical device software.
+It is not.
 
 What follows is a **demonstration document set**: this project's own software
 development, documented as if it were being run under IEC 62304, so that a
@@ -91,7 +94,7 @@ for why the mapping is recorded at this level of detail in the first place.
   [11 — Risk Management File](11-software-risk-management-file.md).
 - **[README.md](../README.md)** — features, testing, and the anomaly log.
 - **[`tests/test_site.py`](../tests/test_site.py)** — the system test suite
-  (447 checks across 11 groups) that is this project's primary verification
+  (601 checks across 12 groups) that is this project's primary verification
   evidence.
 - **[`tests/anomaly_log.csv`](../tests/anomaly_log.csv)** — the standing
   problem log described in [13 — Problem Resolution](13-software-problem-resolution.md).

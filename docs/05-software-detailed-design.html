@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 — Software Detailed Design (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../learn.html">Learn</a>
+        <a class="nav-link" href="../quiz.html">Quiz</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>05 — Software Detailed Design</h1>
+        <p>Example artefact from this project's own IEC 62304-style document set — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../learn.html#phase-detailed-design">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="05-software-detailed-design.md" download>&#8681; Download source (.md)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Status: Partial — see Gaps.</strong> <strong>Clause:</strong> 5.4 — Software Detailed Design · <strong>Register:</strong> <a href="index.html">docs/README.md</a></p>
+<blockquote><p><strong>Example artefact — training use only.</strong> This project is a training site, not a real medical device under any regulatory definition, and nothing here is a genuine IEC 62304 deliverable. It illustrates the <em>kind</em> of document a Software-as-a-Medical-Device (SaMD) or Software-in-a-Medical-Device (SiMD) project would produce for this process area — see <a href="index.html#what-this-is-and-is-not">docs/README.md</a> for the full picture.</p></blockquote>
+<h2 id="what-the-standard-requires-class-c--every-sub-clause-of-54">What the standard requires (Class C — every sub-clause of 5.4)</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at, Output"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at</th><th scope="col">Output</th></tr></thead><tbody><tr><td>5.4.1</td><td>Subdivide software into software units</td><td><strong>B, C</strong></td><td>(No separate <code>output</code> — this is the one requirement of 5.4 that reaches Class B; §5.4.2–5.4.4 are Class C only)</td></tr><tr><td>5.4.2</td><td>Detailed design for each software unit</td><td><strong>C only</strong></td><td>Design documented in enough detail to allow correct implementation of each software unit</td></tr><tr><td>5.4.3</td><td>Detailed design for interfaces</td><td><strong>C only</strong></td><td>Design documented for the interfaces of each software unit, in enough detail to implement them correctly</td></tr><tr><td>5.4.4</td><td>Verify detailed design</td><td><strong>C only</strong></td><td>Documented verification that the detailed design implements the architecture and does not contradict it</td></tr></tbody></table></div>
+<h2 id="541--subdividing-into-software-units">5.4.1 — Subdividing into software units</h2>
+<p>The software items in <a href="04-software-architecture.html">04 — Architecture</a> are already at file granularity (one script, one responsibility) — for a project this size, "software unit" and "software item" largely coincide: <code>learn.js</code> is not further subdivided into separately-versioned files, but it <em>is</em> organised internally into named functions with single responsibilities (<code>mergeApplicability()</code>, <code>deliverablesFor()</code>, <code>classify()</code>, and so on), which is the practical unit boundary a detailed design document would describe.</p>
+<h2 id="542543--detailed-design-where-it-exists">5.4.2–5.4.3 — Detailed design, where it exists</h2>
+<p><strong><code>learn.js</code> has a real detailed design document: <a href="../learn_pseudocode.html"><code>learn_pseudocode.md</code></a>.</strong> It walks the data shape, state (<code>studiedPhases</code>, the current filter, the current level), and the logic of every function in the file, including the ones this document set leans on elsewhere — <code>mergeApplicability()</code>'s cross-file invariant check (see <a href="11-software-risk-management-file.html">11</a>) and <code>deliverablesFor()</code>'s derivation of the deliverables list (see <a href="03-software-requirements-specification.html">03</a>, REQ-14). This is the one file in the project where 5.4.2–5.4.3 are genuinely satisfied, not just described in outline.</p>
+<h2 id="544--verifying-the-detailed-design">5.4.4 — Verifying the detailed design</h2>
+<p>For <code>learn.js</code>: the pseudocode's description of <code>mergeApplicability()</code>'s behaviour matches the <code>applicability</code> test group's assertions line for line (compare <a href="../learn_pseudocode.html"><code>learn_pseudocode.md</code></a> against <a href="../tests/test_site.py"><code>tests/test_site.py</code></a>'s "the site refuses to render on contradictory data" checks) — that agreement is the verification evidence.</p>
+<h2 id="gaps">Gaps</h2>
+<p><strong><code>quiz.js</code>, <code>contact.js</code>, <code>theme.js</code>, <code>nav.js</code>, and <code>async-utils.js</code> have no equivalent pseudocode document.</strong> Their design exists only as inline comments and the code itself, plus the behavioural description in <a href="../DESIGN.html#javascript-architecture">DESIGN.md</a>. For a real Class C project this would be a finding: 5.4.2 requires detailed design for <em>each</em> software unit, not the one that happened to get written down first.</p>
+<p>This is deliberately left as an open gap rather than backfilled with a rushed pseudocode file for the remaining five scripts, because a document written to close a gap rather than to be used is exactly the kind of paperwork IEC 62304 gets criticised for producing. If and when one of those files is next substantially changed, writing its detailed design <em>as part of that change</em> — the way <code>learn_pseudocode.md</code> was — would produce a more genuinely useful document than writing all five today for their own sake. Recorded as a problem in <a href="13-software-problem-resolution.html">13 — Problem Resolution</a>'s terms: identified, not yet actioned, rationale for the delay stated above.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../nav.js" defer></script>
+  <script src="../theme.js" defer></script>
+</body>
+</html>

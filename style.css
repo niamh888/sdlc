@@ -84,6 +84,12 @@
   --tint-orange:        #fdf3e8;
   --notice-bar:         #8a6d1f;  /* white label on it: 4.90:1 */
   --notice-marker:      #c9a227;
+  /* Fixed like --notice-bar, not theme-variable like --danger: --danger is a
+     TEXT-role red (it must flip to something visible on a dark background,
+     which makes it too light — 2.99:1 — for white text on top of it). This is
+     a FILL, so it stays this same dark shade in both themes; see the colour
+     variable comment block at the top of this file for why that split exists. */
+  --danger-fill:        #a93226;  /* white text on it: 6.62:1 */
 }
 
 /* DARK THEME
@@ -141,6 +147,7 @@
   --tint-orange:        #2d1f12;
   --notice-bar:         #8a6d1f;
   --notice-marker:      #d9b545;
+  --danger-fill:        #a93226;  /* unchanged: still 6.62:1 for white text */
 }
 
 /* NO-JAVASCRIPT FALLBACK.
@@ -193,6 +200,7 @@
     --tint-orange:        #2d1f12;
     --notice-bar:         #8a6d1f;
     --notice-marker:      #d9b545;
+    --danger-fill:        #a93226;
   }
 }
 
@@ -2291,6 +2299,182 @@ a {
   background: var(--bg);
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* ===== DOC PREVIEW PAGES (docs/*.html) =====
+   The rendered example lifecycle documents reuse .legal-page for typography —
+   it already had the right long-form-prose styling for privacy.html — extended
+   here with the three block types privacy.html never needed: block quotes,
+   ordered lists, and a generic inline <code>, plus a scrollable wrapper for
+   the wide requirements tables so a 4-column table cannot force the page to
+   scroll sideways on a 360px screen (the same problem .phase-subclauses
+   solves for the sub-clause tables on the Learn page). */
+.doc-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+/* The wrapper carries tabindex="0" (see docs/render.py) so a keyboard user can
+   reach and scroll a table too wide for the viewport — matching .phase-header
+   elsewhere on the site, the default browser outline is replaced with the
+   same visible ring rather than removed. */
+.doc-table-wrap:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.doc-table-wrap .legal-table {
+  margin-bottom: 0;
+}
+
+.legal-page blockquote {
+  background: var(--tint-info);
+  border-left: 4px solid var(--accent);
+  color: var(--tint-info-text);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin: 0 0 24px;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.legal-page blockquote p {
+  margin-bottom: 10px;
+}
+
+.legal-page blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-page blockquote strong {
+  color: inherit;
+}
+
+.legal-page ol {
+  margin: 0 0 20px 22px;
+}
+
+.legal-page ol li {
+  margin-bottom: 9px;
+  line-height: 1.7;
+}
+
+.legal-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* Back-to-Learn / register / download row, above the fold on every doc page. */
+.doc-preview-actions {
+  max-width: 760px;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.doc-preview-actions .btn {
+  padding: 8px 18px;
+  font-size: 0.85rem;
+}
+
+/* Same bounded-card, coloured-strip language as .update-banner and
+   .filter-notice, so this reads as the site telling the reader something
+   important rather than as decoration — deliberately reused rather than
+   invented fresh, so a visitor who has already learned to notice one of
+   these notices recognises this one as the same kind of thing. Red/danger
+   toned rather than amber: this notice is a correctness boundary (this is
+   NOT a real regulatory document), not an informational aside. */
+.example-banner-card {
+  max-width: 760px;
+  margin: 0 auto 28px;
+  background: var(--tint-bad-soft);
+  border: 1px solid var(--tint-bad);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.example-banner-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--danger-fill);
+  padding: 9px 16px;
+}
+
+.example-banner-icon {
+  font-size: 1rem;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.example-banner-label {
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.example-banner-content {
+  padding: 16px 20px;
+}
+
+.example-banner-content p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.example-banner-content a {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .doc-preview-actions,
+  .example-banner-card {
+    max-width: none;
+  }
+}
+
+/* ===== LEARN CARD: EXAMPLE ARTEFACT LINKS =====
+   Deliberately placed at the CARD level (Software Development Planning, the
+   whole clause), not inside the per-sub-clause deliverables rows — those rows
+   intentionally never invent a document name (see DESIGN.md, Deliverables
+   list), and attaching a concrete example file to them would blur exactly the
+   line that feature draws. The card already carries a title for the whole
+   process area, so an example document belongs here instead. */
+.example-doc {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.example-doc-label {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.example-doc-label strong {
+  color: var(--text);
+}
+
+.example-doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.example-doc-actions .btn {
+  padding: 8px 16px;
+  font-size: 0.82rem;
 }
 
 /* Privacy notice beneath the contact form's Send button. Small, but not so

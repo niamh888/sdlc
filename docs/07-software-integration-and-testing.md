@@ -57,7 +57,7 @@ procedure evaluation, or record set of its own.
 ## 5.6.6 — Regression
 
 Regression is real but implicit: every run of
-[`tests/test_site.py`](../tests/test_site.py) re-checks all 391 checks, not
+[`tests/test_site.py`](../tests/test_site.py) re-checks all 447 checks, not
 only the ones related to whatever just changed, so a change to `theme.js`
 that broke `learn.js`'s rendering would be caught by the `learn` group even
 though nobody thought to re-run it deliberately. That is regression coverage

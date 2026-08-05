@@ -22,7 +22,7 @@ for why that history matters to how this data is maintained.)
 ## 5.7.1 — The test set
 
 [`tests/test_site.py`](../tests/test_site.py) is this project's system test
-suite: **391 checks** across 11 groups, run against a real Chrome/Chromium
+suite: **447 checks** across 11 groups, run against a real Chrome/Chromium
 browser driven by Playwright, over a server the script starts itself. Its own
 docstring states the design directly:
 
@@ -54,7 +54,7 @@ tester has to remember; it happens on every run, pass or fail.
 ## 5.7.3 — Retest after changes
 
 The suite is not partitioned by "what changed" — a full run re-executes all
-391 checks every time, which is retesting by construction rather than by a
+447 checks every time, which is retesting by construction rather than by a
 documented policy of selecting which tests apply to a given change (the same
 trade-off noted for regression testing in
 [07](07-software-integration-and-testing.md#566--regression)).

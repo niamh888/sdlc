@@ -548,7 +548,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **391 checks** covering content
+The site ships with an automated test suite: **447 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -680,7 +680,7 @@ Being honest about the limits matters more than a green tick:
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 391 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 447 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
 | `tests/capture_screenshots.py` | Generates the PNGs under `docs/assets/screenshots/` used in [Screenshots](#screenshots) above |

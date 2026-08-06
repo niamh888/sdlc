@@ -25,7 +25,7 @@ all of this, so it cannot quietly disappear in a redesign.
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not a genuine regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
@@ -376,7 +376,7 @@ They now live in `data/phases.json` and are fetched when the page loads.
 
 The practical gain is that content and code are separate: correcting a clause
 reference no longer means editing JavaScript and risking a syntax error that
-breaks the whole page. The architectural gain is that the data became a genuine
+breaks the whole page. The architectural gain is that the data became a real
 external resource, which forced the page to handle loading and failure properly.
 
 The page shows a spinner while loading, the cards on success, and an error panel
@@ -414,7 +414,7 @@ The old form validated the fields and revealed "Message Sent!" on the very next
 line. It was instant, which was the giveaway that nothing was being sent anywhere.
 
 The form now does a real `fetch` POST to **Formspree**, so submissions are
-genuinely delivered by email. It handles:
+actually delivered by email. It handles:
 
 - a **"Sending…"** state on a disabled button, which also blocks double-submission
 - **`try` / `catch` / `finally`** around the request

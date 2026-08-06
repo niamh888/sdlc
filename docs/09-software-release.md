@@ -91,5 +91,5 @@ see Gaps.
   count at that commit as the 5.8.2/5.8.3 evidence for that release. This is
   named as a suggestion rather than implemented here, consistent with
   [05](05-software-detailed-design.md#gaps)'s reasoning: a process adopted at
-  the next real release is more genuine than one backdated for this document
+  the next real release means more than one backdated for this document
   set's sake.

@@ -20,7 +20,7 @@ What follows is a **demonstration document set**: this project's own software
 development, documented as if it were being run under IEC 62304, so that a
 reader learning the standard from the [Learn page](../learn.html) can also see
 what the paperwork the standard asks for actually contains, rather than only
-reading about it in the abstract. Where the project genuinely has the evidence
+reading about it in the abstract. Where the project actually has the evidence
 a document calls for — a test suite, a design record, a problem log — that
 evidence is cited directly rather than restated. Where it does not, the
 document says so plainly rather than inventing content to fill the gap; a
@@ -44,7 +44,7 @@ for the walkthrough of why, done the way §4.3 actually asks you to do it.
 
 One file per process area, in clause order, each following the same shape:
 what the standard requires (sourced from `applicability.json`, not
-paraphrased), how this project currently satisfies it, and — honestly — what
+paraphrased), how this project currently satisfies it, and plainly, what
 it does not yet.
 
 | # | Document | Clause | Status |

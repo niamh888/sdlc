@@ -146,8 +146,8 @@ the anomaly log's own `first_seen`/`last_seen` columns.
   by id, on every run. What remains manual is upstream of that: deciding
   whether a *given* check's failure belongs in the hazard model in the first
   place is a judgement made once, when the check is written, not something
-  the tooling infers — a genuinely safety-relevant check that was never
-  tagged `risk=True` would still not escalate.
+  the tooling infers — a check that is actually safety-relevant but was
+  never tagged `risk=True` would still not escalate.
 
 Three of these four are no longer silently missing; the fourth (9.6) still
 is — this document is where all four are recorded either way, per the very

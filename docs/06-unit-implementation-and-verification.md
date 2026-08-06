@@ -38,7 +38,7 @@ unit-level test suite**. There is no Jest, no Vitest, no isolated call into
 output; every one of those functions is verified only through its visible
 effect on a rendered page, several layers away from the function itself.
 
-## 5.5.2–5.5.5, honestly
+## 5.5.2–5.5.5, as they actually stand
 
 - **5.5.2 (verification process):** the process that exists is *review*, not
   test — a person (or an AI coding agent under review) reads the function
@@ -75,7 +75,7 @@ learner than a unit suite that exists to fill a cell in a table.
 
 **No unit-level verification exists**, distinct from the system-level
 verification in [08](08-software-system-testing.md). For a real Class C
-project this is a genuine, reportable finding, not a stylistic choice — the
+project this is a real, reportable finding, not a stylistic choice — the
 standard asks for both because a system test passing does not prove every
 individual unit was tested at its own boundaries, only that the system as a
 whole produced the right answer for the specific paths the system test

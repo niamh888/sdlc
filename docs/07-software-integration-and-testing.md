@@ -46,7 +46,7 @@ by the same test runs that verify system behaviour (see
 [08](08-software-system-testing.md)'s `learn` and `quiz` groups), not by a
 separate integration-test pass.
 
-## 5.6.3–5.6.7 — Integration testing, honestly
+## 5.6.3–5.6.7 — Integration testing, as it actually stands
 
 **This project does not run a distinct integration test phase.** The
 `learn — async loading and failure` group in
@@ -75,7 +75,7 @@ into the same `tests/anomaly_log.csv`.
 ## Gaps
 
 - **No integration test plan or record separate from the system test suite.**
-  For a project with genuinely separate software items being linked
+  For a project with truly separate software items being linked
   together, this would be a real deficiency; for this project, where
   "integration" is three scripts in a fixed load order plus a handful of
   well-defined data/storage contracts, the system test suite's coverage of

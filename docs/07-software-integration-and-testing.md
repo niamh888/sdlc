@@ -1,11 +1,11 @@
 # 07 — Software Integration and Testing
 
 **Status: Partial — see Gaps.**
-**Clause:** 5.6 — Software Integration and Testing · **Register:** [docs/README.md](README.md)
+**Clause:** 5.6 — Software Integration and Testing · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.6)
 
@@ -50,7 +50,7 @@ separate integration-test pass.
 
 **This project does not run a distinct integration test phase.** The
 `learn — async loading and failure` group in
-[`tests/test_site.py`](../tests/test_site.py) exercises exactly the kind of
+`tests/test_site.py` exercises exactly the kind of
 thing 5.6.3 asks for — what happens when `data/phases.json` 404s, arrives
 malformed, or is empty — but it runs as part of the same suite and the same
 pass/fail report as system testing, with no separate integration test plan,
@@ -59,7 +59,7 @@ procedure evaluation, or record set of its own.
 ## 5.6.6 — Regression
 
 Regression is real but implicit: every run of
-[`tests/test_site.py`](../tests/test_site.py) re-checks all 606 checks, not
+`tests/test_site.py` re-checks all 606 checks, not
 only the ones related to whatever just changed, so a change to `theme.js`
 that broke `learn.js`'s rendering would be caught by the `learn` group even
 though nobody thought to re-run it deliberately. That is regression coverage

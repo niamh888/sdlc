@@ -595,10 +595,14 @@ def test_data():
         slug = p.get('exampleDoc')
         if not slug:
             continue
-        for ext in ('.md', '.html'):
+        # .md is the authored source (docs/render.py reads it); .html is the
+        # on-site preview; .pdf is what the Download button actually offers a
+        # learner — see docs/render_pdf.py for why a PDF and not the .md
+        # itself, which this project's own audience has no tool to read.
+        for ext in ('.md', '.html', '.pdf'):
             if not os.path.isfile(os.path.join(ROOT, 'docs', slug + ext)):
                 missing_files.append(slug + ext)
-    R.check('every exampleDoc has both a .md source and a rendered .html preview',
+    R.check('every exampleDoc has a source, a rendered preview, and a downloadable PDF',
             not missing_files, missing_files)
 
     exampledoc_ids = [p['exampleDoc'] for p in loaded['phases'] if p.get('exampleDoc')]
@@ -1155,11 +1159,14 @@ def test_docs(browser, base, axe_src):
                 preview.get_attribute('target') == '_blank'
                 and 'noopener' in (preview.get_attribute('rel') or ''),
                 '%s / %s' % (preview.get_attribute('target'), preview.get_attribute('rel')))
-        R.check('%s: download link points at the markdown source' % phase['id'],
-                download.get_attribute('href') == 'docs/%s.md' % slug,
+        R.check('%s: download link points at the PDF, not the markdown source' % phase['id'],
+                download.get_attribute('href') == 'docs/%s.pdf' % slug,
                 download.get_attribute('href'))
         R.check('%s: download link actually downloads rather than navigates' % phase['id'],
                 download.get_attribute('download') is not None)
+        R.check('%s: download offers a human-readable filename, not the on-disk slug' % phase['id'],
+                (download.get_attribute('download') or '').endswith('(example).pdf'),
+                download.get_attribute('download'))
 
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
@@ -1192,9 +1199,9 @@ def test_docs(browser, base, axe_src):
                 back_link.get_attribute('href'))
 
         download_link = pg.locator('.doc-preview-actions a[download]')
-        R.check('%s: source download link is present' % out_name,
+        R.check('%s: PDF download link is present, not the markdown source' % out_name,
                 download_link.count() == 1 and
-                download_link.get_attribute('href') == '%s.md' % out_name.replace('index', 'README'),
+                download_link.get_attribute('href') == '%s.pdf' % out_name,
                 download_link.get_attribute('href') if download_link.count() else 'missing')
 
         ok = pg.evaluate(

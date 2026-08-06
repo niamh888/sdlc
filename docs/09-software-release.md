@@ -1,11 +1,11 @@
 # 09 — Software Release
 
 **Status: Partial — see Gaps.**
-**Clause:** 5.8 — Software Release · **Register:** [docs/README.md](README.md)
+**Clause:** 5.8 — Software Release · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.8)
 
@@ -22,7 +22,7 @@
 
 ## A distinction worth making before anything else
 
-The version chip visible on every page (see [`version` test group](../README.md#what-it-covers))
+The version chip visible on every page (see `version` test group)
 records **which edition of the standard the course content covers** —
 `Edition 1 · 2006+A1:2015`. That is a content fact, verified by REQ-01 in
 [03](03-software-requirements-specification.md). It is **not** the software's
@@ -34,8 +34,8 @@ the Gaps section below states, does not currently exist.
 
 [08 — System Testing](08-software-system-testing.md) is the verification-complete
 gate: a release is only considered ready when
-[`tests/test_site.py`](../tests/test_site.py)'s full run passes. Known
-residual anomalies are exactly what [`tests/anomaly_log.csv`](../tests/anomaly_log.csv)
+`tests/test_site.py`'s full run passes. Known
+residual anomalies are exactly what `tests/anomaly_log.csv`
 tracks — any row still `Open` at release time is, by definition, a known
 residual anomaly, with its own `ANOM-####` id, first-seen date, and detail.
 

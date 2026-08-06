@@ -3,7 +3,7 @@
 This folder is the training site's **own** IEC 62304 lifecycle document set —
 the site turned on itself. The [Learn page](../learn.html)'s deliverables list
 answers "what documents does IEC 62304 require at a given safety class?" from
-[`data/applicability.json`](../data/applicability.json). This folder is the
+`data/applicability.json`. This folder is the
 worked answer to the next question: what does it actually look like to produce
 them, for a real (if small) piece of software?
 
@@ -30,7 +30,7 @@ track them rather than pretend they don't happen.
 
 ## Why Class C
 
-[You were asked](../README.md#screenshots) which class to target and picked
+You were asked which class to target and picked
 **Class C** — every one of the 13 process areas applies in full, which makes
 this the largest and most complete version of the set. §4.3 classifies by
 asking whether a software item could contribute to a hazardous situation and,
@@ -74,6 +74,21 @@ useful thing for a document in this set to demonstrate: the standard's own
 answer to "we found a gap" is Clause 9's problem resolution process, not
 silence.
 
+## Reading these documents online, or on paper
+
+Each document has two forms, generated from the same markdown source so they
+never disagree: a normal web page (**Preview**, linked from the matching
+[Learn](../learn.html) card and from the table above), and a PDF
+(**Download**, same card). Neither requires a GitHub account or any
+familiarity with markdown — this course is written for people who work in
+Word, Excel, PowerPoint and PDF, and the previous version of this download
+offered the raw `.md` source instead, which was source code to that
+audience, not a document. Within a document's own text, mentions of source
+files (`tests/test_site.py`, `data/*.json`, this project's design notes) are
+plain text, not links — a link to a raw, unrendered file is a dead end for a
+reader without a code editor, so the file is named for context without being
+offered as something to click through to.
+
 ## How to read "applies to Class C" in these documents
 
 A sub-clause "applies to Class C" if its `classes` array in
@@ -81,22 +96,22 @@ A sub-clause "applies to Class C" if its `classes` array in
 sub-clause that has any requirement at all — `["C"]`, `["B","C"]`, and
 `["A","B","C"]` are all included; only `7.1.5` and `7.3.2`, which Amendment 1
 deleted outright, are excluded. So each table below is, in effect, "every live
-requirement of this clause." See
-[README.md — Safety Class Applicability](../README.md#safety-class-applicability)
-for why the mapping is recorded at this level of detail in the first place.
+requirement of this clause." See the site's own Safety Class Applicability
+section for why the mapping is recorded at this level of detail in the
+first place.
 
 ## Cross-references used throughout
 
 - **`applicability.json`** — the regulatory mapping; `ref`, `title`, `classes`
   and `output` fields are quoted verbatim in each document's requirements table.
-- **[DESIGN.md](../DESIGN.md)** — page-by-page design rationale, JavaScript
+- **DESIGN.md** — page-by-page design rationale, JavaScript
   architecture, and the safety-classification defect narrative referenced in
   [11 — Risk Management File](11-software-risk-management-file.md).
-- **[README.md](../README.md)** — features, testing, and the anomaly log.
-- **[`tests/test_site.py`](../tests/test_site.py)** — the system test suite
+- **README.md** — features, testing, and the anomaly log.
+- **`tests/test_site.py`** — the system test suite
   (606 checks across 12 groups) that is this project's primary verification
   evidence.
-- **[`tests/anomaly_log.csv`](../tests/anomaly_log.csv)** — the standing
+- **`tests/anomaly_log.csv`** — the standing
   problem log described in [13 — Problem Resolution](13-software-problem-resolution.md).
 - **`git log`** — the configuration history; see
   [12 — Configuration Management Plan](12-software-configuration-management-plan.md).

@@ -1,11 +1,11 @@
 # 08 — Software System Testing
 
 **Status: Documented — this project's strongest evidence.**
-**Clause:** 5.7 — Software System Testing · **Register:** [docs/README.md](README.md)
+**Clause:** 5.7 — Software System Testing · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.7)
 
@@ -18,12 +18,12 @@
 | 5.7.5 | Test record contents | A, B, C | Test case reference, result and anomalies, software version tested, hardware/software test configuration, test tools, date, tester identity |
 
 (All five apply to every class — Amendment 1 moved 5.7 from B/C-only to all
-classes; see [README.md — Safety Class Applicability](../README.md#safety-class-applicability)
-for why that history matters to how this data is maintained.)
+classes; see the site's own Safety Class Applicability section for why that
+history matters to how this data is maintained.)
 
 ## 5.7.1 — The test set
 
-[`tests/test_site.py`](../tests/test_site.py) is this project's system test
+`tests/test_site.py` is this project's system test
 suite: **606 checks** across 12 groups, run against a real Chrome/Chromium
 browser driven by Playwright, over a server the script starts itself. Its own
 docstring states the design directly:
@@ -51,7 +51,7 @@ docstring states the design directly:
 
 Every failing check in a run is fed into [13 — Problem Resolution](13-software-problem-resolution.md)'s
 anomaly log automatically — see `reconcile_anomaly_log()` in
-[`tests/test_site.py`](../tests/test_site.py). This is not a manual step a
+`tests/test_site.py`. This is not a manual step a
 tester has to remember; it happens on every run, pass or fail.
 
 ## 5.7.3 — Retest after changes

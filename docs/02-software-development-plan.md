@@ -1,10 +1,10 @@
 # 02 — Software Development Plan
 
-**Clause:** 5.1 — Software Development Planning · **Register:** [docs/README.md](README.md)
+**Clause:** 5.1 — Software Development Planning · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.1)
 
@@ -40,15 +40,15 @@ before the software is touched.
 
 **5.1.4 — standards, methods and tools (Class C).**
 - **Language/runtime:** plain HTML5, CSS3, ES2017+ JavaScript. No framework,
-  no build step, no bundler — a deliberate choice recorded in
-  [DESIGN.md](../DESIGN.md) so that "the site itself still has none" (no
-  dependency) stays true.
+  no build step, no bundler — a deliberate choice recorded in the project's
+  design notes so that "the site itself still has none" (no dependency)
+  stays true.
 - **Test tooling:** [Playwright](https://playwright.dev/) (`>=1.40`, see
-  [`tests/requirements.txt`](../tests/requirements.txt)) driving real Chromium/Chrome;
+  `tests/requirements.txt`) driving real Chromium/Chrome;
   [axe-core](https://github.com/dequelabs/axe-core) `4.10.2` for accessibility.
 - **Coding conventions:** documented inline as they're established — see the
   "why" comments throughout `learn.js`, `quiz.js`, `contact.js` and the
-  JavaScript Architecture section of [DESIGN.md](../DESIGN.md#javascript-architecture).
+  JavaScript Architecture section of the project's design notes.
 - **Editor/agent tooling:** developed with the assistance of Claude Code; every
   substantive change is reviewed against the standard's normative text before
   being accepted, not merely against "does it run."
@@ -58,7 +58,7 @@ before the software is touched.
 also records why this project's page-script architecture makes a *separate*
 integration test phase largely redundant with system testing.
 
-**5.1.6 — verification planning.** [`tests/test_site.py`](../tests/test_site.py)'s
+**5.1.6 — verification planning.** `tests/test_site.py`'s
 own docstring states the plan directly: three layers (Data, Behaviour,
 Quality), roughly half the checks deliberately exercising failure paths
 rather than only the happy path. See [08 — System Testing](08-software-system-testing.md)
@@ -84,11 +84,11 @@ answer would cause the most harm to a reader.
 for the full answer; in brief, git is the configuration management system,
 every third-party tool used to build or test the site is version-pinned
 (`tests/requirements.txt`, the axe-core CDN URL), and nothing is considered
-"controlled" until it passes [`tests/test_site.py`](../tests/test_site.py).
+"controlled" until it passes `tests/test_site.py`.
 
 **5.1.12 — avoiding common defect categories (Amendment 1).** The categories
 this project actively guards against, each with a named test group in
-[`tests/test_site.py`](../tests/test_site.py) as evidence they don't recur:
+`tests/test_site.py` as evidence they don't recur:
 unvalidated external data (`data`, `learn — async loading and failure`),
 silent async failures (every `route(...).abort()` / `404` test), and
 regressions in previously-fixed content defects — the `applicability` group's

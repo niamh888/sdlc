@@ -1,11 +1,11 @@
 # 13 — Software Problem Resolution Process
 
 **Status: Documented — this project's other strong piece of evidence.**
-**Clause:** 9 — Problem Resolution Process · **Register:** [docs/README.md](README.md)
+**Clause:** 9 — Problem Resolution Process · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of Clause 9)
 
@@ -23,17 +23,17 @@
 ## This process is implemented in code, not only described
 
 Unlike most documents in this set, Clause 9 has a direct, working
-implementation: [`tests/anomaly_log.csv`](../tests/anomaly_log.csv), produced
+implementation: `tests/anomaly_log.csv`, produced
 by `load_anomaly_log()` and `reconcile_anomaly_log()` in
-[`tests/test_site.py`](../tests/test_site.py). What follows maps each
+`tests/test_site.py`. What follows maps each
 sub-clause to what that code actually does — including where it falls short
 of the full requirement.
 
 ## 9.1 — Problem reports
 
 Every check that fails in a test run becomes a row, keyed by *(test group,
-check label)* — see [README.md — Anomaly log](../README.md#anomaly-log) for
-the full mechanics. Each row carries an id (`ANOM-####`), the failing detail
+check label)* — see the site's own Anomaly log section for the full
+mechanics. Each row carries an id (`ANOM-####`), the failing detail
 captured at the moment of failure, and how many consecutive runs it has
 failed (`times_seen`).
 
@@ -117,9 +117,9 @@ run** rather than from a person's say-so, closing `ANOM-0001` requires:
   granularity this project tracks).
 
 What is *not* covered: "reversed adverse trends" in the 9.6 sense — a
-problem can close and reopen indefinitely (verified directly — see
-[README.md — Anomaly log](../README.md#anomaly-log)'s worked example of
-`ANOM-0001` closing then reopening) without that oscillation itself being
+problem can close and reopen indefinitely (verified directly — see the
+site's own Anomaly log section's worked example of `ANOM-0001` closing then
+reopening) without that oscillation itself being
 flagged as a trend worth investigating.
 
 ## 9.8 — Test documentation contents

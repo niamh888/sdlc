@@ -1,10 +1,10 @@
 # 03 — Software Requirements Specification
 
-**Clause:** 5.2 — Software Requirements Analysis · **Register:** [docs/README.md](README.md)
+**Clause:** 5.2 — Software Requirements Analysis · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.2)
 
@@ -30,7 +30,7 @@ describes.
 
 Each requirement below is written the way the standard's own content list at
 5.2.2 asks for — functional, interface, or otherwise — and points at the
-[`tests/test_site.py`](../tests/test_site.py) group that verifies it, which
+`tests/test_site.py` group that verifies it, which
 is the verification method for 5.2.6.
 
 ### Cross-page
@@ -92,7 +92,7 @@ is the verification method for 5.2.6.
 
 ## 5.2.3 — Risk control measures included in the requirements
 
-The one place a genuine "risk" exists in this project is content correctness
+The one place an actual "risk" exists in this project is content correctness
 (see [11](11-software-risk-management-file.md)). The control measure is
 REQ-15 above — the site's refusal to render on contradictory safety-class
 data — which is itself a requirement, not just an implementation detail, for
@@ -116,7 +116,7 @@ formal SRS review would produce — the granularity available is *group*, not
 ## Gaps
 
 - Requirements are traced to test **groups**, not individual test cases —
-  the check labels inside [`tests/test_site.py`](../tests/test_site.py) are
+  the check labels inside `tests/test_site.py` are
   the case-level detail, but there is no separate traceability matrix
   connecting REQ-IDs to specific `R.check(...)` calls. For a project this
   size the group-level mapping above is proportionate; it would not be for a

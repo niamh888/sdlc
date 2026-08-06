@@ -385,7 +385,7 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
       <div class="doc-preview-actions">
         <a class="btn btn-secondary" href="{back_href}">&larr; Back to Learn</a>
         <a class="btn btn-secondary" href="index.html">All example documents</a>
-        <a class="btn btn-primary" href="{source_name}" download>&#8681; Download source (.md)</a>
+        <a class="btn btn-primary" href="{pdf_name}" download="{download_name}">&#8681; Download (PDF)</a>
       </div>
 
       <div class="example-banner-card">
@@ -451,9 +451,18 @@ def main():
             '<a href="index.html">document register</a>.'
         )
 
+        # pdf_name matches whatever docs/render_pdf.py actually produces (it
+        # derives the PDF filename from the rendered .html filename, not the
+        # .md source) — index.pdf for the register, NN-xxx.pdf otherwise.
+        # download_name is only the SUGGESTED save-as name (the `download`
+        # attribute's value need not match the URL) — a human title reads
+        # better in a downloads folder than a numbered slug does.
+        pdf_name = out_name[:-len('.html')] + '.pdf'
+        download_name = title + ' (example).pdf'
+
         page = PAGE_TEMPLATE.format(
-            title=title, body=body, back_href=back_href, source_name=name,
-            subtitle=subtitle)
+            title=title, body=body, back_href=back_href, pdf_name=pdf_name,
+            download_name=download_name, subtitle=subtitle)
 
         out_path = os.path.join(DOCS, out_name)
         with open(out_path, 'w', encoding='utf-8') as f:

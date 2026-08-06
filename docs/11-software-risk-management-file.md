@@ -1,11 +1,11 @@
 # 11 — Software Risk Management File
 
 **Status: Documented — reflexive.**
-**Clause:** 7 — Software Risk Management · **Register:** [docs/README.md](README.md)
+**Clause:** 7 — Software Risk Management · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 >
 > This is also the one document in the set that most needs its framing read first:
 > **this project carries no patient risk.** What follows applies Clause 7's
@@ -15,7 +15,7 @@
 ## What the standard requires (Class C — every live sub-clause of Clause 7)
 
 `7.1.5` and `7.3.2` were deleted by Amendment 1 and are excluded below —
-see [README.md — Safety Class Applicability](../README.md#safety-class-applicability).
+see the site's own Safety Class Applicability section.
 
 | Ref | Title | Applies at | Output |
 |---|---|---|---|
@@ -35,9 +35,9 @@ see [README.md — Safety Class Applicability](../README.md#safety-class-applica
 
 A conventional risk management file identifies hazards to a *patient*. This
 project has none. What it does have: a reader — plausibly a real software
-engineer, quality engineer, or regulatory affairs professional (see
-[README.md — Project Overview](../README.md#project-overview)) — who may
-carry what they learn here into a real medical device project. **The
+engineer, quality engineer, or regulatory affairs professional, per this
+course's own stated audience — who may carry what they learn here into a
+real medical device project. **The
 hazardous situation this file tracks is: a reader forms an incorrect belief
 about what IEC 62304 requires, and acts on it in a real regulatory context.**
 That is not a hypothetical for this project — it has already happened once,
@@ -46,9 +46,8 @@ invented examples.
 
 ## 7.1.1–7.1.2 — Identified software items and causes (a real case)
 
-**The defect, as [DESIGN.md](../DESIGN.md#safety-class-applicability) and
-[README.md](../README.md#safety-class-applicability) both record:** the
-original data model held one hand-maintained list of safety classes per
+**The defect, as this project's own design notes and README both record:**
+the original data model held one hand-maintained list of safety classes per
 *clause*. Three errors were found when it was checked line by line against
 the standard's normative text:
 
@@ -98,7 +97,7 @@ defect:
    for. A loud failure was chosen deliberately over a page that quietly
    teaches something wrong.
 2. **A regression test.** The `applicability` group in
-   [`tests/test_site.py`](../tests/test_site.py) puts the original,
+   `tests/test_site.py` puts the original,
    incorrect Clause 7 value back and asserts the site rejects it — so the
    specific defect that happened once cannot silently return.
 
@@ -137,7 +136,7 @@ anomaly log — but only if a defect found there is actually connected back to
 this file, rather than living out its whole life as a line in a CSV nobody
 with risk-management responsibility ever reads.
 
-So every check in [`tests/test_site.py`](../tests/test_site.py) that verifies
+So every check in `tests/test_site.py` that verifies
 something in this file's hazard model — the safety-class mapping, the
 deliverables data derived from it, and the cross-file invariant and
 regression test that are this file's own risk controls (§7.2.1–7.3.1 above)
@@ -154,9 +153,9 @@ This section is **generated**, by `escalate_risk_anomalies()` in
 log itself is. Do not hand-edit between the markers; a manual change there
 is overwritten on the next run. Which checks carry the `risk=True` tag is
 the thing to edit instead — see the `Results.group()`/`Results.check()`
-docstrings in `tests/test_site.py` for the exact criterion, and
-[README.md — Anomaly log](../README.md#anomaly-log) for how the tagging and
-escalation mechanics work together.
+docstrings in `tests/test_site.py` for the exact criterion, and the site's
+own Anomaly log section for how the tagging and escalation mechanics work
+together.
 
 ## Gaps
 

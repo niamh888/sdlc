@@ -1,10 +1,10 @@
 # 01 — General Requirements & Classification
 
-**Clause:** 4 — General Requirements · **Register:** [docs/README.md](README.md)
+**Clause:** 4 — General Requirements · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires
 
@@ -25,24 +25,24 @@ The requirement is to demonstrate the ability to consistently meet customer
 and applicable regulatory requirements, which the standard says can be shown
 by an ISO 13485 QMS, a national QMS standard, or a QMS required by national
 regulation (full text in
-[`applicability.json`](../data/applicability.json), `general-requirements` →
+`applicability.json`, `general-requirements` →
 `4.1`).
 
 **How this project actually works:** there is no certified QMS — this is a
 single-maintainer repository, not a manufacturer. What stands in for it:
 
 - A written record of *why* a decision was made, not just what it was —
-  [DESIGN.md](../DESIGN.md) and this document set follow that discipline
+  the project's design notes and this document set follow that discipline
   throughout, which is closer in spirit to a QMS's document-control
   requirement than a certificate would be on its own.
 - Every change to regulatory content (the safety-class mapping in
   `applicability.json`) is reviewed against the standard's normative text
   before being accepted — see [11 — Risk Management File](11-software-risk-management-file.md).
 - An automated test suite acts as the change-acceptance gate a QMS would
-  otherwise mandate manually: [`tests/test_site.py`](../tests/test_site.py)
+  otherwise mandate manually: `tests/test_site.py`
   runs before anything is considered finished.
 
-**Gap:** none of this is certified or externally audited. That is a genuine
+**Gap:** none of this is certified or externally audited. That is a real
 and permanent difference from a manufacturer's QMS, stated here rather than
 implied away.
 
@@ -60,20 +60,20 @@ teaching a reader something regulatorily wrong.
 This is the one sub-clause of Clause 4 worth actually working through, rather
 than cross-referencing, because the reasoning is the point.
 
-**The test, as Amendment 1 states it** (from [`data/phases.json`](../data/phases.json),
+**The test, as Amendment 1 states it** (from `data/phases.json`,
 `general-requirements`): *"A software item that could contribute to a
 hazardous situation must be Class B minimum; if it is the sole control
 measure preventing serious injury or death, it must be Class C. Software
 items that cannot contribute to any hazardous situation may be Class A."*
 
-**Applying it to this repository, honestly:** the training site cannot
+**Applying it to this repository as it actually stands:** the training site cannot
 contribute to a hazardous situation in the sense §4.3 means — it does not
 control, monitor, or inform the treatment of a patient. It is content about
 a standard, not an implementation of one. A literal classification puts it
 outside IEC 62304's scope altogether: **no class applies, because the
 standard does not apply.**
 
-**Why this document set proceeds at Class C anyway:** [docs/README.md](README.md#why-class-c)
+**Why this document set proceeds at Class C anyway:** [the document register](README.md#why-class-c)
 records that Class C was chosen as a **teaching target** for this
 demonstration set — the largest, most complete version of the lifecycle
 document list, which is more useful to a learner than the true (and much
@@ -91,7 +91,7 @@ duplicated in [11](11-software-risk-management-file.md).
 Amendment 1's legacy provisions exist for software already on the market
 without sufficient evidence it was developed to the current standard. This
 project has no such history — it has been developed from a single lifecycle
-model throughout, recorded in [`git log`](../README.md) and
+model throughout, recorded in `git log` and
 [12 — Configuration Management Plan](12-software-configuration-management-plan.md).
 **Not applicable, and recorded as such rather than left blank**, which is the
 same principle the site's own deliverables list uses for sub-clauses with no

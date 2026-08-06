@@ -1,10 +1,10 @@
 # 04 — Software Architecture
 
-**Clause:** 5.3 — Software Architectural Design · **Register:** [docs/README.md](README.md)
+**Clause:** 5.3 — Software Architectural Design · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 >
 > Clause 5.3 has **no Class A requirement at all** — every row below applies
 > at Class B and C only, one (5.3.5) at Class C alone.
@@ -23,8 +23,7 @@
 ## 5.3.1 — Software items
 
 There is no build step and no bundler — every script *is* the software item
-it defines, one file each. From [README.md — Files](../README.md#files) and
-[DESIGN.md — JavaScript Architecture](../DESIGN.md#javascript-architecture):
+it defines, one file each:
 
 | Software item | Responsibility |
 |---|---|
@@ -38,14 +37,13 @@ it defines, one file each. From [README.md — Files](../README.md#files) and
 
 Each page loads `nav.js`, then `async-utils.js`, then its own page script, all
 marked `defer` — deferred scripts run in document order, which is what
-guarantees the shared helpers exist before a page script calls them (see
-DESIGN.md for why this ordering was chosen over a bundler).
+guarantees the shared helpers exist before a page script calls them (the
+project's design notes record why this ordering was chosen over a bundler).
 
 ## 5.3.2 — Interfaces between software items
 
-There is no shared global state between pages — [DESIGN.md](../DESIGN.md#javascript-architecture)
-is explicit about this. Where two items do need to communicate, the interface
-is one of:
+There is no shared global state between pages. Where two items do need to
+communicate, the interface is one of:
 
 | Interface | Between | Mechanism |
 |---|---|---|
@@ -67,7 +65,7 @@ load no external script, font, or stylesheet — confirmed by grep across all
 five HTML files, whose only external references are outbound links (to
 `stjohnlynch.com`, `iec.ch`, `dataprotection.ie`, and the Formspree endpoint
 itself) rather than resources the page depends on to render. That is a
-genuine architectural property, not an oversight, and it is why the SOUP
+deliberate architectural property, not an oversight, and it is why the SOUP
 table below is short:
 
 | SOUP item | Manufacturer | Version | Ships to visitors? | Functional/performance requirement | Environment required |
@@ -96,7 +94,7 @@ incident that made this segregation necessary.
 
 There is no standalone architecture review record — the closest equivalent is
 that every interface listed above is exercised directly by
-[`tests/test_site.py`](../tests/test_site.py) (for example, the `learn` and
+`tests/test_site.py` (for example, the `learn` and
 `applicability` groups assert on the `localStorage` keys and the render-gate
 behaviour described above), which verifies the architecture indirectly, by
 verifying its observable effects, rather than by a separate design review.
@@ -108,4 +106,4 @@ verifying its observable effects, rather than by a separate design review.
   table rather than add information; that trade-off would flip for a larger
   codebase.
 - 5.3.6's verification is behavioural, not a formal design review with
-  reviewer sign-off — recorded honestly rather than dressed up as one.
+  reviewer sign-off — recorded as what it is rather than dressed up as one.

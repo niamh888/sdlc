@@ -2334,6 +2334,25 @@ a {
   outline-offset: 1px;
 }
 
+/* PRINT / PDF (see docs/render_pdf.py — this is what "Download" actually
+   produces for a document page, so it has to look like a document on paper,
+   not a web page with the chrome cropped off). .site-header, .site-footer
+   and .skip-link are already hidden print-wide by the unscoped rule further
+   down this file; only the button row is specific to this page type. */
+@media print {
+  .doc-preview-actions {
+    display: none !important;
+  }
+
+  .doc-table-wrap {
+    overflow-x: visible; /* a fixed page has no viewport to scroll within */
+  }
+
+  .doc-table-wrap .legal-table tr {
+    page-break-inside: avoid;
+  }
+}
+
 .doc-table-wrap .legal-table {
   margin-bottom: 0;
 }

@@ -1,11 +1,11 @@
 # 06 — Unit Implementation and Verification
 
 **Status: Partial — see Gaps.**
-**Clause:** 5.5 — Unit Implementation and Verification · **Register:** [docs/README.md](README.md)
+**Clause:** 5.5 — Unit Implementation and Verification · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of 5.5)
 
@@ -26,7 +26,7 @@ document is 5.5.2–5.5.5, verification, not 5.5.1.
 
 ## The actual gap, stated plainly
 
-[`tests/test_site.py`](../tests/test_site.py) says this about itself, in its
+`tests/test_site.py` says this about itself, in its
 own docstring: *"It is a black-box test suite. It does not import or inspect
 the site's JavaScript; it drives the pages the way a person would —
 clicking, typing, reading what appears — and asserts on the result."*
@@ -44,7 +44,7 @@ effect on a rendered page, several layers away from the function itself.
   test — a person (or an AI coding agent under review) reads the function
   and checks it against the requirement. That is one of the standard's own
   acceptable methods (`code review, static analysis, unit testing, or a
-  combination`, per [`data/phases.json`](../data/phases.json)'s advanced
+  combination`, per `data/phases.json`'s advanced
   detail for this clause), but it is the weakest of the three on its own,
   and it is what this project actually has.
 - **5.5.3 (acceptance criteria before integration):** criteria exist

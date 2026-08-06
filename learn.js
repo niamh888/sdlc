@@ -598,7 +598,15 @@ function buildExampleDocBlock(phase) {
   if (!phase.exampleDoc) return '';
 
   const previewHref = 'docs/' + phase.exampleDoc + '.html';
-  const downloadHref = 'docs/' + phase.exampleDoc + '.md';
+  const downloadHref = 'docs/' + phase.exampleDoc + '.pdf';
+  // The `download` attribute's VALUE is the filename the browser offers to
+  // save as — it does not need to match the URL. Used here so the file a
+  // learner actually gets is named for the document, not for its slug on
+  // disk. See docs/render_pdf.py for why the download is a PDF at all: this
+  // course is taken by people who work in Word, Excel, PowerPoint and PDF,
+  // not GitHub or markdown, so the raw .md source this used to offer was not
+  // a document to them.
+  const downloadName = phase.title + ' (example).pdf';
 
   return '' +
     '<div class="example-doc">' +
@@ -614,10 +622,10 @@ function buildExampleDocBlock(phase) {
           ' target="_blank" rel="noopener" data-id="' + phase.id + '"' +
           ' aria-label="Preview example document for ' + phase.title + '">' +
           'Preview example document</a>' +
-        '<a class="btn btn-secondary example-doc-download" href="' + downloadHref + '" download' +
-          ' data-id="' + phase.id + '"' +
-          ' aria-label="Download example document for ' + phase.title + ' as Markdown">' +
-          'Download (.md)</a>' +
+        '<a class="btn btn-secondary example-doc-download" href="' + downloadHref + '"' +
+          ' download="' + downloadName + '" data-id="' + phase.id + '"' +
+          ' aria-label="Download example document for ' + phase.title + ' as PDF">' +
+          'Download (PDF)</a>' +
       '</div>' +
     '</div>';
 }

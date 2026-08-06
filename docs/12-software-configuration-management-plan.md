@@ -1,10 +1,10 @@
 # 12 — Software Configuration Management Plan
 
-**Clause:** 8 — Software Configuration Management · **Register:** [docs/README.md](README.md)
+**Clause:** 8 — Software Configuration Management · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 
 ## What the standard requires (Class C — every sub-clause of Clause 8)
 
@@ -66,7 +66,7 @@ rather than a change control board — but it is not undocumented:
    [10 — Maintenance Plan](10-software-maintenance-plan.md#6211--feedback-monitoring-concretely).
 2. **Implementation:** made against the actual files, following
    [02 — Software Development Plan](02-software-development-plan.md).
-3. **Verification:** [`tests/test_site.py`](../tests/test_site.py) must pass
+3. **Verification:** `tests/test_site.py` must pass
    before a change is considered complete — see
    [08](08-software-system-testing.md).
 4. **Traceability (8.2.4):** the git commit message is the link between

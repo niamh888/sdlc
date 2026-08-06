@@ -1,10 +1,10 @@
 # 10 — Software Maintenance Plan
 
-**Clause:** 6 — Software Maintenance Process · **Register:** [docs/README.md](README.md)
+**Clause:** 6 — Software Maintenance Process · **Register:** [Document Register](README.md)
 
 > **Training example only.** This project is a training site, not a real
 > medical device (not SaMD, not SiMD) — see
-> [docs/README.md](README.md#what-this-is-and-is-not) for the full explanation.
+> [the document register](README.md#what-this-is-and-is-not) for the full explanation.
 >
 > This document *is* the maintenance plan 6.1 asks for — its first version.
 
@@ -24,7 +24,7 @@
 | 6.3.2 | Re-release modified software system | A, B, C | — |
 
 Clause 6 is uniformly all-classes since Amendment 1 moved 6.2.3 up from B/C
-— see [README.md — Safety Class Applicability](../README.md#safety-class-applicability).
+— see the site's own Safety Class Applicability section.
 
 ## 6.1 — The plan
 

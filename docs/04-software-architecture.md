@@ -63,10 +63,10 @@ page later gains a second script that also wants "the" storage key.
 **Nothing third-party ships to a visitor's browser.** The production pages
 load no external script, font, or stylesheet — confirmed by grep across all
 five HTML files, whose only external references are outbound links (to
-`stjohnlynch.com`, `iec.ch`, `dataprotection.ie`, and the Formspree endpoint
-itself) rather than resources the page depends on to render. That is a
-deliberate architectural property, not an oversight, and it is why the SOUP
-table below is short:
+`stjohnlynch.com`, `askriskie.com`, `iec.ch`, `dataprotection.ie`, and the
+Formspree endpoint itself) rather than resources the page depends on to
+render. That is a deliberate architectural property, not an oversight, and
+it is why the SOUP table below is short:
 
 | SOUP item | Manufacturer | Version | Ships to visitors? | Functional/performance requirement | Environment required |
 |---|---|---|---|---|---|

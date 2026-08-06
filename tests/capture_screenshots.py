@@ -78,8 +78,8 @@ def stub_formspree(pg):
         status=200, content_type='application/json', body='{"ok":true}'))
 
 
-def new_page(browser, scheme=None):
-    ctx = browser.new_context(viewport=VIEWPORT, color_scheme=scheme)
+def new_page(browser, scheme=None, viewport=None):
+    ctx = browser.new_context(viewport=viewport or VIEWPORT, color_scheme=scheme)
     return ctx, ctx.new_page()
 
 
@@ -137,6 +137,18 @@ def main():
                 pg.locator('#update-banner-close').click()
                 pg.wait_for_timeout(150)
                 shoot(pg, 'learn-dark')
+                ctx.close()
+
+                # ---- Learn: ultra-wide, promotional side rails visible ----
+                # Only render above the 1600px breakpoint (see style.css) —
+                # a screen this wide is exactly the "large empty gutters"
+                # case they exist to fill.
+                ctx, pg = new_page(browser, 'light', viewport={'width': 1900, 'height': 1000})
+                pg.goto(base + '/learn.html')
+                pg.wait_for_selector('.phase-card', timeout=10000)
+                pg.locator('#update-banner-close').click()
+                pg.wait_for_timeout(150)
+                shoot(pg, 'learn-wide-rails-light')
                 ctx.close()
 
                 # ---- Learn: the flagship feature — class filter, an expanded

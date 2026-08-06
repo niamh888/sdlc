@@ -25,7 +25,7 @@ all of this, so it cannot quietly disappear in a redesign.
 ## Features
 
 - **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied; on screens wide enough to leave real empty space either side of the content, sticky promotional cards fill it — hidden entirely below that width, so no tested viewport is affected
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
@@ -63,6 +63,10 @@ Marking a topic studied is blocked until its example document has been opened at
 | Light (default view) | Dark |
 |---|---|
 | ![Learn page, light theme](docs/assets/screenshots/learn-light.png) | ![Learn page, dark theme](docs/assets/screenshots/learn-dark.png) |
+
+On a screen wide enough that `.container`'s own 1100px max-width leaves genuine empty space either side (≥1600px), two sticky promotional cards fill it rather than leaving it blank — hidden entirely below that width, so nothing about the layout at any tested viewport changes:
+
+![Learn page on an ultra-wide screen, with promotional side rails for St John Lynch & Co and AskRiskIE filling the space either side of the course content](docs/assets/screenshots/learn-wide-rails-light.png)
 
 ### Quiz — timed assessment with immediate feedback
 

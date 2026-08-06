@@ -232,6 +232,124 @@ a {
   padding: 0 24px;
 }
 
+/* ===== PROMOTIONAL SIDE RAILS (ultra-wide screens only) =====
+   On a very wide monitor, .container's own 1100px max-width leaves two large
+   empty gutters either side. Below the breakpoint these are simply not
+   rendered (display:none), so every viewport already covered by the
+   responsive test suite (1280/768/480/360 — none of them anywhere near
+   1600px) is completely unaffected; this is purely additive at widths wider
+   than any of them, not a change to the layout those checks verify.
+
+   Scoped to `screen` explicitly, not just a bare min-width, so a print
+   pipeline emulating an unusual page width can never accidentally match it —
+   belt and braces alongside the explicit display:none in the @media print
+   block further down this file. */
+.side-rail {
+  display: none;
+}
+
+@media screen and (min-width: 1600px) {
+  #main-content {
+    display: grid;
+    grid-template-columns: 1fr 1100px 1fr;
+    column-gap: 24px;
+  }
+
+  /* min-width:0 overrides the grid default of min-width:auto, which sizes a
+     grid item to fit its content's intrinsic minimum — without this, one
+     long unbreakable string could in theory force column 2 wider than
+     1100px and push the rails out towards the viewport edge. */
+  #main-content > .update-banner,
+  #main-content > .container {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .side-rail {
+    display: block;
+    grid-row: 1 / -1;
+    align-self: start;
+  }
+
+  .side-rail-left {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  .side-rail-right {
+    grid-column: 3;
+    justify-self: start;
+  }
+}
+
+.rail-card {
+  /* width:100% of a 1fr grid track, capped by max-width — never a fixed px
+     width — is what guarantees this can never overflow: the track itself is
+     sized by the grid algorithm to whatever space is actually left over
+     after the fixed 1100px column, so the card can only ever end up
+     narrower than its cap, never wider than the space available. */
+  width: 100%;
+  max-width: 220px;
+  position: sticky;
+  top: 128px; /* clears the sticky 109px site-header plus a gap */
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.rail-card-eyebrow {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.rail-card-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 10px;
+}
+
+.rail-card-list {
+  list-style: none;
+  margin-bottom: 16px;
+}
+
+.rail-card-list li {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.rail-card-list li::before {
+  content: '\2192';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.rail-card-cta {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.rail-card-cta:hover {
+  text-decoration: none;
+}
+
 /* ===== HEADER ===== */
 
 .site-header {
@@ -948,6 +1066,13 @@ a {
 
   /* The toggle is meaningless on paper. */
   .theme-toggle {
+    display: none !important;
+  }
+
+  /* Belt and braces alongside the `screen and` scoping on the rails'
+     min-width query — this is what actually guarantees they never appear on
+     a printed page, regardless of what width a print pipeline reports. */
+  .side-rail {
     display: none !important;
   }
 }

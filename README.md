@@ -15,19 +15,18 @@ This course is designed for software developers, quality engineers, and regulato
 **Edition 1 — IEC 62304:2006 together with Amendment 1:2015**, the version
 currently in force. The consolidated text carries the designation Edition 1.1.
 
-**Edition 2 is under development and is not covered.** Because "IEC 62304" alone
-is now ambiguous, the version is stated in three places: a chip in the site
-header on every page, an explicit statement in the home page hero, and the
-Edition 2 notice on the Learn page, which summarises the proposed changes and
-says plainly that they are not yet confirmed. The `version` test group asserts
-all of this, so it cannot quietly disappear in a redesign.
+**Edition 2 is under development and is not covered.** This site will be updated once the new edition 2 is released.  A notification and link to the IEC project for development of this standard is offered as a pop-up card on the Learn page.
 
 ## Features
 
-- **Home page** — Introduction to IEC 62304 with key statistics
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied; on screens wide enough to leave real empty space either side of the content, sticky promotional cards fill it — hidden entirely below that width, so no tested viewport is affected
+- **Home page** — Introduction to IEC 62304 ED1 with key statistics and information (e.g., what is IEC 62304)
+
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied; a promotional strip beneath the topic cards credits St John Lynch & Co and AskRiskIE side by side in one banner, sized to match the page and visible at every viewport
+
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
+
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
+
 - **Privacy page** — Data protection notice covering what the contact form collects, the transfer to Formspree in the US, browser storage, and visitors' rights; linked from every footer and summarised beneath the Send button. Also carries a **content provenance** section: where the course content, the safety class mapping and the Edition 2 status each come from, a disclaimer of IEC affiliation, and confirmation that no request of yours reaches IEC
 
 ## Screenshots

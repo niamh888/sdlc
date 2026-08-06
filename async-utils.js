@@ -4,7 +4,7 @@
 // ============================================================
 //
 // ---------------------------------------------------------------
-// WHAT "ASYNCHRONOUS" MEANS, IN PLAIN ENGLISH
+// WHAT "ASYNCHRONOUS" MEANS
 // ---------------------------------------------------------------
 // JavaScript in a browser runs on a SINGLE thread. Think of it as one
 // shop assistant serving one queue. While that assistant is busy, nobody

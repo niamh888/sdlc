@@ -139,16 +139,18 @@ def main():
                 shoot(pg, 'learn-dark')
                 ctx.close()
 
-                # ---- Learn: ultra-wide, promotional side rails visible ----
-                # Only render above the 1600px breakpoint (see style.css) —
-                # a screen this wide is exactly the "large empty gutters"
-                # case they exist to fill.
-                ctx, pg = new_page(browser, 'light', viewport={'width': 1900, 'height': 1000})
+                # ---- Learn: promotional strip ----
+                # Unlike the sticky side rails this replaced, the strip is
+                # part of the normal page flow at the standard viewport — it
+                # just sits below the topic cards, so scroll it into view
+                # rather than needing an ultra-wide window to see it at all.
+                ctx, pg = new_page(browser, 'light')
                 pg.goto(base + '/learn.html')
                 pg.wait_for_selector('.phase-card', timeout=10000)
                 pg.locator('#update-banner-close').click()
+                pg.evaluate("() => document.querySelector('.promo-strip').scrollIntoView({block: 'center'})")
                 pg.wait_for_timeout(150)
-                shoot(pg, 'learn-wide-rails-light')
+                shoot(pg, 'learn-promo-strip-light')
                 ctx.close()
 
                 # ---- Learn: the flagship feature — class filter, an expanded

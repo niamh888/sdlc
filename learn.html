@@ -218,41 +218,49 @@
            from the data fetched out of data/phases.json. -->
       <div class="phases-grid" id="phases-grid"></div>
 
+      <!-- PROMOTIONAL STRIP — replaces an earlier "sticky card in each
+           margin" layout (see git history) that only ever appeared on
+           ultra-wide screens and, because the two cards sat in isolation on
+           opposite edges of the page, read as two unrelated widgets rather
+           than a single deliberate placement. This is one banner, sized to
+           the same 1100px .container as everything above it (so it can
+           never look like a mismatched pop-up next to the real content),
+           always visible regardless of viewport width, with both partners
+           inside one card either side of a divider so it reads as a single
+           "in partnership with" unit rather than an ad. Placed after the
+           topic cards — supplementary, not primary — so a screen reader or
+           keyboard user reaches the actual course content first. -->
+      <section class="promo-strip" aria-label="Our partners">
+        <div class="promo-strip-bar">
+          <span class="promo-strip-icon" aria-hidden="true">&#9733;</span>
+          <span class="promo-strip-label">In partnership with</span>
+        </div>
+        <div class="promo-strip-body">
+          <div class="promo-card">
+            <span class="promo-eyebrow">From the team behind this course</span>
+            <p class="promo-heading">St&nbsp;John Lynch &amp; Co</p>
+            <ul class="promo-list">
+              <li>Software development for SaMD, AI-enabled devices &amp; health software</li>
+              <li>Regulatory strategy to market support</li>
+              <li>ISO 27001, IEC 81001-5-1 &amp; ISO 13485 auditing and training</li>
+            </ul>
+            <a class="promo-cta" href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">Visit stjohnlynch.com &#8599;</a>
+          </div>
+          <div class="promo-divider" aria-hidden="true"></div>
+          <div class="promo-card">
+            <span class="promo-eyebrow">Recommended risk management platform</span>
+            <p class="promo-heading">AskRiskIE</p>
+            <ul class="promo-list">
+              <li>ISO 14971 risk management, in one place</li>
+              <li>Security risk management integration</li>
+              <li>M&amp;A risk analysis, and more</li>
+            </ul>
+            <a class="promo-cta" href="https://askriskie.com" target="_blank" rel="noopener noreferrer">Visit askriskie.com &#8599;</a>
+          </div>
+        </div>
+      </section>
+
     </div>
-
-    <!-- PROMOTIONAL SIDE RAILS — only rendered on screens wide enough that
-         .container's own 1100px max-width leaves genuinely empty space
-         either side (see style.css for the breakpoint and why). Placed
-         AFTER the main content here in the source, not before or between,
-         so a screen reader or keyboard user reaches the actual course
-         content first — these are supplementary, not primary, and explicit
-         grid-column placement in the CSS is what lets them still appear
-         visually beside the content despite coming after it in the DOM. -->
-    <aside class="side-rail side-rail-left" aria-label="St John Lynch and Co">
-      <div class="rail-card">
-        <span class="rail-card-eyebrow">From the team behind this course</span>
-        <p class="rail-card-heading">St&nbsp;John Lynch &amp; Co</p>
-        <ul class="rail-card-list">
-          <li>Software development for SaMD, AI-enabled devices &amp; health software</li>
-          <li>Regulatory strategy to market support</li>
-          <li>ISO 27001, IEC 81001-5-1 &amp; ISO 13485 auditing and training</li>
-        </ul>
-        <a class="rail-card-cta" href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">Visit stjohnlynch.com &#8599;</a>
-      </div>
-    </aside>
-
-    <aside class="side-rail side-rail-right" aria-label="AskRiskIE risk management platform">
-      <div class="rail-card">
-        <span class="rail-card-eyebrow">Recommended risk management platform</span>
-        <p class="rail-card-heading">AskRiskIE</p>
-        <ul class="rail-card-list">
-          <li>ISO 14971 risk management, in one place</li>
-          <li>Security risk management integration</li>
-          <li>M&amp;A risk analysis, and more</li>
-        </ul>
-        <a class="rail-card-cta" href="https://askriskie.com" target="_blank" rel="noopener noreferrer">Visit askriskie.com &#8599;</a>
-      </div>
-    </aside>
   </main>
 
   <footer class="site-footer">

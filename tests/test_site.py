@@ -1428,63 +1428,60 @@ def test_learn(browser, base):
     R.check('banner stays dismissed after reload', pg.locator('#update-banner').is_hidden())
     ctx.close()
 
-    R.group('learn — promotional side rails (ultra-wide screens only)')
+    R.group('learn — promotional strip')
 
-    # Below the breakpoint: the rails must be completely inert at the same
-    # desktop width the rest of this suite already treats as representative —
-    # present in the DOM (they are static markup, always rendered) but not
-    # displayed, and introducing no layout change of their own.
+    # Unlike the sticky side rails this replaced, the strip is a normal part
+    # of the page flow — visible at every viewport, not gated behind an
+    # ultra-wide breakpoint — so one desktop width is enough to check it,
+    # plus a narrow width to confirm the two halves stack instead of
+    # overflowing.
     ctx, pg = new_page(browser, 1280, 900)
     pg.goto(base + '/learn.html')
     pg.wait_for_selector('.phase-card', timeout=10000)
-    R.check('rails are not shown at 1280px (below the 1600px breakpoint)',
-            pg.evaluate("() => getComputedStyle(document.querySelector('.side-rail-left')).display") == 'none')
-    R.check('no horizontal overflow introduced at 1280px',
+
+    R.check('promo strip is visible', pg.locator('.promo-strip').is_visible())
+
+    sjl = pg.locator('.promo-card').nth(0).locator('a.promo-cta')
+    R.check('St John Lynch & Co card links to stjohnlynch.com, opened safely',
+            sjl.get_attribute('href') == 'https://stjohnlynch.com'
+            and sjl.get_attribute('target') == '_blank'
+            and 'noopener' in (sjl.get_attribute('rel') or ''),
+            '%s / %s / %s' % (sjl.get_attribute('href'), sjl.get_attribute('target'), sjl.get_attribute('rel')))
+
+    askriskie = pg.locator('.promo-card').nth(1).locator('a.promo-cta')
+    R.check('AskRiskIE card links to askriskie.com, opened safely',
+            askriskie.get_attribute('href') == 'https://askriskie.com'
+            and askriskie.get_attribute('target') == '_blank'
+            and 'noopener' in (askriskie.get_attribute('rel') or ''),
+            '%s / %s / %s' % (askriskie.get_attribute('href'), askriskie.get_attribute('target'), askriskie.get_attribute('rel')))
+
+    R.check('no horizontal overflow at 1280px',
+            pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
+    R.check('no JavaScript errors at 1280px', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # Narrow viewport: the two cards stack rather than squeezing into two
+    # illegibly-narrow columns, and still introduce no overflow.
+    ctx, pg = new_page(browser, 480, 900)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('promo strip stacks to one column at 480px',
+            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip-body')).gridTemplateColumns")
+            .count(' ') == 0)
+    R.check('no horizontal overflow at 480px',
             pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
     ctx.close()
 
-    # At and above the breakpoint: rails appear, link to the right places
-    # with the right attributes, and introduce no horizontal overflow of
-    # their own — checked exactly at the breakpoint (the tightest fit) and
-    # comfortably above it.
-    for width in (1600, 1900):
-        ctx, pg = new_page(browser, width, 1000)
-        pg.goto(base + '/learn.html')
-        pg.wait_for_selector('.phase-card', timeout=10000)
-
-        R.check('%dpx: both rails are visible' % width,
-                pg.locator('.side-rail-left').is_visible()
-                and pg.locator('.side-rail-right').is_visible())
-
-        sjl = pg.locator('.side-rail-left a.rail-card-cta')
-        R.check('%dpx: St John Lynch & Co card links to stjohnlynch.com, opened safely' % width,
-                sjl.get_attribute('href') == 'https://stjohnlynch.com'
-                and sjl.get_attribute('target') == '_blank'
-                and 'noopener' in (sjl.get_attribute('rel') or ''),
-                '%s / %s / %s' % (sjl.get_attribute('href'), sjl.get_attribute('target'), sjl.get_attribute('rel')))
-
-        askriskie = pg.locator('.side-rail-right a.rail-card-cta')
-        R.check('%dpx: AskRiskIE card links to askriskie.com, opened safely' % width,
-                askriskie.get_attribute('href') == 'https://askriskie.com'
-                and askriskie.get_attribute('target') == '_blank'
-                and 'noopener' in (askriskie.get_attribute('rel') or ''),
-                '%s / %s / %s' % (askriskie.get_attribute('href'), askriskie.get_attribute('target'), askriskie.get_attribute('rel')))
-
-        R.check('%dpx: no horizontal overflow' % width,
-                pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
-        R.check('%dpx: no JavaScript errors' % width, not pg.js_errors, pg.js_errors)
-        ctx.close()
-
-    # Printing a page with rails must not print the rails — belt-and-braces
+    # Printing a page with the strip must not print it — belt-and-braces
     # check for the explicit display:none !important in the @media print
-    # block, independent of the screen-scoped breakpoint query.
-    ctx, pg = new_page(browser, 1900, 1000)
+    # block ("print is always light").
+    ctx, pg = new_page(browser, 1280, 900)
     pg.goto(base + '/learn.html')
     pg.wait_for_selector('.phase-card', timeout=10000)
     pg.emulate_media(media='print')
     pg.wait_for_timeout(150)
-    R.check('rails are hidden when printing, even from an ultra-wide window',
-            pg.evaluate("() => getComputedStyle(document.querySelector('.side-rail-left')).display") == 'none')
+    R.check('promo strip is hidden when printing',
+            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip')).display") == 'none')
     pg.emulate_media(media='screen')
     ctx.close()
 
@@ -2529,18 +2526,10 @@ def test_a11y(browser, base, axe_src):
                 [x['id'] + ' ' + str(x['targets']) for x in v])
         ctx.close()
 
-    # The promotional side rails only render above 1600px (see style.css),
-    # so the PAGES loop above — at the default 1280px viewport — never
-    # actually scans them. A separate wide viewport here is the only way
-    # this content gets an accessibility pass at all.
-    ctx, pg = new_page(browser, 1900, 1000)
-    pg.goto(base + '/learn.html')
-    pg.wait_for_selector('.phase-card', timeout=10000)
-    pg.wait_for_timeout(200)
-    v = axe_violations(pg, axe_src)
-    R.check('learn.html at 1900px (promotional side rails visible) has no violations', not v,
-            [x['id'] + ' ' + str(x['targets']) for x in v])
-    ctx.close()
+    # Unlike the old sticky side rails (ultra-wide only), the promotional
+    # strip is part of the normal page flow at every viewport, so the PAGES
+    # loop above already scans it at the default 1280px width — no separate
+    # wide-viewport pass needed here.
 
     # States that only exist at runtime. These are the ones normally missed,
     # because a spinner or an error panel is invisible when the page is idle.

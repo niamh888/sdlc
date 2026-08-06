@@ -64,9 +64,9 @@ Marking a topic studied is blocked until its example document has been opened at
 |---|---|
 | ![Learn page, light theme](docs/assets/screenshots/learn-light.png) | ![Learn page, dark theme](docs/assets/screenshots/learn-dark.png) |
 
-On a screen wide enough that `.container`'s own 1100px max-width leaves genuine empty space either side (≥1600px), two sticky promotional cards fill it rather than leaving it blank — hidden entirely below that width, so nothing about the layout at any tested viewport changes:
+Below the topic cards, a single promotional strip credits St John Lynch & Co and AskRiskIE side by side inside one banner, sized to the same 1100px width as the rest of the page — visible at every viewport, not just wide screens:
 
-![Learn page on an ultra-wide screen, with promotional side rails for St John Lynch & Co and AskRiskIE filling the space either side of the course content](docs/assets/screenshots/learn-wide-rails-light.png)
+![Learn page promotional strip, crediting St John Lynch & Co and AskRiskIE side by side in one banner](docs/assets/screenshots/learn-promo-strip-light.png)
 
 ### Quiz — timed assessment with immediate feedback
 

@@ -88,7 +88,7 @@ PAGES = ['index.html', 'learn.html', 'quiz.html', 'about.html', 'contact.html', 
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
 GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'learn', 'quiz', 'contact',
-          'privacy', 'version', 'theme', 'a11y', 'responsive']
+          'privacy', 'version', 'theme', 'nav', 'a11y', 'responsive']
 
 
 # ============================================================
@@ -2328,6 +2328,99 @@ def test_theme(browser, base):
 
 
 # ============================================================
+# GROUP — MOBILE NAV (hamburger)
+#
+# Below 768px, .site-nav collapses behind #nav-toggle (see nav.js and the
+# .nav-toggle / .site-nav.nav-open rules in style.css). This group drives
+# the interaction end to end: hidden at desktop, present and closed by
+# default on mobile, opens on click, closes on Escape with focus returned,
+# closes on an outside click, and offers full-size tap targets once open —
+# the thing the general mobile-input-behaviour check upstream cannot verify,
+# since it only sees the menu in its closed (zero-height) state.
+# ============================================================
+
+def test_nav_toggle(browser, base):
+    R.group('nav — mobile hamburger menu')
+
+    # ---- Desktop: the toggle should not even be there, visually ----
+    ctx, pg = new_page(browser, 1280, 900)
+    pg.goto(base + '/index.html')
+    R.check('toggle is hidden at desktop width',
+            pg.evaluate("() => getComputedStyle(document.getElementById('nav-toggle')).display") == 'none')
+    R.check('nav is visible at desktop width without opening anything',
+            pg.locator('#site-nav .nav-link').first.is_visible())
+    ctx.close()
+
+    # ---- Mobile: closed by default, opens on click ----
+    ctx, pg = new_page(browser, 375, 800)
+    pg.goto(base + '/index.html')
+    toggle = pg.locator('#nav-toggle')
+    nav = pg.locator('#site-nav')
+
+    R.check('toggle is visible at mobile width', toggle.is_visible())
+    R.check('nav starts collapsed', not nav.locator('.nav-link').first.is_visible())
+    R.check('toggle starts with aria-expanded=false', toggle.get_attribute('aria-expanded') == 'false')
+
+    toggle.click()
+    pg.wait_for_timeout(150)
+    R.check('clicking the toggle reveals the nav', nav.locator('.nav-link').first.is_visible())
+    R.check('aria-expanded becomes true', toggle.get_attribute('aria-expanded') == 'true')
+
+    # Every link and the theme toggle inside the open menu should be a
+    # comfortable tap target, not just technically visible.
+    tap = pg.evaluate("""() => [...document.querySelectorAll('#site-nav .nav-link, #site-nav .theme-toggle')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { t: el.textContent.trim().slice(0, 18) || 'theme-toggle', h: Math.round(r.height) };
+    }).filter(x => x.h < 24)""")
+    R.check('open-menu items are a usable tap height', not tap, tap)
+
+    toggle.click()
+    pg.wait_for_timeout(150)
+    R.check('clicking the toggle again closes the nav',
+            not nav.locator('.nav-link').first.is_visible())
+    R.check('aria-expanded returns to false', toggle.get_attribute('aria-expanded') == 'false')
+    ctx.close()
+
+    # ---- Escape closes it and returns focus to the toggle ----
+    ctx, pg = new_page(browser, 375, 800)
+    pg.goto(base + '/index.html')
+    pg.locator('#nav-toggle').click()
+    pg.wait_for_timeout(150)
+    pg.keyboard.press('Escape')
+    pg.wait_for_timeout(150)
+    R.check('Escape closes the open menu',
+            not pg.locator('#site-nav .nav-link').first.is_visible())
+    R.check('Escape returns focus to the toggle button',
+            pg.evaluate("() => document.activeElement.id") == 'nav-toggle')
+    ctx.close()
+
+    # ---- Clicking outside the open menu closes it ----
+    ctx, pg = new_page(browser, 375, 800)
+    pg.goto(base + '/index.html')
+    pg.locator('#nav-toggle').click()
+    pg.wait_for_timeout(150)
+    pg.locator('.page-header, main').first.click(position={'x': 5, 'y': 5})
+    pg.wait_for_timeout(150)
+    R.check('clicking outside the open menu closes it',
+            not pg.locator('#site-nav .nav-link').first.is_visible())
+    ctx.close()
+
+    # ---- Resizing back past the breakpoint drops a stuck-open state ----
+    ctx, pg = new_page(browser, 375, 800)
+    pg.goto(base + '/index.html')
+    pg.locator('#nav-toggle').click()
+    pg.wait_for_timeout(150)
+    pg.set_viewport_size({'width': 1280, 'height': 900})
+    pg.wait_for_timeout(150)
+    pg.set_viewport_size({'width': 375, 'height': 800})
+    pg.wait_for_timeout(150)
+    R.check('menu does not reappear open after crossing back over the breakpoint',
+            not pg.locator('#site-nav .nav-link').first.is_visible())
+    R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+
+# ============================================================
 # GROUP 10b - ACCESSIBILITY IN DARK MODE, AND THE STATES NOBODY AUDITED
 #
 # A dark palette needs auditing in its own right. Light text on a dark field
@@ -2863,6 +2956,8 @@ def main():
                     test_version(browser, base)
                 if 'theme' in groups:
                     test_theme(browser, base)
+                if 'nav' in groups:
+                    test_nav_toggle(browser, base)
                 if 'a11y' in groups:
                     test_a11y(browser, base, axe_src)
                     test_a11y_dark(browser, base, axe_src)

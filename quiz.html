@@ -46,7 +46,20 @@
           <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
         </div>
       </div>
-      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+      <!-- Hamburger: hidden entirely above the mobile breakpoint (see
+           .nav-toggle in style.css), where .site-nav is a normal row and this
+           button would be redundant. Below it, .site-nav starts collapsed and
+           this is the only way to reach it — aria-expanded carries the state,
+           aria-controls points a screen reader at exactly which element it
+           expands, the same aria-expanded pattern the Learn page's phase
+           cards already use for their own expand/collapse. See nav.js for
+           the click/Escape/click-outside handling. -->
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </span>
+      </button>
+      <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
         <a class="nav-link" href="index.html">Home</a>
         <a class="nav-link" href="learn.html">Learn</a>
         <a class="nav-link" href="quiz.html">Quiz</a>

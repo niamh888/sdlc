@@ -43,7 +43,20 @@
           <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
         </div>
       </div>
-      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+      <!-- Hamburger: hidden entirely above the mobile breakpoint (see
+           .nav-toggle in style.css), where .site-nav is a normal row and this
+           button would be redundant. Below it, .site-nav starts collapsed and
+           this is the only way to reach it — aria-expanded carries the state,
+           aria-controls points a screen reader at exactly which element it
+           expands, the same aria-expanded pattern the Learn page's phase
+           cards already use for their own expand/collapse. See nav.js for
+           the click/Escape/click-outside handling. -->
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </span>
+      </button>
+      <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
         <a class="nav-link" href="index.html">Home</a>
         <a class="nav-link" href="learn.html">Learn</a>
         <a class="nav-link" href="quiz.html">Quiz</a>
@@ -119,7 +132,7 @@
 
       <div class="about-section">
         <h2>The proof: this site practices what it teaches</h2>
-        <p class="about-lede">Anyone can write "we know this stuff" on a page. This course tries to make that a checkable claim instead of an asserted one.</p>
+        <p class="about-lede">This course's software development tool practices IEC 62304 development even when developing non-medical devices, because there is more learning in the doing.  This ensures our staff have indepth understanding of IEC 62304 intricacies.</p>
         <div class="about-proof">
           <p>This training site's own software development is documented as if it were being developed as an IEC&nbsp;62304 project with the same lifecycle discipline this course teaches, with the paperwork to show for it. See the <a href="docs/index.html">project document register</a> for the full set: a software development plan, a requirements specification, an architecture, a risk management file, a configuration management plan, and a problem resolution process, all real and current for this site, not invented as a demo.</p>
           <p>A separate <a href="docs/device-example/index.html">device example document set</a> goes further: worked IEC&nbsp;62304 documents — Standard Operating Procedures, in the shape a real QA/RA-controlled document takes — for a fictional infusion pump, precisely so you can see what the paperwork looks like when it is genuinely about patient risk, not just about a training website.</p>

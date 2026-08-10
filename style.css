@@ -438,6 +438,40 @@ a {
   align-items: center;
 }
 
+/* ===== NAV TOGGLE (HAMBURGER) =====
+   Hidden entirely above the mobile breakpoint — see the display:none here
+   and the display:inline-flex that overrides it inside the @media block in
+   RESPONSIVE, the same "hidden until narrow" pattern the rest of this file
+   uses rather than a JS-driven show/hide. Sized and styled identically to
+   .theme-toggle so the two read as a matched pair when they do appear
+   together on a narrow screen. */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-toggle-icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
+
 /* ===== THEME TOGGLE ===== */
 /* Sits at the end of the nav on every page. It is a real <button> with
    aria-pressed rather than a checkbox styled to look like a switch, because a
@@ -2960,10 +2994,48 @@ a {
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
+  /* Was flex-direction: column (logo, then the full nav row stacked below
+     it) — replaced by the hamburger. The logo and toggle now share one row
+     (flex-wrap, not column, so they sit side by side); .site-nav gets
+     flex-basis: 100% below so that when it's open it drops onto its own
+     full-width row under that, rather than needing a direction change. */
   .header-inner {
-    flex-direction: column;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
     padding: 16px;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  /* Collapsed by default below the breakpoint; .nav-open (added by
+     nav.js) is what actually reveals it. Above the breakpoint neither
+     class nor display:none here ever applies — .site-nav stays the
+     ordinary flex row it always was. */
+  .site-nav {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .site-nav.nav-open {
+    display: flex;
+  }
+
+  .nav-link {
+    padding: 12px 14px;
+  }
+
+  .theme-toggle {
+    align-self: flex-start;
+    margin-left: 0;
+    margin-top: 6px;
   }
 
   .hero {
@@ -3186,14 +3258,11 @@ a {
     flex-direction: column;
   }
 
-  .site-nav {
-    gap: 2px;
-  }
-
-  .nav-link {
-    padding: 7px 12px;
-    font-size: 0.82rem;
-  }
+  /* .site-nav's gap and .nav-link's padding/font-size used to be shrunk
+     here to keep the whole row squeezed onto one line — no longer needed
+     now .site-nav is a full-width dropdown below the hamburger (see the
+     768px breakpoint above): a dropdown wants full-size, easy-to-tap rows,
+     not smaller text. */
 
   main {
     padding: 32px 0;

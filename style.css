@@ -478,11 +478,19 @@ a {
   justify-content: center;
 }
 
+/* width/height/stroke only — NOT display. A "one class + one element"
+   selector like this one is MORE specific than the single-class
+   .icon-sun/.icon-moon rules below, so a display value set here would beat
+   theirs regardless of source order and both icons would show at once
+   (exactly what happened the first time this was written). */
 .theme-toggle-icon svg {
-  display: block;
   width: 18px;
   height: 18px;
   stroke: currentColor;
+}
+
+.icon-moon {
+  display: block;
 }
 
 .icon-sun {

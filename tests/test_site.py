@@ -568,7 +568,11 @@ def test_data():
     R.check('advanced set has 15 questions', len(loaded['advanced']) == 15, len(loaded['advanced']))
 
     # Every topic needs the fields learn.js reads, or a card renders as "undefined".
-    required = ['id', 'clause', 'title', 'icon', 'summary', 'introDetails', 'advancedDetails', 'classes']
+    # 'icon' was removed deliberately: every clause now uses the same book
+    # icon (outline, filling solid once opened — see .phase-icon in
+    # style.css and togglePhaseCard() in learn.js) instead of a per-topic
+    # emoji, so phases.json no longer carries one.
+    required = ['id', 'clause', 'title', 'summary', 'introDetails', 'advancedDetails', 'classes']
     missing = [(p.get('id', '?'), k) for p in loaded['phases'] for k in required if k not in p]
     R.check('every topic has all required fields', not missing, missing)
 
@@ -599,10 +603,16 @@ def test_data():
         # on-site preview; .pdf is what the Download button actually offers a
         # learner — see docs/render_pdf.py for why a PDF and not the .md
         # itself, which this project's own audience has no tool to read.
-        for ext in ('.md', '.html', '.pdf'):
-            if not os.path.isfile(os.path.join(ROOT, 'docs', slug + ext)):
-                missing_files.append(slug + ext)
-    R.check('every exampleDoc has a source, a rendered preview, and a downloadable PDF',
+        # Checked in BOTH document sets: docs/ (self-referential, still
+        # real, just no longer linked from the Learn page) and
+        # docs/device-example/ (the fictional-device set the Learn page's
+        # Preview/Download buttons actually point at — see
+        # buildExampleDocBlock() in learn.js).
+        for doc_dir in ('docs', os.path.join('docs', 'device-example')):
+            for ext in ('.md', '.html', '.pdf'):
+                if not os.path.isfile(os.path.join(ROOT, doc_dir, slug + ext)):
+                    missing_files.append(os.path.join(doc_dir, slug + ext))
+    R.check('every exampleDoc has a source, a rendered preview, and a downloadable PDF in both sets',
             not missing_files, missing_files)
 
     exampledoc_ids = [p['exampleDoc'] for p in loaded['phases'] if p.get('exampleDoc')]
@@ -1124,14 +1134,17 @@ def test_deliverables(browser, base):
 
 
 # ============================================================
-# GROUP — EXAMPLE ARTEFACT DOCUMENTS (docs/)
+# GROUP — EXAMPLE ARTEFACT DOCUMENTS (docs/ and docs/device-example/)
 #
-# Each Learn page card links to a worked example of the document its process
-# area would produce — see docs/README.md, docs/render.py and
-# buildExampleDocBlock() in learn.js. This group checks both ends of that
-# link: that every card actually offers a correct Preview/Download pair, and
-# that every rendered preview page it points to is a real, working page in
-# its own right — not just a file that happens to exist.
+# Each Learn page card links to a worked SOP for a fictional device (the
+# docs/device-example/ set) — see docs/device-example/README.md,
+# docs/render.py and buildExampleDocBlock() in learn.js. This group checks
+# three things: that every card offers a correct Preview/Download pair (plus
+# the separate, non-gating real-template link to stjohnlynch.com), that
+# every rendered preview page it points to is a real, working page in its
+# own right, and — since docs/render.py renders BOTH document sets with the
+# same parser — that the older self-referential set (docs/) still renders
+# correctly too, even though the Learn page no longer links to it directly.
 # ============================================================
 
 def test_docs(browser, base, axe_src):
@@ -1152,15 +1165,19 @@ def test_docs(browser, base, axe_src):
         preview = actions.locator('a').nth(0)
         download = actions.locator('a').nth(1)
 
-        R.check('%s: preview link points at the rendered page' % phase['id'],
-                preview.get_attribute('href') == 'docs/%s.html' % slug,
+        # Preview/Download point at the DEVICE example set
+        # (docs/device-example/), a fictional device's SOPs, not the site's
+        # own self-referential set (docs/) — see buildExampleDocBlock() in
+        # learn.js for why.
+        R.check('%s: preview link points at the device example set' % phase['id'],
+                preview.get_attribute('href') == 'docs/device-example/%s.html' % slug,
                 preview.get_attribute('href'))
         R.check('%s: preview opens in a new tab' % phase['id'],
                 preview.get_attribute('target') == '_blank'
                 and 'noopener' in (preview.get_attribute('rel') or ''),
                 '%s / %s' % (preview.get_attribute('target'), preview.get_attribute('rel')))
         R.check('%s: download link points at the PDF, not the markdown source' % phase['id'],
-                download.get_attribute('href') == 'docs/%s.pdf' % slug,
+                download.get_attribute('href') == 'docs/device-example/%s.pdf' % slug,
                 download.get_attribute('href'))
         R.check('%s: download link actually downloads rather than navigates' % phase['id'],
                 download.get_attribute('download') is not None)
@@ -1168,54 +1185,72 @@ def test_docs(browser, base, axe_src):
                 (download.get_attribute('download') or '').endswith('(example).pdf'),
                 download.get_attribute('download'))
 
+        # The real-template pointer to stjohnlynch.com is a separate line, not
+        # one of the two actions above, and must never carry a data-id — it
+        # is not part of what markStudied() requires (see buildExampleDocBlock).
+        real_template = pg.locator('#phase-details-%s .example-doc-real-template a' % phase['id'])
+        R.check('%s: real-template link points at the toolkit, off-site' % phase['id'],
+                real_template.get_attribute('href') == 'https://stjohnlynch.com/toolkit/',
+                real_template.get_attribute('href'))
+        R.check('%s: real-template link does not gate Mark as Studied' % phase['id'],
+                real_template.get_attribute('data-id') is None)
+
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
     ctx.close()
 
     R.group('docs — the rendered example document pages')
 
     # 'README' renders to index.html — see docs/render.py's is_register special
-    # case — everything else renders to its own name unchanged.
+    # case — everything else renders to its own name unchanged. Both document
+    # sets share the same slugs by convention (see
+    # docs/device-example/README.md, "Document shape"), so one slug list
+    # covers both; `depth` is what differs between them (docs/ is one level
+    # below the site root, docs/device-example/ is two).
     slugs = sorted(set(p['exampleDoc'] for p in topics)) + ['README']
     back_targets = {p['exampleDoc']: p['id'] for p in topics}
+    doc_sets = [('docs', '..'), ('docs/device-example', '../..')]
 
-    for slug in slugs:
-        out_name = 'index' if slug == 'README' else slug
-        ctx, pg = new_page(browser, 1100, 1000)
-        pg.goto(base + '/docs/%s.html' % out_name)
-        pg.wait_for_timeout(200)
+    for dir_path, depth in doc_sets:
+        for slug in slugs:
+            out_name = 'index' if slug == 'README' else slug
+            ctx, pg = new_page(browser, 1100, 1000)
+            pg.goto(base + '/%s/%s.html' % (dir_path, out_name))
+            pg.wait_for_timeout(200)
 
-        R.check('%s: page has a non-empty heading' % out_name,
-                bool(pg.locator('h1').inner_text().strip()))
-        R.check('%s: training-example banner is present' % out_name,
-                'training' in norm(pg.locator('.example-banner-content').inner_text())
-                and 'samd' in norm(pg.locator('.example-banner-content').inner_text()),
-                pg.locator('.example-banner-content').inner_text()[:160])
+            label = '%s/%s' % (dir_path, out_name)
 
-        expected_back = ('../learn.html#phase-%s' % back_targets[slug]
-                          if slug in back_targets else '../learn.html')
-        back_link = pg.locator('.doc-preview-actions a').first
-        R.check('%s: "Back to Learn" resolves to the right card' % out_name,
-                back_link.get_attribute('href') == expected_back,
-                back_link.get_attribute('href'))
+            R.check('%s: page has a non-empty heading' % label,
+                    bool(pg.locator('h1').inner_text().strip()))
+            R.check('%s: training-example banner is present' % label,
+                    'training' in norm(pg.locator('.example-banner-content').inner_text())
+                    and 'samd' in norm(pg.locator('.example-banner-content').inner_text()),
+                    pg.locator('.example-banner-content').inner_text()[:160])
 
-        download_link = pg.locator('.doc-preview-actions a[download]')
-        R.check('%s: PDF download link is present, not the markdown source' % out_name,
-                download_link.count() == 1 and
-                download_link.get_attribute('href') == '%s.pdf' % out_name,
-                download_link.get_attribute('href') if download_link.count() else 'missing')
+            expected_back = ('%s/learn.html#phase-%s' % (depth, back_targets[slug])
+                              if slug in back_targets else '%s/learn.html' % depth)
+            back_link = pg.locator('.doc-preview-actions a').first
+            R.check('%s: "Back to Learn" resolves to the right card' % label,
+                    back_link.get_attribute('href') == expected_back,
+                    back_link.get_attribute('href'))
 
-        ok = pg.evaluate(
-            '() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1')
-        R.check('%s: no horizontal overflow at 1100px' % out_name, ok)
+            download_link = pg.locator('.doc-preview-actions a[download]')
+            R.check('%s: PDF download link is present, not the markdown source' % label,
+                    download_link.count() == 1 and
+                    download_link.get_attribute('href') == '%s.pdf' % out_name,
+                    download_link.get_attribute('href') if download_link.count() else 'missing')
 
-        R.check('%s: no JavaScript errors' % out_name, not pg.js_errors, pg.js_errors)
+            ok = pg.evaluate(
+                '() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1')
+            R.check('%s: no horizontal overflow at 1100px' % label, ok)
 
-        if axe_src:
-            v = axe_violations(pg, axe_src)
-            R.check('%s: no accessibility violations' % out_name, not v,
-                    [x['id'] for x in v])
+            R.check('%s: no JavaScript errors' % label, not pg.js_errors, pg.js_errors)
 
-        ctx.close()
+            if axe_src:
+                v = axe_violations(pg, axe_src)
+                R.check('%s: no accessibility violations' % label, not v,
+                        [x['id'] for x in v])
+
+            ctx.close()
 
 
 # ============================================================
@@ -1235,11 +1270,22 @@ def test_learn(browser, base):
     R.check('progress total reads 13', pg.locator('#progress-total').inner_text() == '13',
             pg.locator('#progress-total').inner_text())
 
+    # Read More vs. Mark as Studied — checked here, before anything below
+    # expands a card, because 'opened' (see togglePhaseCard() in learn.js)
+    # is one-way: once any test interaction opens the first card, it stays
+    # opened for the rest of this page's lifetime, same as a real visitor.
+    R.check('Read More shown on an unopened card, not Mark as Studied',
+            pg.locator('.read-more-btn').first.is_visible()
+            and not pg.locator('.mark-studied-btn').first.is_visible())
+
     # expand / collapse
     header = pg.locator('.phase-header').first
     header.click()
     R.check('click expands a card',
             'expanded' in (pg.locator('.phase-card').first.get_attribute('class') or ''))
+    R.check('opening the card swaps in Mark as Studied',
+            pg.locator('.mark-studied-btn').first.is_visible()
+            and not pg.locator('.read-more-btn').first.is_visible())
     R.check('aria-expanded becomes true', header.get_attribute('aria-expanded') == 'true')
     header.click()
     R.check('click collapses it again',
@@ -1369,7 +1415,10 @@ def test_learn(browser, base):
     # progress tracker — marking a topic studied now requires having opened
     # its example document first (Preview or Download counts, see
     # markStudied() in learn.js). The first attempt below is expected to be
-    # BLOCKED, not to succeed.
+    # BLOCKED, not to succeed. Mark as Studied is already visible on this
+    # card by this point — the expand/collapse checks near the top of this
+    # function opened it, and 'opened' never reverts (see the Read More vs.
+    # Mark as Studied checks up there for the un-opened state).
     first_id = pg.locator('.phase-card').first.get_attribute('id').replace('phase-', '', 1)
     pg.locator('.mark-studied-btn').first.click()
     R.check('marking studied without previewing the document is blocked',
@@ -1404,7 +1453,8 @@ def test_learn(browser, base):
     pg2.goto(base + '/learn.html')
     pg2.wait_for_selector('.phase-card', timeout=10000)
     second_id = pg2.locator('.phase-card').nth(1).get_attribute('id').replace('phase-', '', 1)
-    pg2.locator('.mark-studied-btn').nth(1).click()  # blocked; expands the card
+    pg2.locator('.phase-header').nth(1).click()  # open the card so Mark as Studied appears
+    pg2.locator('.mark-studied-btn').nth(1).click()  # blocked; not previewed/downloaded yet
     with pg2.expect_download():
         pg2.locator('.example-doc-download').nth(1).click()
     pg2.locator('.mark-studied-btn').nth(1).click()
@@ -2343,7 +2393,8 @@ def test_a11y_dark(browser, base, axe_src):
         ctx, pg = dark_ctx(browser, scheme)
         pg.goto(base + '/learn.html')
         pg.wait_for_selector('.phase-card', timeout=10000)
-        pg.locator('.mark-studied-btn').first.click()  # blocked; auto-expands the card
+        pg.locator('.phase-header').first.click()  # open the card so Mark as Studied appears
+        pg.locator('.mark-studied-btn').first.click()  # blocked; not previewed/downloaded yet
         with pg.expect_popup() as popup:
             pg.locator('.example-doc-preview').first.click()
         popup.value.close()

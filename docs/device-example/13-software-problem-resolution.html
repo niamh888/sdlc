@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>13 — Software Problem Resolution Process (Device Example) (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>13 — Software Problem Resolution Process (Device Example)</h1>
+        <p>Example artefact from the SentinelFlow 500 device example set — a fictional medical device invented for this course — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html#phase-problem-resolution">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="13-software-problem-resolution.pdf" download="13 — Software Problem Resolution Process (Device Example) (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 9 — Problem Resolution Process · <strong>Register:</strong> <a href="index.html">Device Example Register</a></p>
+<p><strong>Document ID:</strong> SOP-13 · <strong>Device:</strong> SentinelFlow 500 (fictional) · <strong>Safety class:</strong> C <strong>Status:</strong> SOP — template (Procedure not yet written for SentinelFlow 500)</p>
+<blockquote><p><strong>Fictional worked example.</strong> See <a href="01-general-requirements-and-classification.html">SOP-01</a> for the disclaimer that applies to this whole document set, and the <a href="index.html">Device Example Register</a> for the SentinelFlow 500 device description and what "template" status means here.</p></blockquote>
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This SOP defines how every problem found in SentinelFlow 500's software — during development, testing, or after release — is reported, investigated, resolved, verified, and analysed for trends, per Clause 9. Every other SOP in this set that finds an anomaly (SOP-06 through SOP-10) hands it to this process rather than resolving it informally.</p>
+<h2 id="2-scope">2. Scope</h2>
+<p>Applies to every problem detected in SentinelFlow 500's control software at any lifecycle stage (Class C — see <a href="01-general-requirements-and-classification.html#73-software-safety-classification-43">SOP-01 §7.3</a>). Covers Clause 9 in full — every sub-clause applies to all three safety classes.</p>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Role, Responsibility under this SOP"><table class="legal-table"><thead><tr><th scope="col">Role</th><th scope="col">Responsibility under this SOP</th></tr></thead><tbody><tr><td>Reporter (any role)</td><td>Prepares a problem report for each problem detected</td></tr><tr><td>Software Development Lead</td><td>Investigates the problem; determines a change request or documents a rationale for no action</td></tr><tr><td>Risk Manager</td><td>Evaluates each problem report's effect on safety</td></tr><tr><td>QA/RA</td><td>Verifies resolution closed the problem, introduced no new problems, and analyses trends across problem reports</td></tr></tbody></table></div>
+<h2 id="4-definitions--abbreviations">4. Definitions &amp; Abbreviations</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Term, Meaning"><table class="legal-table"><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>Problem report</td><td>The record of a detected problem, including its criticality and information aiding resolution</td></tr><tr><td>Trend analysis</td><td>Reviewing problem data over time to detect a recurring, systemic design or process weakness</td></tr></tbody></table></div>
+<h2 id="5-references">5. References</h2>
+<ul><li>IEC 62304:2006+AMD1:2015, Clause 9</li><li><strong>SOP-11 — Software Risk Management File</strong>: updated whenever a resolved problem affects the risk picture (§9.5)</li><li><strong>SOP-10 — Software Maintenance Plan</strong>: the feedback channel that raises most post-release problem reports</li></ul>
+<h2 id="6-what-the-standard-requires">6. What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>9.1</td><td>Prepare problem reports</td><td>Yes</td><td>A problem report for each problem detected, including a statement of criticality and information aiding resolution</td></tr><tr><td>9.2</td><td>Investigate the problem</td><td>Yes</td><td>Documented outcome of the investigation and evaluation, and either a change request or a documented rationale for taking no action</td></tr><tr><td>9.3</td><td>Advise relevant parties</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>9.4</td><td>Use change control process</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>9.5</td><td>Maintain records</td><td>Yes</td><td>Records of problem reports and their resolution including verification, and an updated risk management file</td></tr><tr><td>9.6</td><td>Analyse problems for trends</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>9.7</td><td>Verify software problem resolution</td><td>Yes</td><td>Verification that each resolution closed the problem, reversed adverse trends, was implemented in the right software and activities, and introduced no new problems</td></tr><tr><td>9.8</td><td>Test documentation contents</td><td>Yes</td><td>Test documentation for testing, retesting or regression testing after a change: results, anomalies, software version, hardware and software test configuration, test tools, date and tester</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code>, identical in content to the self-referential set's <a href="../13-software-problem-resolution.html">13</a>, whose Status is itself marked "Documented — strong evidence".)</p>
+<h2 id="7-procedure">7. Procedure</h2>
+<p><em>Not yet written for SentinelFlow 500 — see the <a href="index.html">Device Example Register</a> for what "template" status means. Once complete, this section would give SentinelFlow 500's actual problem-report format, its criticality scale, and worked examples of problems raised against the hazards identified in SOP-11.</em></p>
+<h3 id="9192--prepare-and-investigate-problem-reports">9.1–9.2 — Prepare and investigate problem reports</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="9394--advise-relevant-parties-use-change-control">9.3–9.4 — Advise relevant parties; use change control</h3>
+<p><strong>[Template — see SOP-12 for the change control process this section relies on.]</strong></p>
+<h3 id="95--maintain-records">9.5 — Maintain records</h3>
+<p><strong>[Template — see SOP-11, which this section keeps updated.]</strong></p>
+<h3 id="9698--trend-analysis-resolution-verification-test-documentation">9.6–9.8 — Trend analysis, resolution verification, test documentation</h3>
+<p><strong>[Template.]</strong></p>
+<h2 id="8-records">8. Records</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Record, Produced by, Retained in"><table class="legal-table"><thead><tr><th scope="col">Record</th><th scope="col">Produced by</th><th scope="col">Retained in</th></tr></thead><tbody><tr><td>Problem reports</td><td>Reporter</td><td>Problem resolution log</td></tr><tr><td>Investigation and resolution records</td><td>Software Development Lead</td><td>Problem resolution log</td></tr><tr><td>Trend analysis</td><td>QA/RA</td><td>Problem resolution log</td></tr></tbody></table></div>
+<h2 id="9-revision-history">9. Revision History</h2>
+<p><em>Illustrative only — SentinelFlow 500 has no real revision history.</em></p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Version, Status, Description"><table class="legal-table"><thead><tr><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Description</th></tr></thead><tbody><tr><td>1.0</td><td>Template</td><td>Structure and requirements table complete; Procedure section pending</td></tr></tbody></table></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

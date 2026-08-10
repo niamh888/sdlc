@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11 — Software Risk Management File (Device Example) (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>11 — Software Risk Management File (Device Example)</h1>
+        <p>Example artefact from the SentinelFlow 500 device example set — a fictional medical device invented for this course — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html#phase-risk-management">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="11-software-risk-management-file.pdf" download="11 — Software Risk Management File (Device Example) (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 7 — Software Risk Management · <strong>Register:</strong> <a href="index.html">Device Example Register</a></p>
+<p><strong>Document ID:</strong> SOP-11 · <strong>Device:</strong> SentinelFlow 500 (fictional) · <strong>Safety class:</strong> C <strong>Status:</strong> SOP — partial worked example (hazard analysis drafted; risk control verification and traceability not yet written)</p>
+<blockquote><p><strong>Fictional worked example.</strong> See <a href="01-general-requirements-and-classification.html">SOP-01</a> for the disclaimer that applies to this whole document set, and the <a href="index.html">Device Example Register</a> for the SentinelFlow 500 device description and what "template" status means here.</p></blockquote>
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This SOP defines how software items that could contribute to a hazardous situation are identified, how their risk is evaluated and controlled, and how those activities integrate with the ISO 14971 device risk management process, per Clause 7. It is the SOP the classification rationale in <a href="01-general-requirements-and-classification.html#73-software-safety-classification-43">SOP-01 §7.3</a> is drawn from.</p>
+<h2 id="2-scope">2. Scope</h2>
+<p>Applies to all software items in SentinelFlow 500's control software (Class C — see SOP-01 §7.3). Covers Clause 7 in full. §7.4.1 (analyse changes to the software with respect to safety) is the only requirement in Clause 7 that applies at Class A; every other sub-clause applies at Class B and C only, since a Class A software item cannot by definition contribute to a hazardous situation.</p>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Role, Responsibility under this SOP"><table class="legal-table"><thead><tr><th scope="col">Role</th><th scope="col">Responsibility under this SOP</th></tr></thead><tbody><tr><td>Risk Manager</td><td>Owns the risk management file; integrates software risk activities with the device-level ISO 14971 process</td></tr><tr><td>Software Development Lead</td><td>Identifies software items and their potential causes of contribution to a hazardous situation</td></tr><tr><td>QA/RA</td><td>Confirms verification of risk control measures is documented before release</td></tr></tbody></table></div>
+<h2 id="4-definitions--abbreviations">4. Definitions &amp; Abbreviations</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Term, Meaning"><table class="legal-table"><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>Hazard</td><td>A potential source of harm (e.g. incorrect dose delivered)</td></tr><tr><td>Hazardous situation</td><td>The circumstance in which a person is exposed to a hazard (e.g. patient receives the incorrect dose) — the Amendment 1 terminology this SOP uses throughout</td></tr><tr><td>Risk control measure</td><td>An action implemented in software to reduce the probability or severity of a hazardous situation</td></tr></tbody></table></div>
+<h2 id="5-references">5. References</h2>
+<ul><li>IEC 62304:2006+AMD1:2015, Clause 7</li><li>ISO 14971 — the device-level risk management process this file feeds</li><li><strong>SOP-01 — General Requirements &amp; Classification</strong>: the classification this file's hazard analysis supports</li><li><strong>SOP-03 — Software Requirements Specification</strong>: where risk control measures identified here are implemented as requirements (§5.2.3)</li></ul>
+<h2 id="6-what-the-standard-requires">6. What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>7.1.1</td><td>Identify software items that could contribute to a hazardous situation</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>7.1.2</td><td>Identify potential causes of contribution to a hazardous situation</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>7.1.3</td><td>Evaluate published SOUP anomaly lists</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>7.1.4</td><td>Document potential causes</td><td>Yes</td><td>Potential causes of the software item contributing to a hazardous situation, documented in the risk management file</td></tr><tr><td>7.1.5</td><td>Deleted by Amendment 1</td><td>No — deleted</td><td>—</td></tr><tr><td>7.2.1</td><td>Define risk control measures</td><td>Yes</td><td>Documented risk control measures for each case where a software item could contribute to a hazardous situation</td></tr><tr><td>7.2.2</td><td>Risk control measures implemented in software</td><td>Yes</td><td>Risk control measures included in the software requirements, with a safety class assigned to each implementing software item</td></tr><tr><td>7.3.1</td><td>Verify risk control measures</td><td>Yes</td><td>Documented verification of each risk control measure, and a review of whether it could itself result in a new hazardous situation</td></tr><tr><td>7.3.2</td><td>Not used (Amendment 1)</td><td>No — deleted</td><td>—</td></tr><tr><td>7.3.3</td><td>Document traceability</td><td>Yes</td><td>Documented traceability from hazardous situation to software item, to software cause, to risk control measure, to verification of that measure</td></tr><tr><td>7.4.1</td><td>Analyse changes to medical device software with respect to safety</td><td>Yes (only Clause 7 requirement reaching Class A)</td><td>Analysis of changes to the software, including SOUP, for additional potential causes and additional risk control measures needed</td></tr><tr><td>7.4.2</td><td>Analyse impact of software changes on existing risk control measures</td><td>Yes</td><td>Analysis of whether software changes, including SOUP changes, could interfere with existing risk control measures</td></tr><tr><td>7.4.3</td><td>Perform risk management activities based on analyses</td><td>Yes</td><td>(No standard-named output.)</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code>, identical in content to the self-referential set's <a href="../11-software-risk-management-file.html">11</a>, whose Status is itself marked "Documented — reflexive": that document uses risk management to describe the risk of teaching a reader something wrong, rather than patient harm — the gap this device-example version exists to fill.)</p>
+<h2 id="7-procedure">7. Procedure</h2>
+<h3 id="71--hazard-analysis-711714">7.1 — Hazard analysis (§7.1.1–7.1.4)</h3>
+<p>The three failure modes already reasoned through in <a href="01-general-requirements-and-classification.html#73-software-safety-classification-43">SOP-01 §7.3</a> to justify Class C form the starting hazard analysis for the delivery-control software item:</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: #, Software cause, Hazardous situation, Potential harm, Risk control measure (§7.2.1)"><table class="legal-table"><thead><tr><th scope="col">#</th><th scope="col">Software cause</th><th scope="col">Hazardous situation</th><th scope="col">Potential harm</th><th scope="col">Risk control measure (§7.2.1)</th></tr></thead><tbody><tr><td>H-1</td><td>Occlusion-sensor software path fails to raise an alarm on a blocked line</td><td>Time-critical drug (e.g. vasoactive infusion) silently stops reaching the patient</td><td>Death or serious injury, depending on drug</td><td>Independent software watchdog on the occlusion-sensor read path; audible + visual alarm within a bounded response time</td></tr><tr><td>H-2</td><td>Software fails to keep the motor stopped when it should be closed (e.g. during a pause, or set change)</td><td>Free-flow over-infusion — the reservoir empties into the patient far faster than programmed</td><td>Death or serious injury</td><td>Software-enforced motor lock during any non-delivering state; state confirmed by sensor feedback, not command alone</td></tr><tr><td>H-3</td><td>Parameter validation fails to catch a rate outside the configured safe range for the selected drug profile</td><td>Order-of-magnitude dosing error delivered as if correct</td><td>Death or serious injury</td><td>Dose-rate validation against a configurable per-profile safe range before delivery starts, rejecting out-of-range programming</td></tr></tbody></table></div>
+<p>Each of these is the sole software-level control between a plausible failure and patient harm, which is the Class C condition applied in SOP-01. §7.1.3 (evaluate published SOUP anomaly lists) has no entries yet: no SOUP component has been identified in the architecture (SOP-04 is itself still a template), so there is nothing to evaluate against published anomaly lists until that section is written.</p>
+<h3 id="7273--risk-control-measures-their-implementation-and-verification">7.2–7.3 — Risk control measures, their implementation, and verification</h3>
+<p><strong>[Template — the risk control measures in the table above are named but not yet carried through to specific software requirements (SOP-03) or verified (§7.3.1). Traceability (§7.3.3) from hazardous situation → software item → cause → control → verification cannot be completed until SOP-03 and SOP-04 are written.]</strong></p>
+<h3 id="74--change-analysis">7.4 — Change analysis</h3>
+<p><strong>[Template — no software change has occurred yet for SentinelFlow 500 to analyse.]</strong></p>
+<h2 id="8-records">8. Records</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Record, Produced by, Retained in"><table class="legal-table"><thead><tr><th scope="col">Record</th><th scope="col">Produced by</th><th scope="col">Retained in</th></tr></thead><tbody><tr><td>Hazard analysis (§7.1)</td><td>Risk Manager</td><td>This risk management file</td></tr><tr><td>Risk control measure verification (§7.3.1), once written</td><td>Risk Manager</td><td>This risk management file</td></tr><tr><td>Traceability matrix (hazard → cause → control → verification), once written</td><td>Risk Manager</td><td>This risk management file</td></tr></tbody></table></div>
+<h2 id="9-revision-history">9. Revision History</h2>
+<p><em>Illustrative only — SentinelFlow 500 has no real revision history.</em></p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Version, Status, Description"><table class="legal-table"><thead><tr><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Description</th></tr></thead><tbody><tr><td>1.0</td><td>Partial</td><td>Hazard analysis (§7.1) drafted for the three failure modes underlying the Class C classification; risk control verification and traceability pending</td></tr></tbody></table></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

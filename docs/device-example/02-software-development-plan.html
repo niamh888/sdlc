@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02 — Software Development Plan (Device Example) (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>02 — Software Development Plan (Device Example)</h1>
+        <p>Example artefact from the SentinelFlow 500 device example set — a fictional medical device invented for this course — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html#phase-planning">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="02-software-development-plan.pdf" download="02 — Software Development Plan (Device Example) (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 5.1 — Software Development Planning · <strong>Register:</strong> <a href="index.html">Device Example Register</a></p>
+<p><strong>Document ID:</strong> SOP-02 · <strong>Device:</strong> SentinelFlow 500 (fictional) · <strong>Safety class:</strong> C <strong>Status:</strong> SOP — template (Procedure not yet written for SentinelFlow 500)</p>
+<blockquote><p><strong>Fictional worked example.</strong> See <a href="01-general-requirements-and-classification.html">SOP-01</a> for the disclaimer that applies to this whole document set, and the <a href="index.html">Device Example Register</a> for the SentinelFlow 500 device description and what "template" status means here.</p></blockquote>
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This SOP defines the Software Development Plan (SDP) for SentinelFlow 500: the lifecycle model, deliverables, tools, and standards its software development follows, and how that plan stays consistent with device-level planning, configuration management, and risk management.</p>
+<h2 id="2-scope">2. Scope</h2>
+<p>Applies to all software development planning for SentinelFlow 500's control software (Class C — see <a href="01-general-requirements-and-classification.html#73-software-safety-classification-43">SOP-01 §7.3</a>). Covers Clause 5.1 in full. Does not itself define the configuration management scheme or the risk management plan in detail — those are owned by SOP-12 and SOP-11 respectively and referenced from here.</p>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Role, Responsibility under this SOP"><table class="legal-table"><thead><tr><th scope="col">Role</th><th scope="col">Responsibility under this SOP</th></tr></thead><tbody><tr><td>Software Development Lead</td><td>Authors and maintains the SDP; keeps it updated as scope, schedule, or tools change</td></tr><tr><td>QA/RA</td><td>Reviews and approves the SDP and any material revision to it</td></tr><tr><td>Configuration Manager</td><td>Confirms the SDP's configuration management section is consistent with SOP-12</td></tr><tr><td>Risk Manager</td><td>Confirms the SDP's risk management planning section is consistent with SOP-11</td></tr></tbody></table></div>
+<h2 id="4-definitions--abbreviations">4. Definitions &amp; Abbreviations</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Term, Meaning"><table class="legal-table"><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>SDP</td><td>Software Development Plan</td></tr><tr><td>SOUP</td><td>Software of Unknown Provenance — third-party or pre-existing software components</td></tr><tr><td>Lifecycle model</td><td>The overall structure of development activities this plan commits to (e.g. V-model, incremental)</td></tr></tbody></table></div>
+<h2 id="5-references">5. References</h2>
+<ul><li>IEC 62304:2006+AMD1:2015, §5.1</li><li><strong>SOP-01 — General Requirements &amp; Classification</strong>: the QMS and classification context this plan operates inside</li><li><strong>SOP-11 — Software Risk Management File</strong>: the risk management process this plan's §5.1.7 planning section commits to</li><li><strong>SOP-12 — Software Configuration Management Plan</strong>: the configuration management approach this plan's §5.1.9–5.1.11 sections commit to</li></ul>
+<h2 id="6-what-the-standard-requires">6. What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>5.1.1</td><td>Software development plan</td><td>Yes</td><td>Software development plan</td></tr><tr><td>5.1.2</td><td>Keep software development plan updated</td><td>Yes</td><td>Software development plan, kept updated as development proceeds</td></tr><tr><td>5.1.3</td><td>Software development plan reference to system design and development</td><td>Yes</td><td>System requirements referenced in the plan, and procedures for coordinating software development with system development</td></tr><tr><td>5.1.4</td><td>Software development standards, methods and tools planning</td><td>Yes</td><td>Standards, methods and tools for Class C software items, included or referenced in the plan</td></tr><tr><td>5.1.5</td><td>Software integration and integration testing planning</td><td>Yes</td><td>Plan to integrate the software items (including SOUP) and to test during integration</td></tr><tr><td>5.1.6</td><td>Software verification planning</td><td>Yes</td><td>Verification planning: deliverables requiring verification, the verification tasks, the milestones, and the acceptance criteria</td></tr><tr><td>5.1.7</td><td>Software risk management planning</td><td>Yes</td><td>Plan to conduct the software risk management process, including risks relating to SOUP</td></tr><tr><td>5.1.8</td><td>Documentation planning</td><td>Yes</td><td>Documentation planning: for each document, its title or naming convention, purpose, and the procedures and responsibilities for development, review, approval and modification</td></tr><tr><td>5.1.9</td><td>Software configuration management planning</td><td>Yes</td><td>Software configuration management information: what is controlled, the activities and tasks, the responsible organisations, when items come under control, and when problem resolution is used</td></tr><tr><td>5.1.10</td><td>Supporting items to be controlled</td><td>Yes</td><td>Tools, items and settings used to develop the software, included in the items to be controlled</td></tr><tr><td>5.1.11</td><td>Software configuration item control before verification</td><td>Yes</td><td>Plan to place configuration items under configuration management control before they are verified</td></tr><tr><td>5.1.12</td><td>Identification and avoidance of common software defects</td><td>Yes</td><td>Procedure for identifying categories of defect relevant to the chosen programming technology, and evidence that those defects do not contribute to unacceptable risk</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code>, identical in content to the self-referential set's <a href="../02-software-development-plan.html">02</a> — the requirements don't change with the device, only the answers do.)</p>
+<h2 id="7-procedure">7. Procedure</h2>
+<p><em>Not yet written for SentinelFlow 500 — see the <a href="index.html">Device Example Register</a> for what "template" status means. Each sub-clause below would, once completed, describe SentinelFlow 500's actual lifecycle model, its development standards and tools, its integration and verification planning, and its documentation plan — the device-specific answer to each row of the table in §6.</em></p>
+<h3 id="511513--the-plan-itself-kept-updated-referenced-to-system-development">5.1.1–5.1.3 — The plan itself, kept updated, referenced to system development</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="514--development-standards-methods-and-tools">5.1.4 — Development standards, methods and tools</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="515--integration-and-integration-testing-planning">5.1.5 — Integration and integration testing planning</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="516--verification-planning">5.1.6 — Verification planning</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="517--risk-management-planning">5.1.7 — Risk management planning</h3>
+<p><strong>[Template — see SOP-11 for the risk management process this section would commit to.]</strong></p>
+<h3 id="518--documentation-planning">5.1.8 — Documentation planning</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="5195111--configuration-management-planning">5.1.9–5.1.11 — Configuration management planning</h3>
+<p><strong>[Template — see SOP-12 for the configuration management approach this section would commit to.]</strong></p>
+<h3 id="5112--identification-and-avoidance-of-common-software-defects">5.1.12 — Identification and avoidance of common software defects</h3>
+<p><strong>[Template.]</strong></p>
+<h2 id="8-records">8. Records</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Record, Produced by, Retained in"><table class="legal-table"><thead><tr><th scope="col">Record</th><th scope="col">Produced by</th><th scope="col">Retained in</th></tr></thead><tbody><tr><td>Software Development Plan, current version</td><td>Software Development Lead</td><td>Project technical file</td></tr><tr><td>SDP revision history</td><td>Software Development Lead</td><td>Project technical file</td></tr></tbody></table></div>
+<h2 id="9-revision-history">9. Revision History</h2>
+<p><em>Illustrative only — SentinelFlow 500 has no real revision history.</em></p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Version, Status, Description"><table class="legal-table"><thead><tr><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Description</th></tr></thead><tbody><tr><td>1.0</td><td>Template</td><td>Structure and requirements table complete; Procedure section pending</td></tr></tbody></table></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

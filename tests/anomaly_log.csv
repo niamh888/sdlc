@@ -2,3 +2,5 @@ id,status,group,test,first_seen,last_seen,times_seen,closed_on,risk_of_harm,deta
 ANOM-0001,Closed,docs — the rendered example document pages,04-software-architecture: no accessibility violations,2026-08-05,2026-08-05,1,2026-08-05,,['scrollable-region-focusable']
 ANOM-0002,Closed,docs — the rendered example document pages,03-software-requirements-specification: no accessibility violations,2026-08-05,2026-08-05,1,2026-08-05,,['landmark-unique']
 ANOM-0003,Closed,data — content files,topic ids are unique,2026-08-05,2026-08-05,1,2026-08-05,Yes,"['planning', 'planning']"
+ANOM-0004,Closed,data — content files,every topic has all required fields,2026-08-10,2026-08-10,1,2026-08-10,Yes,"[('general-requirements', 'icon'), ('planning', 'icon'), ('requirements', 'icon'), ('architecture', 'icon'), ('detailed-design', 'icon'), ('implementation', 'icon'), ('integration', 'icon'), ('system-testing', 'icon'), ('release', 'icon'), ('maintenance', 'icon'), ('risk-management', 'icon'), ('conf"
+ANOM-0005,Closed,learn — features,"Read More shown on an unopened card, not Mark as Studied",2026-08-10,2026-08-10,1,2026-08-10,No,

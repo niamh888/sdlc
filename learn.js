@@ -316,6 +316,18 @@ function renderPhases() {
         // showing the message never shifts the button underneath it.
         '<span class="field-error" id="studied-error-' + phase.id + '" role="alert"></span>' +
         '<span class="studied-badge">&#10003; Studied</span>' +
+        // Two buttons live in the same slot; CSS shows exactly one at a time,
+        // keyed off .phase-card.opened (see togglePhaseCard). Before the card
+        // has ever been expanded, "Mark as Studied" would be asking the
+        // reader to certify content they have not seen yet — so the footer
+        // offers "Read More" instead, which simply expands the card (same
+        // action as clicking the header). Once opened, Read More disappears
+        // and Mark as Studied takes its place. A real, visible, enabled
+        // button is present in the footer at all times either way, so this
+        // is a swap in meaning, not content hidden without explanation.
+        '<button class="btn btn-secondary read-more-btn" data-id="' + phase.id + '" aria-controls="phase-details-' + phase.id + '">' +
+          'Read More' +
+        '</button>' +
         '<button class="btn btn-secondary mark-studied-btn" data-id="' + phase.id + '"' + (isStudied ? ' disabled' : '') + '>' +
           (isStudied ? '&#10003; Studied' : 'Mark as Studied') +
         '</button>' +
@@ -610,8 +622,17 @@ function buildExampleDocBlock(phase) {
   // silently break if a future topic is added without it.
   if (!phase.exampleDoc) return '';
 
-  const previewHref = 'docs/' + phase.exampleDoc + '.html';
-  const downloadHref = 'docs/' + phase.exampleDoc + '.pdf';
+  // Preview/Download point at the DEVICE example set (docs/device-example/),
+  // not the site's own self-referential set (docs/). The self-referential
+  // set documents this training website's own development — real evidence,
+  // but about a website, not a medical device — which was misleading here:
+  // a reader clicking "Preview example document" on a clause card should see
+  // what that clause's deliverable looks like for an actual device, not for
+  // the site itself. The device set (SentinelFlow 500, a fictional infusion
+  // pump — see docs/device-example/README.md) exists for exactly that. Both
+  // sets are still real, readable documents; only the link target moved.
+  const previewHref = 'docs/device-example/' + phase.exampleDoc + '.html';
+  const downloadHref = 'docs/device-example/' + phase.exampleDoc + '.pdf';
   // The `download` attribute's VALUE is the filename the browser offers to
   // save as — it does not need to match the URL. Used here so the file a
   // learner actually gets is named for the document, not for its slug on
@@ -624,11 +645,11 @@ function buildExampleDocBlock(phase) {
   return '' +
     '<div class="example-doc">' +
       '<p class="example-doc-label">' +
-        '<strong>Example artefact</strong> &mdash; a worked example of the document ' +
-        'this process area would produce, from this project&rsquo;s own IEC ' +
-        '62304-style lifecycle documentation. Training example only &mdash; this ' +
-        'site is not a real medical device and this is not a genuine regulatory ' +
-        'deliverable.' +
+        '<strong>Example artefact</strong> &mdash; a worked example of the SOP ' +
+        'this process area would produce, for &ldquo;SentinelFlow 500&rdquo;, a ' +
+        'fictional infusion pump invented for this course. Training example only ' +
+        '&mdash; SentinelFlow 500 does not exist and this is not a genuine ' +
+        'regulatory deliverable.' +
       '</p>' +
       '<div class="example-doc-actions">' +
         '<a class="btn btn-secondary example-doc-preview" href="' + previewHref + '"' +
@@ -640,6 +661,18 @@ function buildExampleDocBlock(phase) {
           ' aria-label="Download example document for ' + phase.title + ' as PDF">' +
           'Download (PDF)</a>' +
       '</div>' +
+      // A separate, deliberately lower-key line: this is an upsell to a real
+      // St John Lynch & Co product, not part of the free preview/download
+      // pair above, so it is neither styled as a third button nor wired into
+      // previewedDocs (no data-id) — it must never gate Mark as Studied the
+      // way Preview/Download do, since a learner who never buys a template
+      // pack has still fully engaged with the free example.
+      '<p class="example-doc-real-template">' +
+        'Want the real, editable version this is modelled on? ' +
+        '<a href="https://stjohnlynch.com/toolkit/" target="_blank" rel="noopener noreferrer">' +
+          'Get St John Lynch &amp; Co&rsquo;s SOP template pack&nbsp;&#8599;' +
+        '</a>' +
+      '</p>' +
     '</div>';
 }
 
@@ -702,6 +735,7 @@ function setLevel(level) {
 function handleCardClick(e) {
   const docLink = e.target.closest('.example-doc-actions a');
   const studiedBtn = e.target.closest('.mark-studied-btn');
+  const readMoreBtn = e.target.closest('.read-more-btn');
   const header = e.target.closest('.phase-header');
 
   // Preview and Download are real <a> tags with a real href — this handler
@@ -717,6 +751,14 @@ function handleCardClick(e) {
 
   if (studiedBtn) {
     markStudied(studiedBtn.dataset.id);
+    return;
+  }
+
+  // Read More is only ever shown on a card that hasn't been opened yet (see
+  // the CSS keyed off .phase-card.opened), so it can only ever expand —
+  // never collapse — the card it belongs to.
+  if (readMoreBtn && readMoreBtn.dataset.id) {
+    togglePhaseCard(readMoreBtn.dataset.id);
     return;
   }
 

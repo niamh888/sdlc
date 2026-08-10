@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Example Document Register (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Device Example Document Register</h1>
+        <p>The index of the SentinelFlow 500 device example document set — a fictional medical device invented for this course, so IEC 62304 paperwork about hazards and patient risk could be shown in full.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="index.pdf" download="Device Example Document Register (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p>This folder is a <strong>second</strong>, parallel document set to the one in <a href="../index.html">docs/</a>. Where that set documents this training website's own development — real evidence, but about a website, not a device — this one documents a fictional medical device, invented purely so a reader can see what IEC 62304 paperwork looks like when it's actually about patient risk: hazards, essential performance, alarms, a hardware/software interface. None of it is real evidence of anything; all of it is illustrative.</p>
+<h2 id="what-this-is-and-is-not">What this is, and is not</h2>
+<p><strong>SentinelFlow 500 does not exist.</strong> It is a fictional ambulatory infusion pump, invented for this course. Nothing in this folder is a real regulatory submission, a real device's documentation, or evidence of any real organisation's compliance with anything. See <a href="01-general-requirements-and-classification.html">01 — General Requirements &amp; Classification</a> for the classification reasoning this whole set is built on.</p>
+<h2 id="the-device">The device</h2>
+<p><strong>SentinelFlow 500</strong> is a fictional ambulatory infusion pump for continuous and intermittent delivery of intravenous medication in a hospital setting. Clinical staff programme a flow rate, total volume, and duration; the pump delivers to those parameters until complete, paused, or stopped. The software under discussion throughout this document set is the pump's embedded control software: it drives the delivery motor, reads the occlusion, air-in-line and door-open sensors, validates programmed parameters against configurable dose-rate limits before delivery starts, and drives the display and alarms. Every document in this set describes the same device — this section is the one place its description lives, so it is referenced rather than repeated.</p>
+<p><strong>Classification: Class C</strong> (see <a href="01-general-requirements-and-classification.html#7-procedure">01</a> for the reasoning) — the control software is the sole control measure between a programming or delivery-monitoring failure and patient harm, which is exactly the condition IEC 62304 §4.3 names for Class C. Every one of the 13 process areas therefore applies in full, the same as the site's own <a href="../index.html#why-class-c">self-referential set</a> — though for this set, C is a genuine finding, not a chosen teaching target.</p>
+<h2 id="document-shape">Document shape</h2>
+<p>Every document in this set is written as a <strong>Standard Operating Procedure</strong> — the shape a real QA/RA-controlled document takes, not a teaching walkthrough — so a reader sees what the <em>paperwork itself</em> looks like, not just an explanation of it. Each one follows the same nine sections:</p>
+<ol><li><strong>Purpose</strong> — why this SOP exists, in one or two sentences.</li><li><strong>Scope</strong> — what it covers and does not cover, and which safety classes it applies to.</li><li><strong>Responsibilities</strong> — which role does what (Software Development Lead, QA/RA, Risk Manager, Configuration Manager — roles, not named individuals, since SentinelFlow 500 has no real staff).</li><li><strong>Definitions &amp; Abbreviations</strong> — only the terms this document actually uses.</li><li><strong>References</strong> — the standard, related standards, and the other SOPs in this set it depends on or hands off to.</li><li><strong>What the standard requires</strong> — the sub-clause requirements table, quoted from <code>applicability.json</code>, identical in content to the same table in the <a href="../index.html">self-referential set</a> — the requirements don't change with the device, only the answers do.</li><li><strong>Procedure</strong> — the actual device-specific content: how this requirement is met for SentinelFlow 500. This is the section that varies most in completeness between documents — see the register below.</li><li><strong>Records</strong> — what evidence this SOP's execution produces and where it is retained.</li><li><strong>Revision History</strong> — illustrative only; SentinelFlow 500 has no real revision history.</li></ol>
+<p>A document whose <strong>Procedure</strong> section is filled in is marked <strong>SOP — worked example</strong> in the table below. A document with sections 1–6 and 8–9 complete, but Procedure still a placeholder, is marked <strong>SOP — template</strong>: the shape a real document would have, with the device-specific detail not yet written. Neither is a bare skeleton — the requirements table, purpose, scope, responsibilities and references are real content either way.</p>
+<h2 id="why-this-set-exists-alongside-the-other-one">Why this set exists alongside the other one</h2>
+<p>The <a href="../index.html">self-referential set</a> is genuinely useful — everything in it is true, which a fabricated device's documentation cannot claim to be — but it structurally cannot touch anything that depends on the software actually being part of a medical device: hazardous situations, essential performance, alarm conditions, hardware/software interfaces. This set exists to cover exactly that gap. Read together, the two sets show a learner both things: genuine traceability discipline (the reflexive set) and what device-specific content actually looks like (this one).</p>
+<h2 id="the-document-set">The document set</h2>
+<p>Same shape as the other set — one file per process area, in clause order. Every document now exists as a properly-shaped SOP (see "Document shape" above) — none are bare skeletons — but they differ in how much of the <strong>Procedure</strong> section, the device-specific content, has actually been written. Status reflects that, not what's planned to exist eventually.</p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: #, Document, Clause, Status"><table class="legal-table"><thead><tr><th scope="col">#</th><th scope="col">Document</th><th scope="col">Clause</th><th scope="col">Status</th></tr></thead><tbody><tr><td><a href="01-general-requirements-and-classification.html">01</a></td><td>General Requirements &amp; Classification</td><td>Clause 4</td><td>SOP — worked example</td></tr><tr><td><a href="02-software-development-plan.html">02</a></td><td>Software Development Plan</td><td>Clause 5.1</td><td>SOP — template</td></tr><tr><td><a href="03-software-requirements-specification.html">03</a></td><td>Software Requirements Specification</td><td>Clause 5.2</td><td>SOP — template</td></tr><tr><td><a href="04-software-architecture.html">04</a></td><td>Software Architecture</td><td>Clause 5.3</td><td>SOP — template</td></tr><tr><td><a href="05-software-detailed-design.html">05</a></td><td>Software Detailed Design</td><td>Clause 5.4</td><td>SOP — template</td></tr><tr><td><a href="06-unit-implementation-and-verification.html">06</a></td><td>Unit Implementation &amp; Verification</td><td>Clause 5.5</td><td>SOP — template</td></tr><tr><td><a href="07-software-integration-and-testing.html">07</a></td><td>Software Integration &amp; Testing</td><td>Clause 5.6</td><td>SOP — template</td></tr><tr><td><a href="08-software-system-testing.html">08</a></td><td>Software System Testing</td><td>Clause 5.7</td><td>SOP — template</td></tr><tr><td><a href="09-software-release.html">09</a></td><td>Software Release</td><td>Clause 5.8</td><td>SOP — template</td></tr><tr><td><a href="10-software-maintenance-plan.html">10</a></td><td>Software Maintenance Plan</td><td>Clause 6</td><td>SOP — template</td></tr><tr><td><a href="11-software-risk-management-file.html">11</a></td><td>Software Risk Management File</td><td>Clause 7</td><td>SOP — partial worked example</td></tr><tr><td><a href="12-software-configuration-management-plan.html">12</a></td><td>Software Configuration Management Plan</td><td>Clause 8</td><td>SOP — template</td></tr><tr><td><a href="13-software-problem-resolution.html">13</a></td><td>Software Problem Resolution Process</td><td>Clause 9</td><td>SOP — template</td></tr></tbody></table></div>
+<p>Doc 11's hazard analysis (§7.1) is filled in — it carries the same three failure modes doc 01's classification rationale depends on — because a risk file with no hazards would leave doc 01's Class C finding unsupported; the rest of its Procedure (risk control verification, traceability) is still template, pending docs 03 and 04.</p>
+<h2 id="reading-these-documents">Reading these documents</h2>
+<p>Same online/PDF pattern as the other set — rendered by the main project's <code>docs/render.py</code> and <code>docs/render_pdf.py</code>, which both now cover this folder too. See the <a href="../../learn.html">Learn page</a>: every clause card's Preview and Download buttons point here.</p>
+<h2 id="the-real-thing">The real thing</h2>
+<p>This set is free, illustrative, and — for 11 of 13 documents — a template rather than a finished example. If you want the real, editable SOP/QMS template packs this shape is modelled on, St John Lynch &amp; Co publish them at <a href="https://stjohnlynch.com/toolkit/">stjohnlynch.com/toolkit</a>, including a free "Software &amp; AIeMD SOPs and Templates" pack.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

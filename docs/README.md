@@ -67,7 +67,10 @@ it does not yet.
 For a worked example that instead documents a fictional *medical device*,
 with the hazards, essential performance and hardware/software interface this
 set structurally cannot provide, see the
-[device example register](device-example/README.md) (in progress).
+[device example register](device-example/README.md) — that is the set the
+[Learn page](../learn.html)'s Preview/Download buttons link to; this
+reflexive set is still real and still worth reading, but is reached from
+this page rather than from a clause card.
 
 Four documents are marked **Partial**: this project does not do isolated unit
 testing of its JavaScript (Clause 5.5), does not separate integration testing
@@ -83,9 +86,11 @@ silence.
 ## Reading these documents online, or on paper
 
 Each document has two forms, generated from the same markdown source so they
-never disagree: a normal web page (**Preview**, linked from the matching
-[Learn](../learn.html) card and from the table above), and a PDF
-(**Download**, same card). Neither requires a GitHub account or any
+never disagree: a normal web page (**Preview**) and a PDF (**Download**),
+both linked from the table above. The [Learn](../learn.html) page's own
+Preview/Download buttons link to the
+[device example register](device-example/README.md) instead of this set —
+see that register for why. Neither form requires a GitHub account or any
 familiarity with markdown — this course is written for people who work in
 Word, Excel, PowerPoint and PDF, and the previous version of this download
 offered the raw `.md` source instead, which was source code to that

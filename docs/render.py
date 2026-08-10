@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
 ============================================================
- render.py — turns docs/*.md into styled, browsable HTML pages
+ render.py — turns docs/*.md and docs/device-example/*.md into styled,
+             browsable HTML pages
 ============================================================
 
 WHAT THIS IS
-A build-time tool. It converts each markdown document in this folder into a
-standalone HTML page that looks like the rest of the site — same header,
-navigation, theme toggle and footer — so a visitor can read one of these
-example lifecycle documents without leaving the site's look and feel or
-needing to know what markdown is.
+A build-time tool. It converts each markdown document in either of this
+project's two example document sets (see docs/README.md and
+docs/device-example/README.md for what each is) into a standalone HTML page
+that looks like the rest of the site — same header, navigation, theme
+toggle and footer — so a visitor can read one without leaving the site's
+look and feel or needing to know what markdown is. DOC_SETS below is what
+makes it two folders rather than one: same parser and template, different
+relative depth to the site root and different disclaimer banner text.
 
 WHY A HAND-ROLLED CONVERTER RATHER THAN A LIBRARY
 [04 — Architecture](04-software-architecture.md) documents, as a genuine
@@ -18,8 +22,8 @@ browser. Pulling in a markdown-rendering library (even a small one) to run
 in the browser would ship exactly that. The alternative used here is the
 same one tests/capture_screenshots.py already established as a precedent:
 run a small Python tool ONCE, at development time, and commit its output —
-14 static HTML files, no library, nothing for a visitor's browser to fetch
-or execute beyond ordinary HTML and the site's existing CSS/JS.
+static HTML files, no library, nothing for a visitor's browser to fetch or
+execute beyond ordinary HTML and the site's existing CSS/JS.
 
 It is also, deliberately, in the same spirit as tests/test_site.py's own
 hand-rolled test runner: this project's markdown is a small, known, fixed
@@ -31,10 +35,11 @@ pulling in a general-purpose one.
 HOW TO RUN IT
     python docs/render.py
 
-Regenerate after editing any docs/*.md file. The test suite's `docs` group
-checks the HTML is present and current in outline — it does not re-implement
-this parser, so a change to a .md file that isn't followed by a re-run will
-be caught as a page whose content looks stale, not silently ignored.
+Regenerate after editing any docs/*.md or docs/device-example/*.md file. The
+test suite's `docs` group checks the HTML is present and current in
+outline — it does not re-implement this parser, so a change to a .md file
+that isn't followed by a re-run will be caught as a page whose content
+looks stale, not silently ignored.
 ============================================================
 """
 
@@ -335,7 +340,7 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title} (example) | IEC 62304 Training</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="{depth}/style.css">
   <script>
     (function () {{
       try {{
@@ -362,10 +367,10 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
         </div>
       </div>
       <nav class="site-nav" role="navigation" aria-label="Main navigation">
-        <a class="nav-link" href="../index.html">Home</a>
-        <a class="nav-link" href="../learn.html">Learn</a>
-        <a class="nav-link" href="../quiz.html">Quiz</a>
-        <a class="nav-link" href="../contact.html">Contact</a>
+        <a class="nav-link" href="{depth}/index.html">Home</a>
+        <a class="nav-link" href="{depth}/learn.html">Learn</a>
+        <a class="nav-link" href="{depth}/quiz.html">Quiz</a>
+        <a class="nav-link" href="{depth}/contact.html">Contact</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
           <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
           <span class="theme-toggle-label sr-only">Switch to dark theme</span>
@@ -394,7 +399,7 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
           <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
         </div>
         <div class="example-banner-content">
-          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition &mdash; it is not Software as a Medical Device (SaMD) or Software in a Medical Device (SiMD). This page is not a genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+          <p>{banner}</p>
         </div>
       </div>
 
@@ -408,32 +413,97 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
   <footer class="site-footer">
     <div class="container">
       <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
-      <p class="footer-links"><a href="../privacy.html">Privacy &amp; Data Protection</a></p>
+      <p class="footer-links"><a href="{depth}/privacy.html">Privacy &amp; Data Protection</a></p>
     </div>
   </footer>
 
-  <script src="../nav.js" defer></script>
-  <script src="../theme.js" defer></script>
+  <script src="{depth}/nav.js" defer></script>
+  <script src="{depth}/theme.js" defer></script>
 </body>
 </html>
 '''
+
+# Two document sets, each rendered by the same parser and template, but
+# living at different depths below the site root and describing a different
+# subject (this training site's own development vs. a fictional device) —
+# see docs/README.md and docs/device-example/README.md for what each is and
+# why both exist. `depth` is the relative path prefix to the site root used
+# for every shared asset (style.css, nav.js, the Home/Learn/Quiz/Contact nav
+# links); `banner` is the training-example disclaimer text, which has to
+# name what's fictional about THIS set specifically — the site itself for
+# the self-referential set, a fictional device for the device-example set.
+SELF_REFERENTIAL_BANNER = (
+    'This project is a <strong>training site, not a real medical device</strong> '
+    'under any regulatory definition &mdash; it is not Software as a Medical '
+    'Device (SaMD) or Software in a Medical Device (SiMD). This page is not a '
+    'genuine IEC 62304 deliverable: it illustrates the <em>kind</em> of '
+    'document a real SaMD/SiMD project would produce. See the '
+    '<a href="index.html">document register</a> for the full explanation.'
+)
+DEVICE_EXAMPLE_BANNER = (
+    'This project is a <strong>training site, not a real medical device</strong> '
+    'under any regulatory definition. The device described in this document '
+    '&mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely '
+    '<strong>fictional</strong>, invented for this course: nothing here is a '
+    'genuine IEC 62304 deliverable, a real regulatory submission, or evidence '
+    'of any real organisation&rsquo;s compliance with anything. It illustrates '
+    'the <em>kind</em> of document a real SaMD/SiMD project would produce. See '
+    'the <a href="index.html">document register</a> for the full explanation.'
+)
+
+DOC_SETS = [
+    {
+        'dir': DOCS,
+        'depth': '..',
+        'register_subtitle': (
+            "The index of this project's own IEC 62304-style document set — "
+            "13 example lifecycle documents, one per process area."
+        ),
+        'doc_subtitle': (
+            'Example artefact from this project\'s own IEC 62304-style '
+            'document set — one of 13, listed in full on the '
+            '<a href="index.html">document register</a>.'
+        ),
+        'banner': SELF_REFERENTIAL_BANNER,
+    },
+    {
+        'dir': os.path.join(DOCS, 'device-example'),
+        'depth': '../..',
+        'register_subtitle': (
+            'The index of the SentinelFlow 500 device example document set '
+            '— a fictional medical device invented for this course, so IEC '
+            '62304 paperwork about hazards and patient risk could be shown '
+            'in full.'
+        ),
+        'doc_subtitle': (
+            'Example artefact from the SentinelFlow 500 device example set '
+            '— a fictional medical device invented for this course — one of '
+            '13, listed in full on the <a href="index.html">document register</a>.'
+        ),
+        'banner': DEVICE_EXAMPLE_BANNER,
+    },
+]
 
 
 def load_back_links():
     """Maps a doc's basename to the Learn page card it illustrates, by reading
     the same exampleDoc field learn.js uses — read once here rather than
-    hand-duplicated, so the two stay in agreement by construction."""
+    hand-duplicated, so the two stay in agreement by construction. Shared
+    across both document sets: their filenames are the same basenames by
+    convention (see docs/device-example/README.md, "Document shape"), so one
+    mapping serves both."""
     with open(os.path.join(ROOT, 'data', 'phases.json'), encoding='utf-8') as f:
         phases = json.load(f)
     return {p['exampleDoc']: p['id'] for p in phases if p.get('exampleDoc')}
 
 
-def main():
-    back_links = load_back_links()
-    md_files = sorted(f for f in os.listdir(DOCS) if f.endswith('.md'))
+def render_set(doc_set, back_links):
+    directory = doc_set['dir']
+    depth = doc_set['depth']
+    md_files = sorted(f for f in os.listdir(directory) if f.endswith('.md'))
 
     for name in md_files:
-        with open(os.path.join(DOCS, name), encoding='utf-8') as f:
+        with open(os.path.join(directory, name), encoding='utf-8') as f:
             md_text = f.read()
 
         title, body = convert(md_text)
@@ -441,15 +511,8 @@ def main():
         is_register = base == 'README'
         out_name = 'index.html' if is_register else base + '.html'
         phase_id = back_links.get(base)
-        back_href = '../learn.html#phase-' + phase_id if phase_id else '../learn.html'
-        subtitle = (
-            "The index of this project's own IEC 62304-style document set — "
-            "13 example lifecycle documents, one per process area."
-            if is_register else
-            'Example artefact from this project\'s own IEC 62304-style '
-            'document set — one of 13, listed in full on the '
-            '<a href="index.html">document register</a>.'
-        )
+        back_href = (depth + '/learn.html#phase-' + phase_id) if phase_id else (depth + '/learn.html')
+        subtitle = doc_set['register_subtitle'] if is_register else doc_set['doc_subtitle']
 
         # pdf_name matches whatever docs/render_pdf.py actually produces (it
         # derives the PDF filename from the rendered .html filename, not the
@@ -462,14 +525,24 @@ def main():
 
         page = PAGE_TEMPLATE.format(
             title=title, body=body, back_href=back_href, pdf_name=pdf_name,
-            download_name=download_name, subtitle=subtitle)
+            download_name=download_name, subtitle=subtitle, depth=depth,
+            banner=doc_set['banner'])
 
-        out_path = os.path.join(DOCS, out_name)
+        out_path = os.path.join(directory, out_name)
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(page)
-        print('  wrote docs/%s' % out_name)
+        rel = os.path.relpath(out_path, ROOT).replace(os.sep, '/')
+        print('  wrote %s' % rel)
 
-    print('Done — %d pages.' % len(md_files))
+    return len(md_files)
+
+
+def main():
+    back_links = load_back_links()
+    total = 0
+    for doc_set in DOC_SETS:
+        total += render_set(doc_set, back_links)
+    print('Done — %d pages.' % total)
 
 
 if __name__ == '__main__':

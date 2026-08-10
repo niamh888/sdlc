@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01 — General Requirements & Classification (Device Example) (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>01 — General Requirements & Classification (Device Example)</h1>
+        <p>Example artefact from the SentinelFlow 500 device example set — a fictional medical device invented for this course — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html#phase-general-requirements">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="01-general-requirements-and-classification.pdf" download="01 — General Requirements & Classification (Device Example) (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 4 — General Requirements · <strong>Register:</strong> <a href="index.html">Device Example Register</a></p>
+<p><strong>Document ID:</strong> SOP-01 · <strong>Device:</strong> SentinelFlow 500 (fictional) · <strong>Safety class:</strong> C <strong>Status:</strong> SOP — worked example</p>
+<blockquote><p><strong>Fictional worked example.</strong> The "SentinelFlow 500" ambulatory infusion pump described in this document does not exist. It was invented for this course so a reader could see an IEC 62304 document written the way a real QA/RA-controlled procedure reads — Purpose, Scope, Responsibilities, Procedure, Records — about an actual medical device, rather than as a teaching explanation of the clause. See the <a href="index.html">Device Example Register</a> for the device description this SOP and the rest of the set refer back to, and the <a href="../index.html#what-this-is-and-is-not">self-referential set</a> for the parallel version of this document that is genuinely true, because it is about this training website's own (non-medical) development instead.</p></blockquote>
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This SOP defines how SentinelFlow 500's software development integrates with the quality management system, how software risk activities connect to the device risk management process, how the safety class of each software item is determined and recorded, and how legacy software would be assessed if it were ever used. It exists to satisfy IEC 62304 Clause 4, which every other SOP in this set (SOP-02 through SOP-13) assumes is already in place — this is the document a new software team member reads first.</p>
+<h2 id="2-scope">2. Scope</h2>
+<p>Applies to all software development, maintenance, and risk management activities for SentinelFlow 500's embedded control software — see the <a href="index.html#the-device">device description</a> for what that software does. Covers Clause 4 in full: quality management system context (§4.1), risk management integration (§4.2), software safety classification (§4.3), and legacy software (§4.4). Does not itself define <em>how</em> risk management, planning, or classification are carried out step by step — those procedures live in their own SOPs, referenced in §5 below; this document defines the context they all operate inside.</p>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Role, Responsibility under this SOP"><table class="legal-table"><thead><tr><th scope="col">Role</th><th scope="col">Responsibility under this SOP</th></tr></thead><tbody><tr><td>Software Development Lead</td><td>Owns this SOP's execution for a given project; ensures every software item is classified before development activities begin</td></tr><tr><td>QA/RA</td><td>Reviews and approves the classification rationale; maintains the QMS this SOP operates under; approves any legacy software gap analysis</td></tr><tr><td>Risk Manager</td><td>Owns the device-level ISO 14971 risk management file; agrees the hazardous-situation analysis that §4.3 classification depends on</td></tr></tbody></table></div>
+<h2 id="4-definitions--abbreviations">4. Definitions &amp; Abbreviations</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Term, Meaning"><table class="legal-table"><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>QMS</td><td>Quality management system (ISO 13485)</td></tr><tr><td>Hazardous situation</td><td>Circumstance in which a person is exposed to a hazard (per IEC 62304 Amendment 1 terminology)</td></tr><tr><td>Legacy software</td><td>Software already placed on the market for which there is insufficient objective evidence it was developed to this standard — a test of missing evidence, not age</td></tr><tr><td>Class A / B / C</td><td>Software safety class, per §4.3 — see §7.3 below for how it is determined</td></tr></tbody></table></div>
+<h2 id="5-references">5. References</h2>
+<ul><li>IEC 62304:2006+AMD1:2015, Clause 4</li><li>ISO 13485 — the QMS route this SOP assumes (§4.1)</li><li>ISO 14971 — the risk management process this SOP hands off to (§4.2)</li><li><strong>SOP-11 — Software Risk Management File</strong> (Clause 7 device example, partial worked example): the device-level hazard analysis and risk control measures that §4.3's classification rationale in §7.3 below is drawn from</li><li><strong>SOP-02 — Software Development Plan</strong> (Clause 5.1 device example, template): the plan this SOP's QMS and risk-management context feeds into</li></ul>
+<h2 id="6-what-the-standard-requires">6. What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>4.1</td><td>Quality management system</td><td>Yes</td><td>Satisfied by pointing at a QMS — see §7.1.</td></tr><tr><td>4.2</td><td>Risk management</td><td>Yes</td><td>Satisfied by pointing at ISO 14971 — see §7.2.</td></tr><tr><td>4.3</td><td>Software safety classification</td><td>Yes</td><td>Software safety class of each software system and software item, recorded in the risk management file, with a rationale where an item is classified differently from its parent.</td></tr><tr><td>4.4</td><td>Legacy software</td><td>Yes</td><td>Gap analysis against 5.2, 5.3, 5.7 and Clause 7; a plan to close the gaps, with software system test records as the minimum deliverable; and the legacy software version plus a documented rationale for its continued use.</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code> — Clause 4 carries no per-requirement <code>[Class ...]</code> tags in the standard itself; Table A.1 assigns all four sub-clauses to every class. This table is identical to the one in the self-referential set's <a href="../01-general-requirements-and-classification.html">01</a> — the requirements don't change with the device, only the answers do.)</p>
+<h2 id="7-procedure">7. Procedure</h2>
+<h3 id="71-quality-management-system-41">7.1 Quality management system (§4.1)</h3>
+<p>SentinelFlow 500 is manufactured under a certified ISO 13485 QMS, as any real infusion pump manufacturer would be required to have. This document set does not — and cannot — demonstrate that QMS in operation, because there is no real organisation behind a fictional product to audit; that is stated here as an assumption the rest of this SOP set relies on, not as evidence being claimed.</p>
+<h3 id="72-risk-management-42">7.2 Risk management (§4.2)</h3>
+<p>The normative text names ISO 14971 as the single route, with no alternative offered — unlike §4.1's three routes. Software risk activities for SentinelFlow 500 are not run as a separate process: every hazardous situation the software could contribute to is recorded in the same risk management file the device team uses for hardware and use-related risks. <strong>SOP-11 — Software Risk Management File</strong> owns that file; this SOP only draws on its output — see §7.3 below.</p>
+<h3 id="73-software-safety-classification-43">7.3 Software safety classification (§4.3)</h3>
+<p><strong>The test, as Amendment 1 states it:</strong> a software item that could contribute to a hazardous situation must be Class B minimum; if it is the sole control measure preventing serious injury or death, it must be Class C. Software items that cannot contribute to any hazardous situation may be Class A.</p>
+<p><strong>Applying it to SentinelFlow 500's control software:</strong> the software directly controls a motor delivering medication into a patient's bloodstream. Consider three credible failure modes:</p>
+<ul><li><strong>Undetected occlusion.</strong> A blocked line stops delivery; if the occlusion sensor's software path fails to raise the alarm, a time-critical drug (e.g. a vasoactive infusion) simply stops reaching the patient with no warning.</li><li><strong>Free-flow over-infusion.</strong> If the software fails to keep the motor stopped when it should be closed (e.g. during a pause, or while the administration set is being changed), gravity can free-flow the full reservoir into the patient far faster than programmed — a classic, well-documented infusion pump hazard.</li><li><strong>Misprogrammed or misapplied rate.</strong> If the software's parameter validation fails to catch a rate outside the configured safe range for the selected drug profile, an order-of-magnitude dosing error can be delivered exactly as "successfully" as a correct one.</li></ul>
+<p>In each case the harm (death or serious injury, depending on the drug) is severe, and — critically — <strong>the software is the sole control measure</strong>: there is no independent mechanical flow limiter or hardware interlock downstream of it that would catch these failures before they reach the patient. That is exactly the condition the test names for Class C, not merely Class B.</p>
+<p><strong>Result: Class C for the delivery-control software item</strong>, recorded in the risk management file (SOP-11) as required by the Output column in §6 above. Where a future software item is split out of the control software with a narrower function that cannot itself contribute to a hazardous situation (e.g. a read-only usage-statistics logger), it would be classified separately and could legitimately land at Class A — §4.3's requirement to record "a rationale where an item is classified differently from its parent" exists for exactly that case.</p>
+<h3 id="74-legacy-software-44">7.4 Legacy software (§4.4)</h3>
+<p><strong>When this procedure applies:</strong> before any software item is brought into a project without being developed under this SOP set from the outset — whether acquired, inherited from a prior product line, or carried over from an earlier, less rigorously documented version — the Software Development Lead must run a gap analysis against §5.2 (requirements), §5.3 (architecture), §5.7 (system testing) and Clause 7 (risk management), produce a plan to close whatever gaps that analysis finds (with software system test records as the minimum deliverable), and record the software's version and a rationale for continuing to use it.</p>
+<p><strong>Applied to SentinelFlow 500:</strong> not applicable. SentinelFlow 500 is presented as developed from a single IEC 62304 lifecycle from inception, with no prior undocumented version on the market — so there is no legacy software gap analysis to perform for this release. Stated as such rather than left blank, per this document set's convention for genuinely inapplicable sub-clauses.</p>
+<h2 id="8-records">8. Records</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Record, Produced by, Retained in"><table class="legal-table"><thead><tr><th scope="col">Record</th><th scope="col">Produced by</th><th scope="col">Retained in</th></tr></thead><tbody><tr><td>Software safety classification and rationale (§7.3)</td><td>Software Development Lead, reviewed by QA/RA</td><td>Risk management file (SOP-11)</td></tr><tr><td>Legacy software gap analysis (§7.4), if triggered</td><td>Software Development Lead</td><td>Project technical file</td></tr></tbody></table></div>
+<h2 id="9-revision-history">9. Revision History</h2>
+<p><em>Illustrative only — SentinelFlow 500 has no real revision history.</em></p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Version, Status, Description"><table class="legal-table"><thead><tr><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Description</th></tr></thead><tbody><tr><td>1.0</td><td>Effective</td><td>Initial issue</td></tr></tbody></table></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

@@ -1720,9 +1720,27 @@ a {
   display: inline;
 }
 
+.read-more-btn,
 .mark-studied-btn {
   font-size: 0.78rem;
   padding: 6px 14px;
+}
+
+/* Only one of Read More / Mark as Studied is ever shown: Read More before
+   the card has been opened (see the 'opened' class added by
+   togglePhaseCard/markStudied in learn.js), Mark as Studied once it has.
+   Asking the reader to certify unread content was the problem — this keeps
+   the certifying button off the card until there is something to certify. */
+.mark-studied-btn {
+  display: none;
+}
+
+.phase-card.opened .read-more-btn {
+  display: none;
+}
+
+.phase-card.opened .mark-studied-btn {
+  display: inline-block;
 }
 
 .phase-card.studied .mark-studied-btn {
@@ -2658,6 +2676,21 @@ a {
 .example-doc-actions .btn {
   padding: 8px 16px;
   font-size: 0.82rem;
+}
+
+/* Deliberately quieter than the Preview/Download buttons above it — this is
+   a pointer to a real St John Lynch & Co product, not a third action of
+   equal weight, and not part of what Mark as Studied requires (see
+   buildExampleDocBlock in learn.js). */
+.example-doc-real-template {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.example-doc-real-template a {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Privacy notice beneath the contact form's Send button. Small, but not so

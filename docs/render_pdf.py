@@ -75,10 +75,22 @@ def launch_browser(p):
         return p.chromium.launch(channel='chrome')
 
 
+# Both document sets docs/render.py produces get PDFs, the same way it
+# renders both to HTML — see that script's DOC_SETS for what each directory
+# is. Kept as plain directories here (not imported from render.py) because
+# all this needs is "which folders have rendered HTML in them", not the
+# per-set template config render.py itself owns.
+PDF_DIRS = [DOCS, os.path.join(DOCS, 'device-example')]
+
+
 def main():
-    html_files = sorted(f for f in os.listdir(DOCS) if f.endswith('.html'))
-    if not html_files:
-        sys.exit('No rendered pages found in docs/ — run docs/render.py first.')
+    jobs = []  # (directory, html_filename) pairs, across both document sets
+    for directory in PDF_DIRS:
+        for name in sorted(f for f in os.listdir(directory) if f.endswith('.html')):
+            jobs.append((directory, name))
+
+    if not jobs:
+        sys.exit('No rendered pages found under docs/ — run docs/render.py first.')
 
     httpd, base = start_server()
     print('Serving %s at %s' % (ROOT, base))
@@ -87,10 +99,11 @@ def main():
         with sync_playwright() as p:
             browser = launch_browser(p)
             try:
-                for name in html_files:
+                for directory, name in jobs:
                     pdf_name = name[:-len('.html')] + '.pdf'
+                    rel_dir = os.path.relpath(directory, ROOT).replace(os.sep, '/')
                     page = browser.new_page()
-                    page.goto('%s/docs/%s' % (base, name))
+                    page.goto('%s/%s/%s' % (base, rel_dir, name))
                     page.wait_for_timeout(150)
                     # Applies style.css's @media print rules — hides the
                     # Back/All documents/Download button row and flattens
@@ -98,19 +111,19 @@ def main():
                     # theme the page happened to load in.
                     page.emulate_media(media='print')
                     page.pdf(
-                        path=os.path.join(DOCS, pdf_name),
+                        path=os.path.join(directory, pdf_name),
                         format='A4',
                         print_background=True,
                         margin={'top': '18mm', 'bottom': '18mm', 'left': '16mm', 'right': '16mm'},
                     )
                     page.close()
-                    print('  wrote docs/%s' % pdf_name)
+                    print('  wrote %s/%s' % (rel_dir, pdf_name))
             finally:
                 browser.close()
     finally:
         httpd.shutdown()
 
-    print('Done — %d PDFs.' % len(html_files))
+    print('Done — %d PDFs.' % len(jobs))
 
 
 if __name__ == '__main__':

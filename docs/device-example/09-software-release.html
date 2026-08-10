@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>09 — Software Release (Device Example) (example) | IEC 62304 Training</title>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) { /* falls through to the CSS default */ }
+    })();
+  </script>
+</head>
+<body class="page-doc-preview">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="../../index.html">Home</a>
+        <a class="nav-link" href="../../learn.html">Learn</a>
+        <a class="nav-link" href="../../quiz.html">Quiz</a>
+        <a class="nav-link" href="../../contact.html">Contact</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>09 — Software Release (Device Example)</h1>
+        <p>Example artefact from the SentinelFlow 500 device example set — a fictional medical device invented for this course — one of 13, listed in full on the <a href="index.html">document register</a>.</p>
+      </div>
+
+      <div class="doc-preview-actions">
+        <a class="btn btn-secondary" href="../../learn.html#phase-release">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="09-software-release.pdf" download="09 — Software Release (Device Example) (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
+      <div class="example-banner-card">
+        <div class="example-banner-bar">
+          <span class="example-banner-icon" aria-hidden="true">&#9888;&#65039;</span>
+          <span class="example-banner-label">Training example &mdash; not a real IEC 62304 deliverable</span>
+        </div>
+        <div class="example-banner-content">
+          <p>This project is a <strong>training site, not a real medical device</strong> under any regulatory definition. The device described in this document &mdash; &ldquo;SentinelFlow&nbsp;500&rdquo; &mdash; is entirely <strong>fictional</strong>, invented for this course: nothing here is a genuine IEC 62304 deliverable, a real regulatory submission, or evidence of any real organisation&rsquo;s compliance with anything. It illustrates the <em>kind</em> of document a real SaMD/SiMD project would produce. See the <a href="index.html">document register</a> for the full explanation.</p>
+        </div>
+      </div>
+
+      <div class="legal-page doc-body">
+<p><strong>Clause:</strong> 5.8 — Software Release · <strong>Register:</strong> <a href="index.html">Device Example Register</a></p>
+<p><strong>Document ID:</strong> SOP-09 · <strong>Device:</strong> SentinelFlow 500 (fictional) · <strong>Safety class:</strong> C <strong>Status:</strong> SOP — template (Procedure not yet written for SentinelFlow 500)</p>
+<blockquote><p><strong>Fictional worked example.</strong> See <a href="01-general-requirements-and-classification.html">SOP-01</a> for the disclaimer that applies to this whole document set, and the <a href="index.html">Device Example Register</a> for the SentinelFlow 500 device description and what "template" status means here.</p></blockquote>
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This SOP defines the release gate SentinelFlow 500's software must pass before it can ship: verification complete, anomalies evaluated, the version archived, and reliable delivery assured, per Clause 5.8.</p>
+<h2 id="2-scope">2. Scope</h2>
+<p>Applies to release of SentinelFlow 500's control software (Class C — see <a href="01-general-requirements-and-classification.html#73-software-safety-classification-43">SOP-01 §7.3</a>). Covers Clause 5.8 in full — Amendment 1 moved §5.8.1, 5.8.2, 5.8.7 and 5.8.8 from Class B/C to all classes, so at Class C the whole clause applies.</p>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Role, Responsibility under this SOP"><table class="legal-table"><thead><tr><th scope="col">Role</th><th scope="col">Responsibility under this SOP</th></tr></thead><tbody><tr><td>Software Development Lead</td><td>Confirms all planned development activities are complete before release</td></tr><tr><td>QA/RA</td><td>Authorises release under the QMS; IEC 62304 does not itself say who authorises release — that is an ISO 13485 quality management system matter, not a requirement of this standard</td></tr><tr><td>Risk Manager</td><td>Confirms residual risk from any known anomaly is evaluated as acceptable</td></tr><tr><td>Configuration Manager</td><td>Archives the released software, its configuration items, and its documentation per SOP-12</td></tr></tbody></table></div>
+<h2 id="4-definitions--abbreviations">4. Definitions &amp; Abbreviations</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Term, Meaning"><table class="legal-table"><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>Residual anomaly</td><td>A known defect present in the software at release, evaluated and either accepted or scheduled for correction</td></tr><tr><td>Archive</td><td>The retained copy of source, build instructions, tools, and SOUP versions sufficient to reproduce a released build</td></tr></tbody></table></div>
+<h2 id="5-references">5. References</h2>
+<ul><li>IEC 62304:2006+AMD1:2015, §5.8</li><li><strong>SOP-11 — Software Risk Management File</strong>: source of the residual-risk evaluation §5.8.3 requires</li><li><strong>SOP-12 — Software Configuration Management Plan</strong>: owns the archive §5.8.7 requires</li></ul>
+<h2 id="6-what-the-standard-requires">6. What the standard requires</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Ref, Title, Applies at Class C, What must be produced"><table class="legal-table"><thead><tr><th scope="col">Ref</th><th scope="col">Title</th><th scope="col">Applies at Class C</th><th scope="col">What must be produced</th></tr></thead><tbody><tr><td>5.8.1</td><td>Ensure software verification is complete</td><td>Yes</td><td>(No standard-named output.)</td></tr><tr><td>5.8.2</td><td>Document known residual anomalies</td><td>Yes</td><td>All known residual anomalies, documented</td></tr><tr><td>5.8.3</td><td>Evaluate known residual anomalies</td><td>Yes</td><td>Evaluation confirming that known residual anomalies do not contribute to an unacceptable risk</td></tr><tr><td>5.8.4</td><td>Document released versions</td><td>Yes</td><td>The version of the medical device software being released, documented</td></tr><tr><td>5.8.5</td><td>Document how released software was created</td><td>Yes</td><td>The procedure and environment used to create the released software, documented</td></tr><tr><td>5.8.6</td><td>Ensure activities and tasks are complete</td><td>Yes</td><td>Evidence that all development or maintenance plan activities and tasks are complete, with their associated documentation</td></tr><tr><td>5.8.7</td><td>Archive software</td><td>Yes</td><td>Archive of the medical device software, its configuration items and the documentation, retained for the longer of the software lifetime or the applicable regulatory retention period</td></tr><tr><td>5.8.8</td><td>Assure reliable delivery of released software</td><td>Yes</td><td>Procedures assuring reliable delivery of the released software, addressing replication, media labelling, packaging, protection, storage and delivery</td></tr></tbody></table></div>
+<p>(Quoted directly from <code>applicability.json</code>, identical in content to the self-referential set's <a href="../09-software-release.html">09</a>, whose Status is itself marked <strong>Partial</strong> — that project has no formal release-versioning scheme. This device-example set's version is a template for the same clause, not a completed alternative.)</p>
+<h2 id="7-procedure">7. Procedure</h2>
+<p><em>Not yet written for SentinelFlow 500 — see the <a href="index.html">Device Example Register</a> for what "template" status means. Once complete, this section would give SentinelFlow 500's actual release checklist, its versioning scheme, and its archive contents.</em></p>
+<h3 id="581583--verification-complete-residual-anomalies-documented-and-evaluated">5.8.1–5.8.3 — Verification complete; residual anomalies documented and evaluated</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="584586--version-build-procedure-and-activity-completeness">5.8.4–5.8.6 — Version, build procedure, and activity completeness</h3>
+<p><strong>[Template.]</strong></p>
+<h3 id="587588--archive-and-reliable-delivery">5.8.7–5.8.8 — Archive and reliable delivery</h3>
+<p><strong>[Template — see SOP-12 for the archive this section would rely on.]</strong></p>
+<h2 id="8-records">8. Records</h2>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Record, Produced by, Retained in"><table class="legal-table"><thead><tr><th scope="col">Record</th><th scope="col">Produced by</th><th scope="col">Retained in</th></tr></thead><tbody><tr><td>Release checklist / gate review record</td><td>Software Development Lead</td><td>Project technical file</td></tr><tr><td>Residual anomaly evaluation</td><td>Risk Manager</td><td>Risk management file (SOP-11)</td></tr><tr><td>Software archive</td><td>Configuration Manager</td><td>Configuration management system (SOP-12)</td></tr></tbody></table></div>
+<h2 id="9-revision-history">9. Revision History</h2>
+<p><em>Illustrative only — SentinelFlow 500 has no real revision history.</em></p>
+<div class="doc-table-wrap" tabindex="0" role="group" aria-label="Table: Version, Status, Description"><table class="legal-table"><thead><tr><th scope="col">Version</th><th scope="col">Status</th><th scope="col">Description</th></tr></thead><tbody><tr><td>1.0</td><td>Template</td><td>Structure and requirements table complete; Procedure section pending</td></tr></tbody></table></div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 &mdash; For educational purposes only &mdash; Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p class="footer-links"><a href="../../privacy.html">Privacy &amp; Data Protection</a></p>
+    </div>
+  </footer>
+
+  <script src="../../nav.js" defer></script>
+  <script src="../../theme.js" defer></script>
+</body>
+</html>

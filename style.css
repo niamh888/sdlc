@@ -2278,6 +2278,27 @@ a {
   font-family: inherit;
 }
 
+/* FIX: placeholder text was never given an explicit colour, so every browser
+   fell back to its own UA default (Chrome/Edge: #757575) — a value nobody
+   here ever chose and nobody had numerically checked. Measured against the
+   field's own --bg background it came out to 4.26:1 in light mode and
+   3.91:1 in dark mode, both under the 4.5:1 AA minimum for normal text —
+   found by measuring every text/background pair on the Contact page by
+   hand, the same way the dark-theme audit found the earlier --success-light
+   and --tint-ok icon failures, because axe-core and eyeballing both missed
+   it (a placeholder is easy to skim past as "just a hint" rather than text
+   that has to clear the same bar as everything else). --text-muted reaches
+   4.91:1 on this background in light mode and comfortably more in dark, and
+   reusing it keeps the same "secondary text" role wired to one variable
+   instead of inventing a new one-off colour. opacity: 1 overrides Firefox's
+   own default placeholder opacity, which would otherwise fade an explicitly
+   set colour back down again. */
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {

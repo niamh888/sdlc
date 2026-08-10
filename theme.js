@@ -53,10 +53,18 @@ function applyTheme(theme) {
   if (!btn) return;
 
   btn.setAttribute('aria-pressed', String(isDark));
-  btn.querySelector('.theme-toggle-label').textContent =
-    isDark ? 'Switch to light theme' : 'Switch to dark theme';
-  // Show the destination, not the current state: the moon means "go dark".
-  btn.querySelector('.theme-toggle-icon').textContent = isDark ? '☀' : '☽';
+  const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+  btn.querySelector('.theme-toggle-label').textContent = label;
+  // title gives a mouse user the same hover tooltip a screen reader user
+  // already gets from the label above — someone asked for exactly this: an
+  // icon-only button with no visible text had no on-hover explanation for
+  // a sighted mouse user who isn't running a screen reader.
+  btn.title = label;
+  // The icon itself is NOT set here — both the moon and sun SVGs are always
+  // in the markup, and CSS shows exactly one of them based on the
+  // data-theme attribute this function just set above (see .theme-toggle-icon
+  // in style.css). Show the destination, not the current state: the moon
+  // means "go dark".
 }
 
 // ---------- WIRING ----------

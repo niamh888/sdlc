@@ -462,6 +462,41 @@ a {
   border-color: rgba(255, 255, 255, 0.7);
 }
 
+/* The icon used to be a Unicode glyph (☽ / ☀). Fonts do not draw those
+   glyphs centred in their own character box — the crescent moon in
+   particular sits visibly left-and-up of centre in most fonts, which is
+   what someone spotted. An SVG has no such font-dependent metrics: its
+   viewBox is symmetric, so centring the box centres the icon, on every
+   platform, the same way the book icon on the Learn page was fixed earlier.
+   Both icons are always in the markup; only one is ever displayed, chosen
+   by data-theme rather than by JavaScript swapping element content — see
+   theme.js, which only has to keep the tooltip and accessible-name text in
+   sync now, not the icon itself. */
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .icon-sun {
+  display: block;
+}
+
 /* The toggle lives on the navy header in both themes, so it is styled against
    that rather than against the page background — which is why these are
    rgba(255,255,255,…) values and not theme variables. */

@@ -2608,9 +2608,17 @@ a {
    band kept to a readable measure via max-width on .about-prose alone,
    rather than on the whole page. */
 
+/* Left-aligned, NOT margin: 0 auto — a bare paragraph with no card border
+   around it reads as a mistake when it floats centred in the middle of an
+   otherwise full-width, left-aligned page (the h1 above it and the
+   "Technical qualifications" heading below it both start at the left
+   edge). .about-proof and .about-cta below are also capped at 760px and
+   centred, but that reads as a deliberate distinct module because each has
+   its own visible border/background — a callout, not stray text. This one
+   has neither, so it stays flush left like .about-lede does. */
 .about-intro {
   max-width: 760px;
-  margin: 0 auto 40px;
+  margin: 0 0 40px;
 }
 
 .about-section {

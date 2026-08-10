@@ -49,7 +49,17 @@
   --bg:             #f4f6f9;
   --bg-white:       #ffffff;
   --text:           #2c3e50;
-  --text-muted:     #5d6d7e;
+  /* Darkened from #5d6d7e, the same kind of fix as --accent above. The old
+     value passed AA (4.5:1) everywhere it was measured, but only just —
+     4.91:1 on --bg, which is where most muted text on this site actually
+     sits (page subtitles, list items, card copy), against dark theme's
+     equivalent role colour clearing 7.33:1 with real headroom. Found while
+     auditing the Contact page's contrast by hand rather than by eye. This
+     value keeps the same blue-grey hue and stays clearly a step lighter
+     than --text (#2c3e50, ~10:1) so the muted/primary hierarchy still
+     reads, while raising the worst case to 5.96:1 on --bg and 6.46:1 on
+     white. */
+  --text-muted:     #52606d;
   --border:         #d5d8dc;
   --shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.12);

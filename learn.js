@@ -280,7 +280,20 @@ function renderPhases() {
           ' role="button" tabindex="0"' +
           ' aria-expanded="false"' +
           ' aria-controls="phase-details-' + phase.id + '">' +
-        '<span class="phase-icon" aria-hidden="true">' + phase.icon + '</span>' +
+        // Every clause uses the same book icon rather than a distinct emoji per
+        // topic — the emoji varied wildly in weight and tone across browsers,
+        // which read as decoration rather than meaning. The book is drawn as
+        // two SVG paths stacked in one icon: an outline (blue stroke, page
+        // coloured to match the card) shown by default, and a solid blue
+        // fill shown once the card has been opened (see the "book-icon
+        // opened" class toggled by togglePhaseCard/markStudied in this
+        // file). CSS decides which path is visible; this markup never changes.
+        '<span class="phase-icon" aria-hidden="true">' +
+          '<svg class="book-icon" viewBox="0 0 16 16" width="28" height="28" focusable="false">' +
+            '<path class="book-icon-outline" d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"></path>' +
+            '<path class="book-icon-filled" d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.271-.128 2.35.056 3.02.502V1.783Zm1 12.653v.001c.67-.446 1.749-.63 3.02-.502 1.376.139 2.797.62 3.68 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783v12.653Z"></path>' +
+          '</svg>' +
+        '</span>' +
         '<div class="phase-meta">' +
           '<span class="phase-clause">' + phase.clause + '</span>' +
           '<div class="phase-title">' + phase.title + '</div>' +
@@ -721,6 +734,13 @@ function togglePhaseCard(id) {
     if (header) {
       header.setAttribute('aria-expanded', card.classList.contains('expanded') ? 'true' : 'false');
     }
+    // 'opened' is one-way, unlike 'expanded': the book icon fills in blue the
+    // first time a card is expanded and STAYS filled if the reader collapses
+    // it again, so the icon works as a "you've been here" mark across the
+    // whole grid rather than just a live open/closed indicator.
+    if (card.classList.contains('expanded')) {
+      card.classList.add('opened');
+    }
   }
 }
 
@@ -755,7 +775,7 @@ function markStudied(id) {
     // moving focus to the Preview link turns the error into a next step
     // rather than a dead end.
     if (!card.classList.contains('expanded')) {
-      card.classList.add('expanded');
+      card.classList.add('expanded', 'opened');
       const header = card.querySelector('.phase-header');
       if (header) header.setAttribute('aria-expanded', 'true');
     }

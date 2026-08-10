@@ -63,6 +63,12 @@ it does not yet.
 | [12](12-software-configuration-management-plan.md) | Software Configuration Management Plan | Clause 8 | Documented |
 | [13](13-software-problem-resolution.md) | Software Problem Resolution Process | Clause 9 | Documented — strong evidence |
 
+**This set is reflexive by design — see "What this is, and is not" above.**
+For a worked example that instead documents a fictional *medical device*,
+with the hazards, essential performance and hardware/software interface this
+set structurally cannot provide, see the
+[device example register](device-example/README.md) (in progress).
+
 Four documents are marked **Partial**: this project does not do isolated unit
 testing of its JavaScript (Clause 5.5), does not separate integration testing
 from system testing because it has no formally partitioned software items to

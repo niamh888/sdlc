@@ -1564,9 +1564,37 @@ a {
 }
 
 .phase-icon {
-  font-size: 1.8rem;
   flex-shrink: 0;
   line-height: 1;
+}
+
+/* Book icon: one consistent glyph for every clause (replacing the old
+   per-topic emoji, which varied in weight/tone across browsers and read as
+   decoration rather than meaning). Two paths are stacked in the same SVG —
+   only one is ever visible, swapped by the 'opened' class on .phase-card:
+     - default: outline path, blue stroke over a page coloured to match the
+       card background, so it reads as a closed, unread book.
+     - .opened: solid path, filled entirely in the same blue — a "you've
+       been here" mark once the reader has expanded the card at least once
+       (see togglePhaseCard/markStudied in learn.js). */
+.book-icon-outline {
+  fill: var(--bg-white);
+  stroke: var(--accent-fill);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.book-icon-filled {
+  fill: var(--accent-fill);
+  display: none;
+}
+
+.phase-card.opened .book-icon-outline {
+  display: none;
+}
+
+.phase-card.opened .book-icon-filled {
+  display: block;
 }
 
 .phase-meta {

@@ -333,6 +333,15 @@ a {
   text-decoration: none;
 }
 
+/* Only the St John Lynch & Co card has two CTAs (internal About link,
+   external stjohnlynch.com link) — AskRiskIE keeps its single external
+   link, so this only ever wraps one .promo-cta pair. */
+.promo-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+
 /* Below a two-column-comfortable width the two halves stack instead of
    squeezing side by side — the divider becomes a horizontal rule between
    them rather than a column, and disappears as its own grid track. */
@@ -2526,6 +2535,129 @@ a {
   border-radius: 4px;
 }
 
+/* ===== ABOUT PAGE =====
+   Deliberately NOT built on .legal-page: that column is 760px, sized for
+   dense prose, and a 3-across qualification grid inside it would squeeze
+   each card to under 220px. This reuses the wider 1100px .container instead
+   — the same width home's .info-cards already uses — with its own prose
+   band kept to a readable measure via max-width on .about-prose alone,
+   rather than on the whole page. */
+
+.about-intro {
+  max-width: 760px;
+  margin: 0 auto 40px;
+}
+
+.about-section {
+  margin-bottom: 48px;
+}
+
+.about-section > h2 {
+  font-size: 1.4rem;
+  color: var(--heading);
+  margin-bottom: 10px;
+}
+
+.about-section > p.about-lede {
+  max-width: 760px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+/* Shared by the two qualification grids (technical / experiential) — same
+   card shape as .info-card on the home page, reused rather than
+   reinvented, but three-up with room for a longer body than a home page
+   teaser needs. */
+.qual-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.qual-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.qual-card-eyebrow {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.qual-card h3 {
+  font-size: 1.02rem;
+  color: var(--heading);
+  margin-bottom: 10px;
+}
+
+.qual-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* The "proof" section reads as prose, like .legal-page, so it gets that
+   narrower measure even though the rest of the page is full-width. It also
+   sits on a tinted card, the same visual device .legal-summary uses on
+   privacy.html, to mark it as "here is where you go check this yourself"
+   rather than more marketing copy. */
+.about-proof {
+  max-width: 760px;
+  margin: 0 auto;
+  background: var(--bg);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+
+.about-proof p {
+  color: var(--text);
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+.about-proof p:last-child {
+  margin-bottom: 0;
+}
+
+.about-cta {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+
+.about-cta h2 {
+  font-size: 1.2rem;
+  color: var(--heading);
+  margin-bottom: 8px;
+}
+
+.about-cta p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.about-cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 /* ===== DOC PREVIEW PAGES (docs/*.html) =====
    The rendered example lifecycle documents reuse .legal-page for typography —
    it already had the right long-form-prose styling for privacy.html — extended
@@ -2854,6 +2986,10 @@ a {
   }
 
   .info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .qual-grid {
     grid-template-columns: 1fr;
   }
 

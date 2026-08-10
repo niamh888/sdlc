@@ -84,7 +84,7 @@ RISK_FILE = os.path.join(ROOT, 'docs', '11-software-risk-management-file.md')
 RISK_ESCALATION_START = '<!-- ANOMALY-ESCALATIONS:START -->'
 RISK_ESCALATION_END = '<!-- ANOMALY-ESCALATIONS:END -->'
 
-PAGES = ['index.html', 'learn.html', 'quiz.html', 'contact.html', 'privacy.html']
+PAGES = ['index.html', 'learn.html', 'quiz.html', 'about.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
 GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'learn', 'quiz', 'contact',
@@ -1491,8 +1491,18 @@ def test_learn(browser, base):
 
     R.check('promo strip is visible', pg.locator('.promo-strip').is_visible())
 
-    sjl = pg.locator('.promo-card').nth(0).locator('a.promo-cta')
-    R.check('St John Lynch & Co card links to stjohnlynch.com, opened safely',
+    # The St John Lynch & Co card carries two links, not one — see
+    # buildExampleDocBlock()'s sibling change to the Learn card's own
+    # real-template link for the same reasoning: an internal link that
+    # actually explains "why trust this" (About), and the external one for
+    # someone who already wants the business itself.
+    sjl_about = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(0)
+    R.check('St John Lynch & Co card links to the About page first',
+            sjl_about.get_attribute('href') == 'about.html',
+            sjl_about.get_attribute('href'))
+
+    sjl = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(1)
+    R.check('St John Lynch & Co card also links to stjohnlynch.com, opened safely',
             sjl.get_attribute('href') == 'https://stjohnlynch.com'
             and sjl.get_attribute('target') == '_blank'
             and 'noopener' in (sjl.get_attribute('rel') or ''),

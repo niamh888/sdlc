@@ -370,6 +370,7 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
         <a class="nav-link" href="{depth}/index.html">Home</a>
         <a class="nav-link" href="{depth}/learn.html">Learn</a>
         <a class="nav-link" href="{depth}/quiz.html">Quiz</a>
+        <a class="nav-link" href="{depth}/about.html">About</a>
         <a class="nav-link" href="{depth}/contact.html">Contact</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
           <span class="theme-toggle-icon" aria-hidden="true">

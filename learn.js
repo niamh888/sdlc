@@ -886,6 +886,44 @@ function openCardFromHash() {
   card.scrollIntoView({ block: 'start' });
 }
 
+// ---------- DEEP LINK: RESTORE "PREVIEWED" FROM THE URL ----------
+// "Back to Learn" carries ?previewed=<id> as well as the #phase-<id> hash
+// openCardFromHash() reads above — see the comment on back_href in
+// docs/render.py for why this exists as a SEPARATE mechanism rather than
+// reusing sessionStorage the way studiedPhases and previewedDocs otherwise
+// do: the Preview link opens its document in a genuinely separate tab
+// (target="_blank" rel="noopener", deliberately — that "noopener" is what
+// stops the document's tab reaching back into the tab that opened it), and
+// per the HTML spec, sessionStorage is only shared between same-origin tabs
+// by CLONING it at the moment one opens the other — which rel="noopener"
+// specifically prevents. Two tabs, no shared memory, no way for the second
+// tab to know the first tab ever recorded a preview. A URL parameter has no
+// such dependency: it is carried by the link itself, so it works no matter
+// which tab does the rest of the reading.
+//
+// Must run — and finish updating previewedDocs — BEFORE renderPhases()
+// builds the cards, because renderPhases() reads previewedDocs once, while
+// building each card's initial HTML (see the "Restore the opened mark"
+// comment there); it does not re-check afterwards. That is why this is
+// called at the very top of DOMContentLoaded, not from initPhases() the way
+// openCardFromHash() is — by the time loadPhases() has even started, this
+// needs to already be done.
+function restorePreviewedFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('previewed');
+  if (!id) return;
+
+  previewedDocs.add(id);
+  saveIdSet(PREVIEWED_STORAGE_KEY, previewedDocs);
+
+  // Drop the query string but keep the hash — openCardFromHash() still needs
+  // it, and leaving ?previewed=... visible in the address bar would suggest
+  // reloading or bookmarking this exact URL does something meaningful, when
+  // its only job was to survive this one navigation.
+  const cleanUrl = window.location.pathname + window.location.hash;
+  window.history.replaceState(null, '', cleanUrl);
+}
+
 // ---------- MARK AS STUDIED ----------
 //
 // A topic can only be marked studied once its example document has been
@@ -1151,6 +1189,10 @@ function updateProgress() {
 // Advanced while the fetch is still in flight, setLevel() records the choice
 // and renderPhases() picks it up when the data arrives.
 document.addEventListener('DOMContentLoaded', function () {
+
+  // Must run before renderPhases() — see the comment on
+  // restorePreviewedFromUrl() itself for why.
+  restorePreviewedFromUrl();
 
   // Restore the level the user last chose. localStorage.getItem() returns
   // null if the key has never been set (first visit), so we only override

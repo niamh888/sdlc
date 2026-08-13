@@ -4,3 +4,7 @@ ANOM-0002,Closed,docs — the rendered example document pages,03-software-requir
 ANOM-0003,Closed,data — content files,topic ids are unique,2026-08-05,2026-08-05,1,2026-08-05,Yes,"['planning', 'planning']"
 ANOM-0004,Closed,data — content files,every topic has all required fields,2026-08-10,2026-08-10,1,2026-08-10,Yes,"[('general-requirements', 'icon'), ('planning', 'icon'), ('requirements', 'icon'), ('architecture', 'icon'), ('detailed-design', 'icon'), ('implementation', 'icon'), ('integration', 'icon'), ('system-testing', 'icon'), ('release', 'icon'), ('maintenance', 'icon'), ('risk-management', 'icon'), ('conf"
 ANOM-0005,Closed,learn — features,"Read More shown on an unopened card, not Mark as Studied",2026-08-10,2026-08-10,1,2026-08-10,No,
+ANOM-0006,Closed,learn — features,the preview tab already carries the previewed record (sessionStorage clone on open),2026-08-13,2026-08-13,3,2026-08-13,No,
+ANOM-0007,Closed,learn — features,Mark as Studied succeeds after the round trip — this is the bug that was reported,2026-08-13,2026-08-13,2,2026-08-13,No,Preview or download the example document above before marking this topic as studied.
+ANOM-0008,Closed,learn — features,button confirms studied,2026-08-13,2026-08-13,2,2026-08-13,No,
+ANOM-0009,Closed,learn — features,progress count reflects it,2026-08-13,2026-08-13,2,2026-08-13,No,0

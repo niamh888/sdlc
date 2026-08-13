@@ -1226,7 +1226,15 @@ def test_docs(browser, base, axe_src):
                     and 'samd' in norm(pg.locator('.example-banner-content').inner_text()),
                     pg.locator('.example-banner-content').inner_text()[:160])
 
-            expected_back = ('%s/learn.html#phase-%s' % (depth, back_targets[slug])
+            # ?previewed=<id> as well as the #phase-<id> fragment — see the
+            # back_href comment in docs/render.py for why both are needed:
+            # the fragment says which card to scroll to, the query string is
+            # what actually satisfies "Mark as Studied"'s preview requirement
+            # once the reader is back on Learn, since sessionStorage cannot
+            # cross the tab boundary a target="_blank" rel="noopener" link
+            # creates.
+            expected_back = ('%s/learn.html?previewed=%s#phase-%s'
+                              % (depth, back_targets[slug], back_targets[slug])
                               if slug in back_targets else '%s/learn.html' % depth)
             back_link = pg.locator('.doc-preview-actions a').first
             R.check('%s: "Back to Learn" resolves to the right card' % label,
@@ -1580,12 +1588,20 @@ def test_learn(browser, base):
     # actually makes — Read More, Preview (a real target="_blank" tab, not
     # the same page), Back to Learn from THAT tab, then Mark as Studied.
     # This is worth its own test distinct from the hash checks above because
-    # it exercises something those cannot: Preview opens a genuinely separate
-    # tab, and per the HTML spec a same-origin tab opened this way starts
-    # with a COPY of the opener's sessionStorage taken at that moment — which
-    # is exactly the mechanism previewedDocs/studiedPhases now rely on to
-    # survive the round trip. A single-page test would not catch a regression
-    # where that assumption stops holding.
+    # it exercises something those cannot reach: Preview opens a genuinely
+    # separate tab.
+    #
+    # An earlier version of this fix relied on sessionStorage being cloned
+    # into that new tab, which the HTML spec does promise for a same-origin
+    # tab opened via target="_blank" — but only when there is still an
+    # opener relationship, and the Preview link deliberately carries
+    # rel="noopener" (a reasonable security default, not something to
+    # remove). noopener severs exactly the relationship the cloning depends
+    # on, so the new tab actually opens with empty sessionStorage — this
+    # test caught that for real the first time it ran. The fix that replaced
+    # it carries the record through a URL parameter instead (see
+    # restorePreviewedFromUrl() in learn.js and back_href in
+    # docs/render.py), which has no such dependency.
     ctx, pg = new_page(browser)
     pg.goto(base + '/learn.html')
     pg.wait_for_selector('.phase-card', timeout=10000)
@@ -1596,9 +1612,11 @@ def test_learn(browser, base):
         pg.locator('#phase-general-requirements .example-doc-preview').click()
     doc_pg = new_page_info.value
     doc_pg.wait_for_load_state()
-    R.check('the preview tab already carries the previewed record (sessionStorage clone on open)',
-            'general-requirements' in (doc_pg.evaluate(
-                "() => sessionStorage.getItem('62304_previewedDocs')") or ''))
+    R.check('preview tab does NOT share the opener\'s sessionStorage (confirms why the URL-based fix is needed)',
+            not doc_pg.evaluate("() => sessionStorage.getItem('62304_previewedDocs')"))
+    R.check('"Back to Learn" carries ?previewed= for this phase',
+            'previewed=general-requirements' in doc_pg.locator(
+                '.doc-preview-actions a', has_text='Back to Learn').first.get_attribute('href'))
 
     doc_pg.locator('.doc-preview-actions a', has_text='Back to Learn').first.click()
     doc_pg.wait_for_selector('.phase-card', timeout=10000)

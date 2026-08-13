@@ -32,6 +32,7 @@ index.html      Home — introduction and entry points
 learn.html      Learn — 13 lifecycle topic cards (Clauses 4–9)
 quiz.html       Quiz — 15-question timed assessment
 contact.html    Contact — feedback form
+about.html      About - understand where the course comes from and credentials for the organisation/author
 privacy.html    Privacy and data protection notice
 ```
 
@@ -78,8 +79,9 @@ opening the HTML files directly from disk no longer works. See the README.
 
 **Layout:**
 - Sticky header with logo and navigation links
-- Hero section: headline, subtitle, two CTA buttons, three stat cards (13 process areas / 3 safety classes / 15 questions)
+- Hero section: headline, subtitle, two CTA buttons, four stat cards (svg graphic of process flow and 13 process areas / 3 safety classes / 15 questions)
 - Three info cards below: What is IEC 62304 / Who needs it / How to use the course
+- Promo with links to St John Lynch & Co and AskRiskIE for Risk Management (sites/tools belonging to author)
 - Footer with standard citation
 
 **Key decisions:**
@@ -141,7 +143,7 @@ Checking the mapping against the standard found two more: **Clause 5.3** was rec
 
 **Why none of them was caught.** A single list has nothing to disagree with. The data was wrong, the UI faithfully rendered the wrong data, and the test suite — which hardcoded "Class A shows 10 of 13" — asserted the wrong count and would have *failed* when the error was fixed. A test that repeats a value from the data cannot detect an error in the data.
 
-**The two guards now in place:**
+**The two guards in place:**
 
 - **A cross-file invariant.** The clause-level `classes` in `phases.json` must equal the union of that clause's sub-clause classes in `applicability.json`. `mergeApplicability()` checks this on every page load and throws if they disagree, naming the clause. The Learn page then shows its error panel and renders no cards. Failing loudly on a data error is strictly better than a page that quietly teaches something incorrect — particularly here, where a reader might carry the wrong conclusion into a real regulatory submission.
 - **A regression test.** The `applicability` group puts the original Clause 7 value back and asserts the site rejects it. Every other expected value in that group is derived from the data files rather than written out.
@@ -335,12 +337,6 @@ Key patterns used:
 
 Repository: [https://github.com/niamh888/sdlc](https://github.com/niamh888/sdlc)
 
-Hosted via GitHub Pages at the root of the `master` branch. No build step is required — the site is plain HTML, CSS, and JavaScript.
+Hosted via GitHub Pages at the root of the `main` branch. No build step is required — the site is plain HTML, CSS, and JavaScript.
 
-Commit strategy (6 commits, each representing a distinct deliverable):
-1. HTML structure for all four pages
-2. CSS styling
-3. Shared navigation script
-4. Learn page JavaScript
-5. Quiz page JavaScript
-6. Contact form JavaScript
+Commit strategy: build and commit frequently - based on subject-matter changes, with regression testing for all changes.

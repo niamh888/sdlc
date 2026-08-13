@@ -103,6 +103,37 @@
           </div>
         </div>
         <div class="hero-stats">
+          <!-- LIFECYCLE FLOW GRAPHIC — six nodes, Clause 4 through Clause 9,
+               one continuous line: the standard is a single lifecycle, not
+               six unrelated clauses. Sits in the same .stat-card shell as
+               the three stat cards below it. Purely decorative on top of a
+               fact already stated in the numbered stats, so the SVG itself
+               is aria-hidden and the caption carries the accessible text. -->
+          <div class="stat-card graphic-card">
+            <svg class="flow-svg" viewBox="0 0 160 90" width="150" height="84" aria-hidden="true">
+              <defs>
+                <marker id="flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
+                </marker>
+              </defs>
+              <line x1="14" y1="45" x2="140" y2="45" stroke="var(--border)" stroke-width="3"></line>
+              <line x1="124" y1="45" x2="146" y2="45" stroke="var(--accent)" stroke-width="3" marker-end="url(#flow-arrow)"></line>
+              <circle cx="14" cy="45" r="7" fill="var(--heading)"></circle>
+              <circle cx="36" cy="45" r="6" fill="var(--bg-white)" stroke="var(--accent)" stroke-width="2.5"></circle>
+              <circle cx="58" cy="45" r="6" fill="var(--bg-white)" stroke="var(--accent)" stroke-width="2.5"></circle>
+              <circle cx="80" cy="45" r="6" fill="var(--bg-white)" stroke="var(--accent)" stroke-width="2.5"></circle>
+              <circle cx="102" cy="45" r="6" fill="var(--bg-white)" stroke="var(--accent)" stroke-width="2.5"></circle>
+              <circle cx="124" cy="45" r="7" fill="var(--accent)"></circle>
+              <text x="14" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">4</text>
+              <text x="36" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">5</text>
+              <text x="58" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">6</text>
+              <text x="80" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">7</text>
+              <text x="102" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">8</text>
+              <text x="124" y="66" font-size="9" text-anchor="middle" fill="var(--text-muted)">9</text>
+            </svg>
+            <span class="flow-caption">Clause&nbsp;4 &rarr; Clause&nbsp;9, one continuous lifecycle</span>
+          </div>
+
           <!-- Keep this figure in step with the number of topics in
                data/phases.json. The home page deliberately loads no data, so
                this one number is hardcoded rather than counted. -->

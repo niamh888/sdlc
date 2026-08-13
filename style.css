@@ -764,6 +764,30 @@ a {
   letter-spacing: 0.05em;
 }
 
+/* ===== HOME: LIFECYCLE FLOW =====
+   A small diagram in the same .stat-card shell as the three stat cards
+   beside it — one more card in the stack, not a hero redesign. Six nodes,
+   Clause 4 through Clause 9, one line with an arrow at the end: the
+   standard is a single continuous lifecycle, not six unrelated clauses.
+   Built from <line>/<circle>/<marker> only, no hand-authored path data
+   beyond the small triangular arrowhead. */
+.graphic-card {
+  padding: 18px 20px 16px;
+}
+
+.flow-svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.flow-caption {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
 /* ===== HOME: INFO CARDS ===== */
 
 .info-cards {
@@ -3085,11 +3109,20 @@ a {
 
   .hero-stats {
     flex-direction: row;
+    flex-wrap: wrap;
   }
 
   .stat-card {
     flex: 1;
     padding: 16px;
+  }
+
+  /* The flow graphic is wider than the three number cards it sits beside
+     (it needs room for six labelled nodes) — flex:1 like them would
+     squeeze it illegibly at this width. Full width of its own row instead,
+     with the three stat cards wrapping onto the row beneath. */
+  .graphic-card {
+    flex: 1 1 100%;
   }
 
   .hero-title {

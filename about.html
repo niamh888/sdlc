@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +28,7 @@
     })();
   </script>
 </head>
+
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
@@ -51,9 +53,15 @@
            expands, the same aria-expanded pattern the Learn page's phase
            cards already use for their own expand/collapse. See nav.js for
            the click/Escape/click-outside handling. -->
-      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+        aria-label="Menu" title="Menu">
         <span class="nav-toggle-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
         </span>
       </button>
       <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
@@ -67,8 +75,22 @@
              whichever a screen reader reads first. -->
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
           <span class="theme-toggle-icon" aria-hidden="true">
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
           </span>
           <span class="theme-toggle-label sr-only">Switch to dark theme</span>
         </button>
@@ -83,67 +105,91 @@
         <h1>About This Course</h1>
       </div>
       <div class="about-intro">
-        <p>This course is written and maintained by <strong>St&nbsp;John Lynch &amp; Co Ltd.</strong> A consultancy that works in medical device software (SaMD, SiMD, Health Software and AI-enabled Health Software).</p>
+        <p>This course is written and maintained by <strong>St&nbsp;John Lynch &amp; Co Ltd.</strong> A consultancy that
+          works in medical device software (SaMD, SiMD, Health Software and AI-enabled Health Software).</p>
       </div>
 
       <div class="about-section">
         <h2>Technical qualifications</h2>
-        <p class="about-lede">This course provides formal grounding in the standards this course teaches, and the ones it sits alongside; QMS, Risk Management, across a range of territories and training practice.</p>
+        <p class="about-lede">This course provides formal grounding in the standards this course teaches and includes
+          the core standards necessary for medical device software development including AI-enabled Health Software.</p>
         <div class="qual-grid">
           <div class="qual-card">
             <span class="qual-card-eyebrow">Quality management</span>
             <h3>ISO 13485</h3>
-            <p>Auditing and training in the quality management system standard IEC 62304 §4.1 requires every software lifecycle process to sit inside — the QMS this whole course assumes is already in place.</p>
+            <p>Auditing and training in the quality management system standard IEC 62304 §4.1 requires every software
+              lifecycle process to sit inside — the QMS this whole course assumes is already in place.</p>
           </div>
           <div class="qual-card">
             <span class="qual-card-eyebrow">Information security</span>
             <h3>ISO 27001</h3>
-            <p>Auditing and training in information security management — increasingly relevant to medical device software as connected devices and cloud-backed services widen the attack surface a manufacturer has to account for.</p>
+            <p>Auditing and training in information security management — increasingly relevant to medical device
+              software as connected devices and cloud-backed services widen the attack surface a manufacturer has to
+              account for.</p>
           </div>
           <div class="qual-card">
             <span class="qual-card-eyebrow">Health software security</span>
             <h3>IEC 81001-5-1</h3>
-            <p>Auditing and training in health software security — the standard that intersects most directly with IEC 62304's own Amendment&nbsp;1 cybersecurity additions covered throughout this course.</p>
+            <p>Auditing and training in health software security — the standard that intersects most directly with IEC
+              62304's own Amendment&nbsp;1 cybersecurity additions covered throughout this course.</p>
           </div>
         </div>
       </div>
 
       <div class="about-section">
         <h2>Experiential qualifications</h2>
-        <p class="about-lede">Standards knowledge answers "what does the clause require?" Experience answers the harder question this course spends most of its time on: what does that actually look like in a real project?</p>
+        <p class="about-lede">Standards knowledge answers "what does the clause require?" Experience answers the harder
+          question this course spends most of its time on: what does that actually look like in a real project?</p>
         <div class="qual-grid">
           <div class="qual-card">
             <span class="qual-card-eyebrow">Building, not just auditing</span>
             <h3>Software development for SaMD &amp; health software</h3>
-            <p>Hands-on development of Software as a Medical Device, AI-enabled devices, and health software more broadly — the practitioner's side of IEC 62304, not only the assessor's side.</p>
+            <p>Hands-on development of Software as a Medical Device, AI-enabled devices, and health software more
+              broadly — the practitioner's side of IEC 62304, not only the assessor's side.</p>
           </div>
           <div class="qual-card">
             <span class="qual-card-eyebrow">To market, not just on paper</span>
             <h3>Regulatory strategy to market support</h3>
-            <p>Experience carrying a regulatory strategy through to an actual market submission — the difference between knowing what a clause requires and knowing what a notified body or FDA reviewer actually pushes back on.</p>
+            <p>Experience carrying a regulatory strategy through to an actual market submission — the difference between
+              knowing what a clause requires and knowing what a notified body or FDA reviewer actually pushes back on.
+            </p>
           </div>
           <div class="qual-card">
             <span class="qual-card-eyebrow">Auditing in practice</span>
             <h3>ISO &amp; IEC audits, conducted</h3>
-            <p>Direct audit experience against ISO 13485, ISO 27001 and IEC 81001-5-1 — seeing first-hand what evidence actually satisfies an auditor, and what looks complete on paper but does not.</p>
+            <p>Direct audit experience against ISO 13485, ISO 27001 and IEC 81001-5-1 — seeing first-hand what evidence
+              actually satisfies an auditor, and what looks complete on paper but does not.</p>
           </div>
         </div>
       </div>
 
       <div class="about-section">
         <h2>The proof: this site practices what it teaches</h2>
-        <p class="about-lede">This course's software development tool practices IEC 62304 development even when developing non-medical devices, because there is more learning in the doing.  This ensures our staff have indepth understanding of IEC 62304 intricacies.</p>
+        <p class="about-lede">This course's software development tool practices IEC 62304 development even when
+          developing non-medical devices, because there is more learning in the doing. This ensures our staff have
+          indepth understanding of IEC 62304 intricacies.</p>
         <div class="about-proof">
-          <p>This training site's own software development is documented as if it were being developed as an IEC&nbsp;62304 project with the same lifecycle discipline this course teaches, with the paperwork to show for it. See the <a href="docs/index.html">project document register</a> for the full set: a software development plan, a requirements specification, an architecture, a risk management file, a configuration management plan, and a problem resolution process, all real and current for this site, not invented as a demo.</p>
-          <p>A separate <a href="docs/device-example/index.html">device example document set</a> goes further: worked IEC&nbsp;62304 documents — Standard Operating Procedures, in the shape a real QA/RA-controlled document takes — for a fictional infusion pump, precisely so you can see what the paperwork looks like when it is genuinely about patient risk, not just about a training website.</p>
+          <p>This training site's own software development is documented as if it were being developed as an
+            IEC&nbsp;62304 project with the same lifecycle discipline this course teaches, with the paperwork to show
+            for it. See the <a href="docs/index.html">project document register</a> for the full set: a software
+            development plan, a requirements specification, an architecture, a risk management file, a configuration
+            management plan, and a problem resolution process, all real and current for this site, not invented as a
+            demo.</p>
+          <p>A separate <a href="docs/device-example/index.html">device example document set</a> goes further: worked
+            IEC&nbsp;62304 documents — Standard Operating Procedures, in the shape a real QA/RA-controlled document
+            takes — for a fictional infusion pump, precisely so you can see what the paperwork looks like when it is
+            genuinely about patient risk, not just about a training website.</p>
         </div>
       </div>
 
       <div class="about-cta">
         <h2>Work with St&nbsp;John Lynch &amp; Co</h2>
-        <p>The organisation behind this course delivers medical device software and services for start-up, SME, and multinational organisations, including software and AI development, regulatory strategy, change assessments and auditing to name a few services.</p>
+        <p>The organisation behind this course delivers medical device software and services for start-up, SME, and
+          multinational organisations, including software and AI development, regulatory strategy, change assessments
+          and auditing to name a few services.</p>
         <div class="about-cta-actions">
-          <a class="btn btn-primary" href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">Visit stjohnlynch.com &#8599;</a>
+          <a class="btn btn-primary" href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">Visit
+            stjohnlynch.com &#8599;</a>
           <a class="btn btn-secondary" href="contact.html">Get in touch</a>
         </div>
       </div>
@@ -154,7 +200,8 @@
   <footer class="site-footer">
     <div class="container">
       <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 (ED1)</p>
-      <p>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></p>
+      <p>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co
+          Ltd</a></p>
       <p class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></p>
     </div>
   </footer>
@@ -162,4 +209,5 @@
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>
 </body>
+
 </html>

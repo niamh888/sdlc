@@ -51,39 +51,48 @@ const MIN_LOADING_MS = 250;
 // reassign it after loading.
 let phases = [];
 
-// STORAGE — sessionStorage, not localStorage. The two behave differently in
-// exactly the way this needs:
-//   * localStorage survives closing the browser entirely — too permanent for
-//     progress that should reset on a fresh visit (see the privacy notice's
-//     "what we store" table, which this deliberately does not join).
-//   * sessionStorage clears when the TAB closes, but survives a navigation
-//     within that tab — which is exactly what "Back to Learn" is. It also
-//     has one more property that matters here: per the HTML spec, a same-
-//     origin tab opened via target="_blank" (the Preview link) starts with a
-//     COPY of the opener's sessionStorage, taken at the moment it opens. So
-//     a Preview tab already carries the "this was previewed" record with it
-//     before the reader has done anything else, and it is still there if
-//     that tab then navigates to learn.html via Back to Learn.
+// STORAGE — localStorage, not sessionStorage. This went through two designs
+// before landing here, and both earlier ones failed on real usage, not just
+// in theory:
 //
-// Without this, marking a topic studied broke in a very specific, very
-// confusing way: preview a document, click Back to Learn (a real navigation,
-// once openCardFromHash() below made the link actually work), and Mark as
-// Studied refused — the reload had wiped the record of the preview that had
-// only ever lived on the previous, now-gone version of this page. Sitting
-// through the same tab without navigating away masked this completely,
-// which is why it went unnoticed until "Back to Learn" started working.
+//   1. Nothing persisted at all (the original design). Broke the moment
+//      "Back to Learn" started actually navigating (see openCardFromHash()
+//      below) instead of silently failing: that navigation reloads
+//      learn.html, which wipes any in-memory record of what was previewed.
+//
+//   2. sessionStorage (the first fix). Survives a reload of the SAME tab,
+//      which fixed the case above — but every Preview link opens a genuinely
+//      NEW tab (target="_blank" with rel="noopener", deliberately, for
+//      security), and sessionStorage is scoped per tab. rel="noopener"
+//      specifically prevents the new tab from inheriting anything from the
+//      one that opened it. Study three topics — Preview, back, mark studied,
+//      Preview, back, mark studied, ... — and each "Preview" spawns another
+//      independent tab that has never heard of the ones before it. Only
+//      whichever tab you happen to end up looking at "remembers" anything,
+//      which is exactly the "only the most recent one" bug this was rewritten
+//      to fix.
+//
+// localStorage solves it because it is not scoped to a tab at all — every
+// tab on this origin reads and writes the SAME store, regardless of how
+// each tab was opened. The real trade-off, and it is a genuine one, not a
+// technicality: progress now persists after you close the browser entirely,
+// the same way `62304_trainingLevel` and the theme choice already do. That
+// is a step up from "resets whenever you leave", which is what most people
+// actually want from a progress tracker — but it does mean this had to move
+// into the privacy notice's local-storage table (see privacy.html) rather
+// than staying out of it.
 const STUDIED_STORAGE_KEY = '62304_studiedPhases';
 const PREVIEWED_STORAGE_KEY = '62304_previewedDocs';
 
-// Reads a JSON array of ids back out of sessionStorage into a Set. Wrapped in
-// try/catch because sessionStorage can throw (not just return null) in a few
+// Reads a JSON array of ids back out of storage into a Set. Wrapped in
+// try/catch because localStorage can throw (not just return null) in a few
 // real situations — Safari private browsing historically, or third-party-
 // storage restrictions on an embedded page — and a corrupted or hand-edited
 // value would otherwise throw out of JSON.parse. Either way the safe fallback
-// is the same as before this existed: start with nothing recorded.
+// is the same as before any of this existed: start with nothing recorded.
 function loadIdSet(key) {
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = localStorage.getItem(key);
     const ids = raw ? JSON.parse(raw) : [];
     return new Set(Array.isArray(ids) ? ids : []);
   } catch (e) {
@@ -96,26 +105,27 @@ function loadIdSet(key) {
 // a navigation that the page does not get to intercept.
 function saveIdSet(key, set) {
   try {
-    sessionStorage.setItem(key, JSON.stringify(Array.from(set)));
+    localStorage.setItem(key, JSON.stringify(Array.from(set)));
   } catch (e) {
     // Storage unavailable or full — the Set itself still works for the rest
-    // of this page's life, it just will not survive a navigation. No worse
-    // than the behaviour before sessionStorage was used at all.
+    // of this tab's life, it just will not be seen by any other tab, and
+    // will not survive this tab closing. No worse than the behaviour before
+    // persistence was used at all.
   }
 }
 
 // A Set is like an array but guarantees uniqueness — perfect for tracking
 // which phase IDs the user has marked as studied (no duplicates possible).
-// Restored from sessionStorage rather than starting empty, so a topic
-// correctly marked studied earlier in this tab's life stays marked after a
-// navigation such as Back to Learn. renderPhases() reads this when it first
-// builds each card, so a restored id needs no extra wiring beyond this line.
+// Restored from localStorage rather than starting empty, so a topic marked
+// studied earlier — in this tab, or any other tab that was ever opened —
+// stays marked. renderPhases() reads this when it first builds each card,
+// so a restored id needs no extra wiring beyond this line.
 const studiedPhases = loadIdSet(STUDIED_STORAGE_KEY);
 
 // Which phases the visitor has actually opened the example document for —
 // via either the Preview link or the Download link, either one counts as
 // having engaged with it. Checked by markStudied() before it allows a topic
-// to be marked studied. Restored from sessionStorage for the same reason as
+// to be marked studied. Restored from localStorage for the same reason as
 // studiedPhases above — see the STORAGE comment there for the full case.
 const previewedDocs = loadIdSet(PREVIEWED_STORAGE_KEY);
 
@@ -888,18 +898,15 @@ function openCardFromHash() {
 
 // ---------- DEEP LINK: RESTORE "PREVIEWED" FROM THE URL ----------
 // "Back to Learn" carries ?previewed=<id> as well as the #phase-<id> hash
-// openCardFromHash() reads above — see the comment on back_href in
-// docs/render.py for why this exists as a SEPARATE mechanism rather than
-// reusing sessionStorage the way studiedPhases and previewedDocs otherwise
-// do: the Preview link opens its document in a genuinely separate tab
-// (target="_blank" rel="noopener", deliberately — that "noopener" is what
-// stops the document's tab reaching back into the tab that opened it), and
-// per the HTML spec, sessionStorage is only shared between same-origin tabs
-// by CLONING it at the moment one opens the other — which rel="noopener"
-// specifically prevents. Two tabs, no shared memory, no way for the second
-// tab to know the first tab ever recorded a preview. A URL parameter has no
-// such dependency: it is carried by the link itself, so it works no matter
-// which tab does the rest of the reading.
+// openCardFromHash() reads above. Belt and braces, now that previewedDocs is
+// backed by localStorage (see the STORAGE comment near the top of this file):
+// the normal case no longer strictly needs this, since every tab already
+// shares the same localStorage bucket. This stays as a fallback for the case
+// localStorage itself does not work — Safari private browsing historically,
+// or a locked-down third-party-storage context — where saveIdSet() silently
+// no-ops (see its own try/catch) and a fresh tab would otherwise have no way
+// to know a document was ever opened. A URL parameter has no dependency on
+// storage working at all: it is carried by the link itself.
 //
 // Must run — and finish updating previewedDocs — BEFORE renderPhases()
 // builds the cards, because renderPhases() reads previewedDocs once, while

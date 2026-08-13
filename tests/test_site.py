@@ -1612,8 +1612,11 @@ def test_learn(browser, base):
         pg.locator('#phase-general-requirements .example-doc-preview').click()
     doc_pg = new_page_info.value
     doc_pg.wait_for_load_state()
-    R.check('preview tab does NOT share the opener\'s sessionStorage (confirms why the URL-based fix is needed)',
+    R.check('preview tab does NOT share the opener\'s sessionStorage (this is why sessionStorage cannot be the fix)',
             not doc_pg.evaluate("() => sessionStorage.getItem('62304_previewedDocs')"))
+    R.check('...but it DOES already share localStorage — set in the opener tab before this one even existed',
+            'general-requirements' in (doc_pg.evaluate(
+                "() => localStorage.getItem('62304_previewedDocs')") or ''))
     R.check('"Back to Learn" carries ?previewed= for this phase',
             'previewed=general-requirements' in doc_pg.locator(
                 '.doc-preview-actions a', has_text='Back to Learn').first.get_attribute('href'))
@@ -1633,6 +1636,46 @@ def test_learn(browser, base):
     R.check('progress count reflects it',
             doc_pg.locator('#progress-count').inner_text() == '1',
             doc_pg.locator('#progress-count').inner_text())
+
+    # SECOND topic, its OWN separate Preview tab — this is the part that
+    # actually caught the real bug report: sessionStorage passed the single-
+    # topic version of this test above, because that only ever needs ONE
+    # Preview tab. Studying a second topic via a second, independent Preview
+    # tab is what exposed "only the most recent one stays marked studied" —
+    # each Preview tab is unrelated to the last, so anything tab-scoped
+    # forgets topic 1 the moment topic 2's tab opens. localStorage (see the
+    # STORAGE comment in learn.js) has no such boundary: both tabs read and
+    # write the same store, so this must show BOTH topics studied, not just
+    # the second.
+    doc_pg.locator('#phase-planning .read-more-btn').click()
+    with ctx.expect_page() as second_doc_info:
+        doc_pg.locator('#phase-planning .example-doc-preview').click()
+    doc_pg2 = second_doc_info.value
+    doc_pg2.wait_for_load_state()
+    doc_pg2.locator('.doc-preview-actions a', has_text='Back to Learn').first.click()
+    doc_pg2.wait_for_selector('.phase-card', timeout=10000)
+    doc_pg2.locator('#phase-planning .mark-studied-btn').click()
+    R.check('second topic, second independent Preview tab, also succeeds',
+            doc_pg2.locator('#studied-error-planning').inner_text() == '',
+            doc_pg2.locator('#studied-error-planning').inner_text())
+    R.check('BOTH topics now show studied — this is the bug that was reported '
+            '("only the most recent one" stayed marked)',
+            doc_pg2.locator('#progress-count').inner_text() == '2',
+            doc_pg2.locator('#progress-count').inner_text())
+
+    # And the original tab, never reloaded since before any of this — should
+    # it be refreshed, it must see both too, not just whichever topic was
+    # current when it was last drawn.
+    pg.reload()
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    R.check('the original tab, reloaded, also sees both topics studied',
+            pg.locator('#progress-count').inner_text() == '2',
+            pg.locator('#progress-count').inner_text())
+    R.check('...and both cards individually show their studied state, not just the count',
+            'studied' in (pg.locator('#phase-general-requirements').get_attribute('class') or '')
+            and 'studied' in (pg.locator('#phase-planning').get_attribute('class') or ''),
+            (pg.locator('#phase-general-requirements').get_attribute('class'),
+             pg.locator('#phase-planning').get_attribute('class')))
     ctx.close()
 
     # update banner dismissal persists

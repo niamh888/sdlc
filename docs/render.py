@@ -540,19 +540,14 @@ def render_set(doc_set, back_links):
         is_register = base == 'README'
         out_name = 'index.html' if is_register else base + '.html'
         phase_id = back_links.get(base)
-        # ?previewed=<id> is the mechanism that makes "Mark as Studied" work
-        # immediately after using this link — see restorePreviewedFromUrl()
-        # in learn.js for why: the Preview link opens this page in a genuinely
-        # separate tab (target="_blank" with rel="noopener", deliberately, to
-        # stop this page reaching back into the tab that opened it), which
-        # means sessionStorage cannot be shared or cloned between the two —
-        # an earlier version of this fix relied on exactly that cloning and
-        # did not work for that reason. A URL parameter has no such
-        # dependency: it travels with the link itself, so it survives no
-        # matter which tab the reader ends up doing the rest of their reading
-        # in. Query string, not just the #phase-<id> fragment already here,
-        # because the fragment identifies WHICH CARD to scroll to — a
-        # different job from recording that its document has been seen.
+        # ?previewed=<id> is a fallback that makes "Mark as Studied" work even
+        # if localStorage is unavailable — see restorePreviewedFromUrl() in
+        # learn.js and the STORAGE comment near the top of that file for the
+        # full history (this used to be load-bearing, back when the record
+        # lived in sessionStorage; it is belt-and-braces now). Query string,
+        # not just the #phase-<id> fragment already here, because the
+        # fragment identifies WHICH CARD to scroll to — a different job from
+        # recording that its document has been seen.
         back_href = (depth + '/learn.html?previewed=' + phase_id + '#phase-' + phase_id) if phase_id else (depth + '/learn.html')
         subtitle = doc_set['register_subtitle'] if is_register else doc_set['doc_subtitle']
 

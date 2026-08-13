@@ -245,14 +245,14 @@ What the site actually processes, in full:
 | Name, email, role, message | Formspree (United States), then email to the site owner |
 | IP address, user agent | GitHub Pages server logs; Formspree on submission |
 | Quiz name, answers, score | **Nowhere** — browser memory only, discarded when the tab closes |
-| `62304_trainingLevel`, `62304_bannerDismissed` | **Nowhere** — browser localStorage only |
-| `62304_studiedPhases`, `62304_previewedDocs` | **Nowhere** — browser sessionStorage only, discarded when the tab closes |
+| `62304_trainingLevel`, `62304_bannerDismissed`, `62304_theme` | **Nowhere** — browser localStorage only |
+| `62304_studiedPhases`, `62304_previewedDocs` | **Nowhere** — browser localStorage only, shared across tabs so Learn progress survives following a link to an example document and back |
 
 No cookies, no analytics, no tracking, and no external fonts or CDNs — every file
 a page loads is served from this site. That is why no cookie consent banner is
-required: the localStorage and sessionStorage values above exist solely to honour
-a preference or remember progress within the current visit, which is exempt as
-strictly necessary.
+required: the localStorage values above exist solely to honour a preference or
+remember progress you have asked the site to track, which is exempt as strictly
+necessary.
 
 ---
 

@@ -30,6 +30,17 @@ const QUESTION_URLS = {
   advanced: 'data/questions-advanced.json'
 };
 
+// Seconds per question, by level. Advanced questions are clause-referenced
+// (see the level notice below) — 30 seconds was tight for reading both the
+// question and four answer options before choosing, so Advanced gets double
+// the intro level's time. The start screen's wording is generated from this
+// object too (see the .js-timer-seconds fill-in in DOMContentLoaded), so the
+// two can never say different numbers.
+const QUESTION_SECONDS = {
+  intro: 30,
+  advanced: 60
+};
+
 // Minimum time the "Loading questions" state stays visible, to avoid a
 // flicker on fast connections. Same reasoning as in learn.js.
 const MIN_LOADING_MS = 250;
@@ -43,7 +54,9 @@ const quizState = {
   score: 0,               // number of correct answers so far
   answered: false,        // prevents double-answering the same question
   timerId: null,          // reference returned by setInterval — needed to cancel it
-  timeLeft: 30,           // seconds remaining for the current question
+  timeLeft: 30,           // seconds remaining for the current question — reset to the
+                           // level's actual duration by startTimer(); this default is
+                           // only ever seen before that first call
   participantName: ''     // entered on the start screen; used on the certificate
 };
 
@@ -480,7 +493,7 @@ function resetQuiz() {
 // they are a poor fit for something that fires over and over — a callback is
 // the right tool for a recurring event.
 function startTimer() {
-  quizState.timeLeft = 30;
+  quizState.timeLeft = QUESTION_SECONDS[getLevel()];
   updateTimerDisplay();
 
   quizState.timerId = setInterval(function () {
@@ -525,7 +538,8 @@ function updateTimerDisplay() {
 }
 
 // ---------- TIMEOUT ----------
-// Called when the 30 seconds expire without the user selecting an answer.
+// Called when the question's time (see QUESTION_SECONDS) expires without the
+// user selecting an answer.
 function handleTimeout() {
   if (quizState.answered) return;
   quizState.answered = true;
@@ -562,6 +576,14 @@ document.addEventListener('DOMContentLoaded', function () {
       ? '<span class="level-notice-badge level-notice-advanced">Advanced assessment</span> Questions are clause-referenced and test in-depth knowledge of IEC 62304:2006+AMD1:2015.'
       : '<span class="level-notice-badge level-notice-intro">Introductory assessment</span> Questions cover the core concepts of IEC 62304. Switch to Advanced on the <a href="learn.html">Learn page</a> for a more challenging assessment.';
   }
+
+  // Same idea as the .js-question-count fill-in in startQuestionsLoad(), but
+  // this one doesn't need to wait on the network — the level (and therefore
+  // the time per question) is already known from localStorage.
+  const secondsPerQuestion = QUESTION_SECONDS[getLevel()];
+  document.querySelectorAll('.js-timer-seconds').forEach(function (el) {
+    el.textContent = secondsPerQuestion;
+  });
 
   document.getElementById('begin-quiz').addEventListener('click', startQuiz);
   document.getElementById('next-question').addEventListener('click', nextQuestion);

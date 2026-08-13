@@ -105,6 +105,21 @@ def answer_one_question_correctly(pg):
     pg.wait_for_selector('#question-feedback.visible', timeout=8000)
 
 
+def run_full_quiz(pg, correct_count, total=15):
+    """Answers every question — the first `correct_count` correctly, the rest
+    wrong — and waits for the results screen. Same technique test_site.py
+    uses for its all-right/all-wrong runs, generalised to any score so a
+    below-pass-mark result (e.g. 8/15) can be photographed too."""
+    for i in range(total):
+        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
+        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+        idx = ci if i < correct_count else (ci + 1) % 4
+        pg.locator('.option-btn').nth(idx).click()
+        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
+        pg.locator('#next-question').click()
+    pg.wait_for_selector('#quiz-results.active', timeout=8000)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     httpd, base = start_server()
@@ -176,6 +191,11 @@ def main():
                 pg.goto(base + '/learn.html')
                 pg.wait_for_selector('.phase-card', timeout=10000)
                 pg.locator('#update-banner-close').click()
+                # .mark-studied-btn lives inside .phase-details, which is
+                # display:none until the card is expanded — the card has to be
+                # opened before the button is even visible, let alone clickable.
+                pg.locator('#phase-planning .phase-header').click()
+                pg.wait_for_timeout(150)
                 pg.locator('#phase-planning .mark-studied-btn').click()
                 pg.wait_for_timeout(200)
                 pg.evaluate(
@@ -203,6 +223,21 @@ def main():
                 pg.wait_for_timeout(200)
                 shoot(pg, 'quiz-start-dark')
                 ctx.close()
+
+                # ---- Quiz: below the pass mark ---- 8/15 (53%), below the 80%
+                # pass mark, so the results screen shows "Keep Studying" and no
+                # certificate — the other real outcome the site can produce, not
+                # just the all-correct case.
+                for scheme, suffix in [('light', 'light'), ('dark', 'dark')]:
+                    ctx, pg = new_page(browser, scheme)
+                    pg.goto(base + '/quiz.html')
+                    pg.fill('#participant-name', 'Sam Rivera')
+                    pg.locator('#begin-quiz').click()
+                    pg.wait_for_selector('#quiz-active.active', timeout=10000)
+                    run_full_quiz(pg, correct_count=8)
+                    pg.wait_for_timeout(150)
+                    shoot(pg, 'quiz-results-fail-%s' % suffix)
+                    ctx.close()
 
                 # ---- Contact ----
                 for scheme, suffix in [('light', 'light'), ('dark', 'dark')]:

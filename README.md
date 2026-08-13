@@ -23,7 +23,7 @@ currently in force. The consolidated text carries the designation Edition 1.1.
 
 - **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
 
-- **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
+- **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, a per-question countdown timer (30 seconds Introductory, 60 seconds Advanced — the clause-referenced questions need more reading time), immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 
 - **Contact page** — Feedback form with real-time client-side validation and asynchronous submission to a live Formspree endpoint (no page reload), including a request timeout and field-level server error reporting
 
@@ -76,6 +76,12 @@ Marking a topic studied is blocked until its example document has been opened at
 Dark theme, for comparison:
 
 ![Quiz start screen, dark theme](docs/assets/screenshots/quiz-start-dark.png)
+
+Scoring below the 80% pass mark shows "Keep Studying" and no certificate offer, rather than the site pretending every attempt is a pass:
+
+| Light | Dark |
+|---|---|
+| ![Quiz results screen below the pass mark, light theme](docs/assets/screenshots/quiz-results-fail-light.png) | ![Quiz results screen below the pass mark, dark theme](docs/assets/screenshots/quiz-results-fail-dark.png) |
 
 ### Contact
 

@@ -129,7 +129,10 @@
         <p>We delete your message once your query has been dealt with, and in every case <strong>no later than 48 hours after we have replied</strong>. In practice that means removing both the submission held by Formspree and the email in our inbox. We do not keep contact form messages as a long-term record, and we do not archive them anywhere else.</p>
 
         <h2>Information stored in your browser</h2>
-        <p>This site stores three small pieces of information on your own device, using a browser feature called <em>local storage</em>:</p>
+        <p>This site stores small pieces of information on your own device, using two different browser storage features that behave differently and are listed separately below for that reason.</p>
+
+        <h3>Local storage &mdash; kept until you clear it</h3>
+        <p><em>Local storage</em> survives closing the tab, closing the browser, even restarting your device. Three items use it, all preferences rather than anything about you as a person:</p>
         <table class="legal-table">
           <thead>
             <tr><th scope="col">What is stored</th><th scope="col">Why</th></tr>
@@ -149,7 +152,26 @@
             </tr>
           </tbody>
         </table>
-        <p>None of them identifies you. All stay on your device, are never transmitted to us or anyone else, and can be cleared at any time through your browser's "clear browsing data" settings. Because they exist purely to make the site work as you have asked it to, no consent banner is required for them.</p>
+
+        <h3>Session storage &mdash; cleared the moment you close the tab</h3>
+        <p><em>Session storage</em> is shorter-lived than local storage: it is gone as soon as the tab (or browser) closes, and it is never written unless you actually use the Learn page's progress tracker. Two items use it:</p>
+        <table class="legal-table">
+          <thead>
+            <tr><th scope="col">What is stored</th><th scope="col">Why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>62304_studiedPhases</code></td>
+              <td>Remembers which Learn topics you have marked studied, so the progress bar and each card's status survive navigating away and back &mdash; for example, following a link to an example document and using its "Back to Learn" button</td>
+            </tr>
+            <tr>
+              <td><code>62304_previewedDocs</code></td>
+              <td>Remembers which example documents you have previewed or downloaded &mdash; a topic can only be marked studied after this, and without it that requirement would incorrectly reset every time you navigated back to the page</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>None of the five items above identifies you. All stay on your device, are never transmitted to us or anyone else, and can be cleared at any time through your browser's "clear browsing data" settings &mdash; the session storage ones clear themselves the moment you close the tab regardless. Because they exist purely to make the site work as you have asked it to, no consent banner is required for any of them.</p>
         <p>This site sets <strong>no cookies at all</strong>.</p>
 
         <h2>The quiz and your certificate</h2>

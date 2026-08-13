@@ -51,16 +51,73 @@ const MIN_LOADING_MS = 250;
 // reassign it after loading.
 let phases = [];
 
+// STORAGE — sessionStorage, not localStorage. The two behave differently in
+// exactly the way this needs:
+//   * localStorage survives closing the browser entirely — too permanent for
+//     progress that should reset on a fresh visit (see the privacy notice's
+//     "what we store" table, which this deliberately does not join).
+//   * sessionStorage clears when the TAB closes, but survives a navigation
+//     within that tab — which is exactly what "Back to Learn" is. It also
+//     has one more property that matters here: per the HTML spec, a same-
+//     origin tab opened via target="_blank" (the Preview link) starts with a
+//     COPY of the opener's sessionStorage, taken at the moment it opens. So
+//     a Preview tab already carries the "this was previewed" record with it
+//     before the reader has done anything else, and it is still there if
+//     that tab then navigates to learn.html via Back to Learn.
+//
+// Without this, marking a topic studied broke in a very specific, very
+// confusing way: preview a document, click Back to Learn (a real navigation,
+// once openCardFromHash() below made the link actually work), and Mark as
+// Studied refused — the reload had wiped the record of the preview that had
+// only ever lived on the previous, now-gone version of this page. Sitting
+// through the same tab without navigating away masked this completely,
+// which is why it went unnoticed until "Back to Learn" started working.
+const STUDIED_STORAGE_KEY = '62304_studiedPhases';
+const PREVIEWED_STORAGE_KEY = '62304_previewedDocs';
+
+// Reads a JSON array of ids back out of sessionStorage into a Set. Wrapped in
+// try/catch because sessionStorage can throw (not just return null) in a few
+// real situations — Safari private browsing historically, or third-party-
+// storage restrictions on an embedded page — and a corrupted or hand-edited
+// value would otherwise throw out of JSON.parse. Either way the safe fallback
+// is the same as before this existed: start with nothing recorded.
+function loadIdSet(key) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    const ids = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(ids) ? ids : []);
+  } catch (e) {
+    return new Set();
+  }
+}
+
+// The inverse — called every time either Set changes, not batched, because
+// there is no "page unload" moment to rely on: the whole point is surviving
+// a navigation that the page does not get to intercept.
+function saveIdSet(key, set) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(Array.from(set)));
+  } catch (e) {
+    // Storage unavailable or full — the Set itself still works for the rest
+    // of this page's life, it just will not survive a navigation. No worse
+    // than the behaviour before sessionStorage was used at all.
+  }
+}
+
 // A Set is like an array but guarantees uniqueness — perfect for tracking
 // which phase IDs the user has marked as studied (no duplicates possible).
-const studiedPhases = new Set();
+// Restored from sessionStorage rather than starting empty, so a topic
+// correctly marked studied earlier in this tab's life stays marked after a
+// navigation such as Back to Learn. renderPhases() reads this when it first
+// builds each card, so a restored id needs no extra wiring beyond this line.
+const studiedPhases = loadIdSet(STUDIED_STORAGE_KEY);
 
 // Which phases the visitor has actually opened the example document for —
 // via either the Preview link or the Download link, either one counts as
 // having engaged with it. Checked by markStudied() before it allows a topic
-// to be marked studied. Not persisted, the same as studiedPhases: both are
-// scoped to the current page visit.
-const previewedDocs = new Set();
+// to be marked studied. Restored from sessionStorage for the same reason as
+// studiedPhases above — see the STORAGE comment there for the full case.
+const previewedDocs = loadIdSet(PREVIEWED_STORAGE_KEY);
 
 // Tracks the currently active safety-class filter so applyFilter() always
 // knows which button to highlight when the grid re-renders.
@@ -259,7 +316,18 @@ function renderPhases() {
     card.className = 'phase-card';
     card.id = 'phase-' + phase.id;
 
-    // Restore the studied appearance if the user already marked this card.
+    // Restore the "opened" mark — filled book icon, Mark as Studied in place
+    // of Read More — for anything already previewed or studied earlier in
+    // this session. The Read More / Mark as Studied swap is keyed off
+    // .opened, not .studied (see the footer markup below), so without this
+    // a restored studied topic would render its footer as "Read More" again
+    // even while the button beside it correctly says "Studied" — the two
+    // would visibly disagree. previewedDocs is included too so a topic the
+    // reader previewed but has not yet marked studied does not regress to
+    // looking unopened after a reload.
+    if (previewedDocs.has(phase.id) || studiedPhases.has(phase.id)) {
+      card.classList.add('opened');
+    }
     if (studiedPhases.has(phase.id)) {
       card.classList.add('studied');
     }
@@ -748,6 +816,7 @@ function handleCardClick(e) {
   // is what markStudied() checks before it allows the topic to be studied.
   if (docLink && docLink.dataset.id) {
     previewedDocs.add(docLink.dataset.id);
+    saveIdSet(PREVIEWED_STORAGE_KEY, previewedDocs);
     const err = document.getElementById('studied-error-' + docLink.dataset.id);
     if (err) err.textContent = '';
     return;
@@ -860,6 +929,7 @@ function markStudied(id) {
   if (errorEl) errorEl.textContent = '';
 
   studiedPhases.add(id);
+  saveIdSet(STUDIED_STORAGE_KEY, studiedPhases);
   card.classList.add('studied');
 
   const btn = card.querySelector('.mark-studied-btn');

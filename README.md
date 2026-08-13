@@ -246,11 +246,13 @@ What the site actually processes, in full:
 | IP address, user agent | GitHub Pages server logs; Formspree on submission |
 | Quiz name, answers, score | **Nowhere** — browser memory only, discarded when the tab closes |
 | `62304_trainingLevel`, `62304_bannerDismissed` | **Nowhere** — browser localStorage only |
+| `62304_studiedPhases`, `62304_previewedDocs` | **Nowhere** — browser sessionStorage only, discarded when the tab closes |
 
 No cookies, no analytics, no tracking, and no external fonts or CDNs — every file
 a page loads is served from this site. That is why no cookie consent banner is
-required: the two localStorage values exist solely to honour a preference the user
-has set, which is exempt as strictly necessary.
+required: the localStorage and sessionStorage values above exist solely to honour
+a preference or remember progress within the current visit, which is exempt as
+strictly necessary.
 
 ---
 

@@ -1576,6 +1576,47 @@ def test_learn(browser, base):
             (pg.evaluate('() => window.scrollY'), pg.js_errors))
     ctx.close()
 
+    # END-TO-END REGRESSION: the exact real-world round trip a reader
+    # actually makes — Read More, Preview (a real target="_blank" tab, not
+    # the same page), Back to Learn from THAT tab, then Mark as Studied.
+    # This is worth its own test distinct from the hash checks above because
+    # it exercises something those cannot: Preview opens a genuinely separate
+    # tab, and per the HTML spec a same-origin tab opened this way starts
+    # with a COPY of the opener's sessionStorage taken at that moment — which
+    # is exactly the mechanism previewedDocs/studiedPhases now rely on to
+    # survive the round trip. A single-page test would not catch a regression
+    # where that assumption stops holding.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.locator('#update-banner-close').click()
+    pg.locator('#phase-general-requirements .read-more-btn').click()
+
+    with ctx.expect_page() as new_page_info:
+        pg.locator('#phase-general-requirements .example-doc-preview').click()
+    doc_pg = new_page_info.value
+    doc_pg.wait_for_load_state()
+    R.check('the preview tab already carries the previewed record (sessionStorage clone on open)',
+            'general-requirements' in (doc_pg.evaluate(
+                "() => sessionStorage.getItem('62304_previewedDocs')") or ''))
+
+    doc_pg.locator('.doc-preview-actions a', has_text='Back to Learn').first.click()
+    doc_pg.wait_for_selector('.phase-card', timeout=10000)
+    doc_pg.wait_for_timeout(200)
+    R.check('back on Learn (via the doc tab), the card is expanded, not collapsed',
+            'expanded' in (doc_pg.locator('#phase-general-requirements').get_attribute('class') or ''))
+
+    doc_pg.locator('#phase-general-requirements .mark-studied-btn').click()
+    R.check('Mark as Studied succeeds after the round trip — this is the bug that was reported',
+            doc_pg.locator('#studied-error-general-requirements').inner_text() == '',
+            doc_pg.locator('#studied-error-general-requirements').inner_text())
+    R.check('button confirms studied',
+            doc_pg.locator('#phase-general-requirements .mark-studied-btn').is_disabled())
+    R.check('progress count reflects it',
+            doc_pg.locator('#progress-count').inner_text() == '1',
+            doc_pg.locator('#progress-count').inner_text())
+    ctx.close()
+
     # update banner dismissal persists
     ctx, pg = new_page(browser)
     pg.goto(base + '/learn.html')

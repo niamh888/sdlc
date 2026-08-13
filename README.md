@@ -19,9 +19,9 @@ currently in force. The consolidated text carries the designation Edition 1.1.
 
 ## Features
 
-- **Home page** — Introduction to IEC 62304 ED1 with key statistics and information (e.g., what is IEC 62304)
+- **Home page** — Introduction to IEC 62304 ED1 with key statistics and information (e.g., what is IEC 62304); a promotional strip below the introduction credits St John Lynch & Co and AskRiskIE side by side in one banner, sized to match the page and visible at every viewport
 
-- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied; a promotional strip beneath the topic cards credits St John Lynch & Co and AskRiskIE side by side in one banner, sized to match the page and visible at every viewport
+- **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
 
 - **Quiz page** — two 15-question assessments (Introductory and Advanced), with only the set matching your chosen level downloaded; randomised order, 30-second timer per question, immediate feedback, and a pass/fail results screen; 80% pass mark earns a downloadable certificate that reflects the training level completed
 
@@ -46,6 +46,10 @@ python tests/capture_screenshots.py
 |---|---|
 | ![Home page, light theme](docs/assets/screenshots/index-light.png) | ![Home page, dark theme](docs/assets/screenshots/index-dark.png) |
 
+Below the introduction, a single promotional strip credits St John Lynch & Co and AskRiskIE side by side inside one banner, sized to the same 1100px width as the rest of the page — visible at every viewport, not just wide screens:
+
+![Home page promotional strip, crediting St John Lynch & Co and AskRiskIE side by side in one banner](docs/assets/screenshots/index-promo-strip-light.png)
+
 ### Learn — process area cards, safety class filter, deliverables list
 
 The flagship feature: filtering to Class A dims the sub-clauses of Clause 7
@@ -62,10 +66,6 @@ Marking a topic studied is blocked until its example document has been opened at
 | Light (default view) | Dark |
 |---|---|
 | ![Learn page, light theme](docs/assets/screenshots/learn-light.png) | ![Learn page, dark theme](docs/assets/screenshots/learn-dark.png) |
-
-Below the topic cards, a single promotional strip credits St John Lynch & Co and AskRiskIE side by side inside one banner, sized to the same 1100px width as the rest of the page — visible at every viewport, not just wide screens:
-
-![Learn page promotional strip, crediting St John Lynch & Co and AskRiskIE side by side in one banner](docs/assets/screenshots/learn-promo-strip-light.png)
 
 ### Quiz — timed assessment with immediate feedback
 
@@ -596,6 +596,7 @@ python tests/test_site.py --group data --group a11y   # or several
 | `deliverables` | Per-class output counts derived from the data; panel hidden until a class is chosen; collapse/expand with `aria-expanded`; requirements with no artefact listed and labelled rather than dropped; CSV filename, UTF-8 BOM, CRLF, eight columns, comma escaping, and correct inclusion of 5.4.1 / 7.4.1 and exclusion of 5.1.4 and removed sub-clauses; print output; the §4.1 / §4.2 cross-references cite ISO 13485 and ISO 14971 on screen and in the CSV, **assert ISO 9001 is not presented as a route**, and are not mislabelled "decide for yourself"; **regression test that printing a non-quiz page is no longer blank** |
 | `applicability` | Sub-clause mapping is complete and well formed; **clause-level classes equal the union of their sub-clauses**; spot checks against the standard (7.4.1, 5.4.1, 5.3.5, 5.7.1, 6.2.3 …); 97 rendered rows; per-class visible/partial counts; and a **regression test that reintroduces the original Clause 7 error and requires the site to reject it** |
 | `docs` | Every Learn card's example-document Preview/Download links resolve to the right file with the right attributes; every rendered page under `docs/` loads without a JS error, carries the training-example banner, links back to the originating card, has no horizontal overflow, and passes axe |
+| `home` | Promotional strip crediting St John Lynch & Co and AskRiskIE is visible, both cards link where expected (the St John Lynch & Co card to the About page first, then stjohnlynch.com; AskRiskIE to askriskie.com), external links open safely (`target="_blank"` + `rel="noopener"`), stacks to one column at 480px, no horizontal overflow, hidden when printing |
 | `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker, **including that marking a topic studied is blocked until its example document has been opened (Preview or Download), with the blocked attempt auto-expanding the card and moving focus to the Preview link**; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
@@ -693,6 +694,7 @@ Being honest about the limits matters more than a green tick:
 | `learn.html` | Lifecycle process area cards |
 | `quiz.html` | Timed knowledge assessment |
 | `contact.html` | Feedback and contact form |
+| `about.html` | About page to highlight the credentials of the author to deliver this course.
 | `privacy.html` | Privacy and data protection notice, linked from every footer |
 | `style.css` | Shared CSS — professional medical theme, responsive layout, loading and error states |
 | `async-utils.js` | **Shared async helpers** — `delay()` and `fetchJSON()`, plus the main explanation of how asynchronous JavaScript works |
@@ -762,3 +764,7 @@ dependencies — the site is plain HTML, CSS and JavaScript.
 ## Standard Covered
 
 IEC 62304:2006 + Amendment 1:2015 — Medical device software — Software life cycle processes
+
+### Use of Artificial Intelligence
+
+AI (Claude from Anthropic) was used throughout this module's learning experience in it's capacity to explain coding concepts further and provide updated commenting in some sections, that were not adequately explained by the author.  This was done to support the learner/author and readers of this application.  Going over aspects in this manner have helped to cement the concepts.  The code was developed by the author but when 'stuck' Claude was a useful back-up assistant for answering questions. Claude also helps with running testing in the background after changes have been made to satisfy regression testing. The ability to use AI in this way makes for a more robust and real-time learning experience, which I am grateful for.  The classes point to all the aspects that need to be understood and the practice brings this to life.  The UCD course is highly recommended as a result of the personal satisfaction and learning I have gained over the preceding months.  Thanks to the best tutor - Housam!

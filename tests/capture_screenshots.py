@@ -122,6 +122,18 @@ def main():
                     shoot(pg, 'index-%s' % suffix)
                     ctx.close()
 
+                # ---- Home: promotional strip ----
+                # Lives on the home page, not Learn — see test_home() in
+                # tests/test_site.py for why. Scroll it into view rather than
+                # needing an ultra-wide window to see it at all.
+                ctx, pg = new_page(browser, 'light')
+                pg.goto(base + '/index.html')
+                pg.wait_for_timeout(200)
+                pg.evaluate("() => document.querySelector('.promo-strip').scrollIntoView({block: 'center'})")
+                pg.wait_for_timeout(150)
+                shoot(pg, 'index-promo-strip-light')
+                ctx.close()
+
                 # ---- Learn: default view ----
                 ctx, pg = new_page(browser, 'light')
                 pg.goto(base + '/learn.html')
@@ -137,20 +149,6 @@ def main():
                 pg.locator('#update-banner-close').click()
                 pg.wait_for_timeout(150)
                 shoot(pg, 'learn-dark')
-                ctx.close()
-
-                # ---- Learn: promotional strip ----
-                # Unlike the sticky side rails this replaced, the strip is
-                # part of the normal page flow at the standard viewport — it
-                # just sits below the topic cards, so scroll it into view
-                # rather than needing an ultra-wide window to see it at all.
-                ctx, pg = new_page(browser, 'light')
-                pg.goto(base + '/learn.html')
-                pg.wait_for_selector('.phase-card', timeout=10000)
-                pg.locator('#update-banner-close').click()
-                pg.evaluate("() => document.querySelector('.promo-strip').scrollIntoView({block: 'center'})")
-                pg.wait_for_timeout(150)
-                shoot(pg, 'learn-promo-strip-light')
                 ctx.close()
 
                 # ---- Learn: the flagship feature — class filter, an expanded

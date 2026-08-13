@@ -87,7 +87,7 @@ RISK_ESCALATION_END = '<!-- ANOMALY-ESCALATIONS:END -->'
 PAGES = ['index.html', 'learn.html', 'quiz.html', 'about.html', 'contact.html', 'privacy.html']
 VIEWPORTS = [('desktop', 1280, 900), ('tablet', 768, 900), ('mobile', 480, 800), ('small', 360, 740)]
 
-GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'learn', 'quiz', 'contact',
+GROUPS = ['data', 'applicability', 'deliverables', 'docs', 'home', 'learn', 'quiz', 'contact',
           'privacy', 'version', 'theme', 'nav', 'a11y', 'responsive']
 
 
@@ -1254,6 +1254,80 @@ def test_docs(browser, base, axe_src):
 
 
 # ============================================================
+# GROUP 3B — HOME PAGE
+# ============================================================
+
+def test_home(browser, base):
+    R.group('home — promotional strip')
+
+    # Lives on the home page, not Learn — Learn is for studying, and the
+    # home page has little else on it, so a "why trust this course" pointer
+    # earns its place here instead. It is a normal part of the page flow —
+    # visible at every viewport, not gated behind an ultra-wide breakpoint —
+    # so one desktop width is enough to check it, plus a narrow width to
+    # confirm the two halves stack instead of overflowing.
+    ctx, pg = new_page(browser, 1280, 900)
+    pg.goto(base + '/index.html')
+    pg.wait_for_timeout(150)
+
+    R.check('promo strip is visible', pg.locator('.promo-strip').is_visible())
+
+    # The St John Lynch & Co card carries two links, not one — see
+    # buildExampleDocBlock()'s sibling change to the Learn card's own
+    # real-template link for the same reasoning: an internal link that
+    # actually explains "why trust this" (About), and the external one for
+    # someone who already wants the business itself.
+    sjl_about = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(0)
+    R.check('St John Lynch & Co card links to the About page first',
+            sjl_about.get_attribute('href') == 'about.html',
+            sjl_about.get_attribute('href'))
+
+    sjl = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(1)
+    R.check('St John Lynch & Co card also links to stjohnlynch.com, opened safely',
+            sjl.get_attribute('href') == 'https://stjohnlynch.com'
+            and sjl.get_attribute('target') == '_blank'
+            and 'noopener' in (sjl.get_attribute('rel') or ''),
+            '%s / %s / %s' % (sjl.get_attribute('href'), sjl.get_attribute('target'), sjl.get_attribute('rel')))
+
+    askriskie = pg.locator('.promo-card').nth(1).locator('a.promo-cta')
+    R.check('AskRiskIE card links to askriskie.com, opened safely',
+            askriskie.get_attribute('href') == 'https://askriskie.com'
+            and askriskie.get_attribute('target') == '_blank'
+            and 'noopener' in (askriskie.get_attribute('rel') or ''),
+            '%s / %s / %s' % (askriskie.get_attribute('href'), askriskie.get_attribute('target'), askriskie.get_attribute('rel')))
+
+    R.check('no horizontal overflow at 1280px',
+            pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
+    R.check('no JavaScript errors at 1280px', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # Narrow viewport: the two cards stack rather than squeezing into two
+    # illegibly-narrow columns, and still introduce no overflow.
+    ctx, pg = new_page(browser, 480, 900)
+    pg.goto(base + '/index.html')
+    pg.wait_for_timeout(150)
+    R.check('promo strip stacks to one column at 480px',
+            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip-body')).gridTemplateColumns")
+            .count(' ') == 0)
+    R.check('no horizontal overflow at 480px',
+            pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
+    ctx.close()
+
+    # Printing a page with the strip must not print it — belt-and-braces
+    # check for the explicit display:none !important in the @media print
+    # block ("print is always light").
+    ctx, pg = new_page(browser, 1280, 900)
+    pg.goto(base + '/index.html')
+    pg.wait_for_timeout(150)
+    pg.emulate_media(media='print')
+    pg.wait_for_timeout(150)
+    R.check('promo strip is hidden when printing',
+            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip')).display") == 'none')
+    pg.emulate_media(media='screen')
+    ctx.close()
+
+
+# ============================================================
 # GROUP 4 — LEARN PAGE
 # ============================================================
 
@@ -1478,72 +1552,11 @@ def test_learn(browser, base):
     R.check('banner stays dismissed after reload', pg.locator('#update-banner').is_hidden())
     ctx.close()
 
-    R.group('learn — promotional strip')
-
-    # Unlike the sticky side rails this replaced, the strip is a normal part
-    # of the page flow — visible at every viewport, not gated behind an
-    # ultra-wide breakpoint — so one desktop width is enough to check it,
-    # plus a narrow width to confirm the two halves stack instead of
-    # overflowing.
-    ctx, pg = new_page(browser, 1280, 900)
-    pg.goto(base + '/learn.html')
-    pg.wait_for_selector('.phase-card', timeout=10000)
-
-    R.check('promo strip is visible', pg.locator('.promo-strip').is_visible())
-
-    # The St John Lynch & Co card carries two links, not one — see
-    # buildExampleDocBlock()'s sibling change to the Learn card's own
-    # real-template link for the same reasoning: an internal link that
-    # actually explains "why trust this" (About), and the external one for
-    # someone who already wants the business itself.
-    sjl_about = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(0)
-    R.check('St John Lynch & Co card links to the About page first',
-            sjl_about.get_attribute('href') == 'about.html',
-            sjl_about.get_attribute('href'))
-
-    sjl = pg.locator('.promo-card').nth(0).locator('a.promo-cta').nth(1)
-    R.check('St John Lynch & Co card also links to stjohnlynch.com, opened safely',
-            sjl.get_attribute('href') == 'https://stjohnlynch.com'
-            and sjl.get_attribute('target') == '_blank'
-            and 'noopener' in (sjl.get_attribute('rel') or ''),
-            '%s / %s / %s' % (sjl.get_attribute('href'), sjl.get_attribute('target'), sjl.get_attribute('rel')))
-
-    askriskie = pg.locator('.promo-card').nth(1).locator('a.promo-cta')
-    R.check('AskRiskIE card links to askriskie.com, opened safely',
-            askriskie.get_attribute('href') == 'https://askriskie.com'
-            and askriskie.get_attribute('target') == '_blank'
-            and 'noopener' in (askriskie.get_attribute('rel') or ''),
-            '%s / %s / %s' % (askriskie.get_attribute('href'), askriskie.get_attribute('target'), askriskie.get_attribute('rel')))
-
-    R.check('no horizontal overflow at 1280px',
-            pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
-    R.check('no JavaScript errors at 1280px', not pg.js_errors, pg.js_errors)
-    ctx.close()
-
-    # Narrow viewport: the two cards stack rather than squeezing into two
-    # illegibly-narrow columns, and still introduce no overflow.
-    ctx, pg = new_page(browser, 480, 900)
-    pg.goto(base + '/learn.html')
-    pg.wait_for_selector('.phase-card', timeout=10000)
-    R.check('promo strip stacks to one column at 480px',
-            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip-body')).gridTemplateColumns")
-            .count(' ') == 0)
-    R.check('no horizontal overflow at 480px',
-            pg.evaluate('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1'))
-    ctx.close()
-
-    # Printing a page with the strip must not print it — belt-and-braces
-    # check for the explicit display:none !important in the @media print
-    # block ("print is always light").
-    ctx, pg = new_page(browser, 1280, 900)
-    pg.goto(base + '/learn.html')
-    pg.wait_for_selector('.phase-card', timeout=10000)
-    pg.emulate_media(media='print')
-    pg.wait_for_timeout(150)
-    R.check('promo strip is hidden when printing',
-            pg.evaluate("() => getComputedStyle(document.querySelector('.promo-strip')).display") == 'none')
-    pg.emulate_media(media='screen')
-    ctx.close()
+    # The promotional strip used to live here (below the topic cards) but
+    # was moved to the home page — see test_home()'s "home — promotional
+    # strip" group. Deliberate: the Learn page is where studying happens,
+    # and the home page has little else on it, so that is where a "why
+    # trust this course" pointer earns its place.
 
     # ---- async failure paths ----
     R.group('learn — async loading and failure')
@@ -2944,6 +2957,8 @@ def main():
                     test_deliverables(browser, base)
                 if 'docs' in groups:
                     test_docs(browser, base, axe_src)
+                if 'home' in groups:
+                    test_home(browser, base)
                 if 'learn' in groups:
                     test_learn(browser, base)
                 if 'quiz' in groups:

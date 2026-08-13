@@ -2699,8 +2699,16 @@ a {
   margin-bottom: 10px;
 }
 
+/* 960px, not the 760px reading-measure cap most prose on this site uses
+   (.about-intro, .legal-page, .about-proof, .about-cta all keep 760px on
+   purpose — long-form text stays readable regardless of how wide the
+   container gets). This is a one-sentence lede sitting directly above
+   .qual-grid, which spans the full container — at 760px, next to a grid
+   nearly twice that wide, it reads as a formatting mistake rather than a
+   deliberately measured line length. Widened just enough to feel like part
+   of the same layout as the grid below it, short of matching it exactly. */
 .about-section > p.about-lede {
-  max-width: 760px;
+  max-width: 960px;
   color: var(--text-muted);
   line-height: 1.7;
   margin-bottom: 24px;

@@ -237,7 +237,7 @@ a {
 /* ===== LAYOUT ===== */
 
 .container {
-  max-width: 1100px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -673,12 +673,44 @@ a {
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 48px;
+  grid-template-columns: 1fr auto auto;
+  gap: 40px;
   align-items: center;
   padding: 48px 0;
   border-bottom: 1px solid var(--border);
   margin-bottom: 48px;
+}
+
+/* Sits in the middle column that opened up once .container went to 1320px
+   (see the comment there) — without it, that column was just dead air
+   between the hero text and the stat cards. Shown in its original colour
+   rather than the site's navy palette, by request — a tinted version was
+   mocked up alongside this one if that's revisited later. Purely
+   decorative (empty alt), so it is skipped in the tab order rather than
+   given one.
+
+   The PNG has an opaque white background baked into its pixels (checked:
+   no alpha/tRNS chunk), so it cannot blend into the page the way an
+   .info-card does by inheriting var(--bg-white) — that variable turns dark
+   in dark theme, but the image's own pixels can't follow it. Framing it in
+   a literal, always-white card (like a photo in a white mount) turns what
+   would otherwise be a glaring rectangle in dark mode into a deliberate
+   card, matching the bordered/shadowed language every other panel on this
+   page already uses. */
+.hero-image-wrap {
+  width: 300px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.hero-image-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: calc(var(--radius-lg) - 6px);
 }
 
 /* Version statement beneath the hero subtitle. Bordered rather than merely
@@ -3105,6 +3137,11 @@ a {
     grid-template-columns: 1fr;
     gap: 32px;
     padding: 32px 0;
+  }
+
+  .hero-image-wrap {
+    width: 200px;
+    margin: 0 auto;
   }
 
   .hero-stats {

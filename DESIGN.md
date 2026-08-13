@@ -285,15 +285,15 @@ The full statement lives on the privacy page under its own `#content-sources` he
 
 ### Colour palette
 
-| Token           | Value     | Use                              |
-|-----------------|-----------|----------------------------------|
-| `--primary`     | `#1a3a5c` | Header, headings, borders        |
+| Token             | Value     | Use                              |
+|-----------------  |-----------|----------------------------------|
+| `--primary`       | `#1a3a5c` | Header, headings, borders        |
 | `--primary-light` | `#2e5b8a` | Button hover states            |
-| `--accent`      | `#2980b9` | Links, filter active, quiz bar   |
-| `--success`     | `#27ae60` | Correct answers, studied state   |
-| `--danger`      | `#c0392b` | Incorrect answers, form errors   |
-| `--warning`     | `#d35400` | Timer amber/red states           |
-| `--bg`          | `#f4f6f9` | Page background, input fields    |
+| `--accent`        | `#2980b9` | Links, filter active, quiz bar   |
+| `--success`       | `#27ae60` | Correct answers, studied state   |
+| `--danger`        | `#c0392b` | Incorrect answers, form errors   |
+| `--warning`       | `#d35400` | Timer amber/red states           |
+| `--bg`            | `#f4f6f9` | Page background, input fields    |
 
 A deep navy and clinical blue palette was chosen to match the professional, regulatory context of the subject matter. The same palette is used in medical device company documentation and audit tools, so it signals credibility to the target audience.
 

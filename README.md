@@ -19,7 +19,7 @@ currently in force. The consolidated text carries the designation Edition 1.1.
 
 ## Features
 
-- **Home page** — Introduction to IEC 62304 ED1 with key statistics and information (e.g., what is IEC 62304); a promotional strip below the introduction credits St John Lynch & Co and AskRiskIE side by side in one banner, sized to match the page and visible at every viewport
+- **Home page** — Introduction to IEC 62304 ED1 with key statistics and information (e.g., what is IEC 62304), an illustration ([assets/img/](assets/img/)) and a lifecycle-flow diagram alongside the stat cards; a promotional strip below the introduction credits St John Lynch & Co and AskRiskIE side by side in one banner, sized to match the page and visible at every viewport
 
 - **Learn page** — 13 expandable topic cards covering Clauses 4–9, loaded from JSON; generates the deliverables required at the selected safety class, on screen, as CSV or printed; toggle between Introductory and Advanced depth; filter by safety class (A/B/C) with a notice distinguishing *applies in full*, *applies in part* and *does not apply*, naming the specific sub-clauses, plus a standing ISO 14971 caution; each card carries a per-sub-clause applicability table; each card also links to a worked example of the document that process area would produce — previewable online or downloadable as a PDF, clearly marked as a training example and not an actual regulatory deliverable (see [docs/](docs/README.md)); study progress tracker, which requires the example document to have been opened at least once before a topic can be marked studied
 

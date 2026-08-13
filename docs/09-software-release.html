@@ -106,6 +106,18 @@
 <ul><li><strong>No release versioning scheme.</strong> No git tags exist in this repository (<code>git tag</code> returns nothing as of this writing), no <code>CHANGELOG.md</code>, and no version string embedded in the software itself. 5.8.4's "document the version of the software being released" has no current answer beyond "the commit at the tip of <code>main</code> at deployment time."</li><li><strong>No formal release gate or checklist.</strong> Deployment to GitHub Pages happens whenever <code>main</code> is updated; there is no explicit "release" event distinct from "a commit landed," so 5.8.1's completeness check and 5.8.6's activity-completeness check are not currently performed as a discrete, recorded step.</li><li><strong>Suggested next step, not yet taken:</strong> tag each meaningfully complete state (e.g. <code>v1.0.0</code>) and record, at minimum, the anomaly log's open-anomaly count at that commit as the 5.8.2/5.8.3 evidence for that release. This is named as a suggestion rather than implemented here, consistent with <a href="05-software-detailed-design.html#gaps">05</a>'s reasoning: a process adopted at the next real release means more than one backdated for this document set's sake.</li></ul>
       </div>
 
+      <!-- Same links as the top .doc-preview-actions, repeated here because
+           these documents can run long: a reader who scrolls all the way
+           through one otherwise has no way back except scrolling all the
+           way back up. See learn.js's openCardFromHash() for the other half
+           of this — the "Back to Learn" link only lands on the right card
+           because that function makes the hash actually do something. -->
+      <div class="doc-preview-actions doc-preview-actions-bottom">
+        <a class="btn btn-secondary" href="../learn.html#phase-release">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="09-software-release.pdf" download="09 — Software Release (example).pdf">&#8681; Download (PDF)</a>
+      </div>
+
     </div>
   </main>
 

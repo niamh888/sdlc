@@ -1233,11 +1233,18 @@ def test_docs(browser, base, axe_src):
                     back_link.get_attribute('href') == expected_back,
                     back_link.get_attribute('href'))
 
-            download_link = pg.locator('.doc-preview-actions a[download]')
-            R.check('%s: PDF download link is present, not the markdown source' % label,
-                    download_link.count() == 1 and
-                    download_link.get_attribute('href') == '%s.pdf' % out_name,
-                    download_link.get_attribute('href') if download_link.count() else 'missing')
+            # Two now, not one: the same top/back/download row is repeated at
+            # the bottom of the document (see doc-preview-actions-bottom in
+            # style.css) so a reader who scrolls all the way through a long
+            # document isn't forced back to the top just to leave. Both must
+            # point at the PDF, not the markdown source.
+            download_links = pg.locator('.doc-preview-actions a[download]')
+            download_hrefs = [download_links.nth(i).get_attribute('href')
+                               for i in range(download_links.count())]
+            R.check('%s: PDF download link is present (top and bottom), not the markdown source' % label,
+                    download_links.count() == 2 and
+                    all(h == '%s.pdf' % out_name for h in download_hrefs),
+                    download_hrefs)
 
             ok = pg.evaluate(
                 '() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1')
@@ -1538,6 +1545,35 @@ def test_learn(browser, base):
     ctx2.close()
 
     R.check('no JavaScript errors', not pg.js_errors, pg.js_errors)
+    ctx.close()
+
+    # Deep link from an example document's "Back to Learn" button —
+    # learn.html#phase-<id> — must actually return the reader to that card,
+    # not just to the top of the page. Regression test for a real bug: the
+    # browser's native same-page anchor jump fires before renderPhases() has
+    # built the cards (they arrive async, from data/phases.json), finds
+    # nothing, and never retries — so the reader silently landed at the top
+    # of a 13-card page. See openCardFromHash() in learn.js.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html#phase-configuration')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.wait_for_timeout(200)
+    R.check('hash-linked card is expanded',
+            'expanded' in (pg.locator('#phase-configuration').get_attribute('class') or ''))
+    R.check('page actually scrolled to the card, not left at the top',
+            pg.evaluate('() => window.scrollY') > 200,
+            pg.evaluate('() => window.scrollY'))
+    ctx.close()
+
+    # A hash naming something that isn't a real card (stale link, typo,
+    # someone else's bookmark) must be ignored quietly, not throw.
+    ctx, pg = new_page(browser)
+    pg.goto(base + '/learn.html#phase-does-not-exist')
+    pg.wait_for_selector('.phase-card', timeout=10000)
+    pg.wait_for_timeout(200)
+    R.check('unrecognised hash leaves the page at the top, no JS error',
+            pg.evaluate('() => window.scrollY') == 0 and not pg.js_errors,
+            (pg.evaluate('() => window.scrollY'), pg.js_errors))
     ctx.close()
 
     # update banner dismissal persists

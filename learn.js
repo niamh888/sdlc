@@ -219,6 +219,10 @@ async function initPhases() {
     if (statusEl) statusEl.classList.add('hidden');
     if (controlsEl) controlsEl.classList.remove('hidden');
 
+    // The cards this reads now exist — see openCardFromHash() for why this
+    // has to wait until here rather than running on page load directly.
+    openCardFromHash();
+
   } catch (error) {
     // ---- STATE 3: FAILURE ----
     // Because loadPhases() is awaited inside a try block, any error thrown
@@ -784,6 +788,33 @@ function togglePhaseCard(id) {
       card.classList.add('opened');
     }
   }
+}
+
+// ---------- DEEP LINK: RETURN TO A CARD FROM ITS URL HASH ----------
+// Every example document links back with e.g. learn.html#phase-configuration,
+// meant to return the reader to the card they came from. The browser's own
+// "jump to this element" behaviour cannot do that here on its own: it fires
+// once, immediately after the HTML is parsed, and at that instant the cards
+// do not exist yet — they are built by renderPhases(), which only runs once
+// data/phases.json has finished loading. By the time the card actually
+// appears, the browser has already given up; it does not retry once the
+// element shows up later. Without this, "Back to Learn" silently dropped the
+// reader at the top of a 13-card page instead of at the card they came from.
+// Called from initPhases() once loadPhases() (and therefore renderPhases())
+// has actually finished, so the id below is guaranteed to exist if it is
+// ever going to.
+function openCardFromHash() {
+  const match = /^#phase-(.+)$/.exec(window.location.hash);
+  if (!match) return;
+
+  const id = match[1];
+  const card = document.getElementById('phase-' + id);
+  if (!card) return; // hash named something that isn't a real card — ignore it
+
+  if (!card.classList.contains('expanded')) {
+    togglePhaseCard(id);
+  }
+  card.scrollIntoView({ block: 'start' });
 }
 
 // ---------- MARK AS STUDIED ----------

@@ -424,6 +424,18 @@ PAGE_TEMPLATE = '''<!DOCTYPE html>
 {body}
       </div>
 
+      <!-- Same links as the top .doc-preview-actions, repeated here because
+           these documents can run long: a reader who scrolls all the way
+           through one otherwise has no way back except scrolling all the
+           way back up. See learn.js's openCardFromHash() for the other half
+           of this — the "Back to Learn" link only lands on the right card
+           because that function makes the hash actually do something. -->
+      <div class="doc-preview-actions doc-preview-actions-bottom">
+        <a class="btn btn-secondary" href="{back_href}">&larr; Back to Learn</a>
+        <a class="btn btn-secondary" href="index.html">All example documents</a>
+        <a class="btn btn-primary" href="{pdf_name}" download="{download_name}">&#8681; Download (PDF)</a>
+      </div>
+
     </div>
   </main>
 

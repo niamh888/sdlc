@@ -2889,6 +2889,15 @@ a {
   font-size: 0.85rem;
 }
 
+/* The repeat of .doc-preview-actions at the bottom of the document — a
+   border rather than just space, so it reads as "end of document, here's
+   where to go next" rather than a stray, unexplained row of buttons. */
+.doc-preview-actions-bottom {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
 /* Same bounded-card, coloured-strip language as .update-banner and
    .filter-notice, so this reads as the site telling the reader something
    important rather than as decoration — deliberately reused rather than

@@ -1895,11 +1895,20 @@ a {
   display: inline-block;
 }
 
+/* Deliberately NOT recoloured or faded once studied — stays in the same
+   navy .btn-secondary appearance the button already had. Two things would
+   otherwise have worked against each other here: this rule used to repaint
+   it pale green, and the generic .btn:disabled rule (opacity: 0.6, meant for
+   a button mid-async-request elsewhere on the site — Send Message, Begin
+   Assessment) faded it further on top, since markStudied() also sets the
+   disabled attribute. The combined result read as "unavailable" rather than
+   "successfully completed" — the wrong signal for a state the reader should
+   feel good about reaching. The button's text already says "Studied" (see
+   markStudied() in learn.js); that plus cursor:default is enough to show
+   there is nothing left to click without implying something is wrong. */
 .phase-card.studied .mark-studied-btn {
-  background: var(--tint-ok);
-  color: var(--success-text);
-  border-color: var(--tint-ok-border);
   cursor: default;
+  opacity: 1;
 }
 
 /* ===== QUIZ: LEVEL NOTICE ===== */

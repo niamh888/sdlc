@@ -1940,7 +1940,7 @@ a {
 /* ===== QUIZ: NAME FIELD ===== */
 
 /* Constrains the name input to match the quiz-rules width and left-aligns
-   the label, overriding the quiz-intro's centred text alignment. */
+   the label, overriding .quiz-start-card's centred text alignment. */
 .quiz-name-group {
   max-width: 360px;
   margin: 0 auto 24px;
@@ -1949,10 +1949,14 @@ a {
 
 /* ===== QUIZ: LAYOUT ===== */
 
+/* The 740px reading/card width used to live here, centring the whole
+   screen — including the heading, which every other page shows full-width
+   and left-aligned via .page-header. That width now lives on each screen's
+   own card instead (.quiz-start-card, .quiz-header, .question-card,
+   .question-feedback, .results-card), so .page-header can sit above them
+   at the same left-aligned position it has on every other page. */
 .quiz-screen {
   display: none;
-  max-width: 740px;
-  margin: 0 auto;
 }
 
 .quiz-screen.active {
@@ -1961,25 +1965,18 @@ a {
 
 /* ===== QUIZ: START SCREEN ===== */
 
-.quiz-intro {
+/* Was .quiz-intro, and held the <h1> too — renamed now that the heading
+   has moved out to .page-header above, leaving this as what it actually
+   is: the card holding the checklist, name field and Begin button. */
+.quiz-start-card {
+  max-width: 740px;
+  margin: 0 auto;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 56px 48px;
+  padding: 40px 48px;
   text-align: center;
   box-shadow: var(--shadow);
-}
-
-.quiz-intro h1 {
-  font-size: 1.8rem;
-  color: var(--heading);
-  margin-bottom: 16px;
-}
-
-.quiz-intro > p {
-  color: var(--text-muted);
-  margin-bottom: 28px;
-  font-size: 1rem;
 }
 
 .quiz-rules {
@@ -2022,7 +2019,8 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 24px;
+  max-width: 740px;
+  margin: 0 auto 24px;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -2085,11 +2083,12 @@ a {
 }
 
 .question-card {
+  max-width: 740px;
+  margin: 0 auto 20px;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 36px;
-  margin-bottom: 20px;
   box-shadow: var(--shadow);
 }
 
@@ -2145,6 +2144,8 @@ a {
 }
 
 .question-feedback {
+  max-width: 740px;
+  margin: 0 auto;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -2170,6 +2171,8 @@ a {
 /* ===== QUIZ: RESULTS SCREEN ===== */
 
 .results-card {
+  max-width: 740px;
+  margin: 0 auto;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -3187,7 +3190,7 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .quiz-intro {
+  .quiz-start-card {
     padding: 36px 24px;
   }
 

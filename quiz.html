@@ -84,12 +84,19 @@
 
       <!-- Start screen -->
       <div id="quiz-start" class="quiz-screen active">
-        <div class="quiz-intro">
+        <!-- Left-aligned, full-width heading matching every other page's
+             .page-header — this used to be an <h1> centred inside the card
+             below, which made Quiz the one page whose heading didn't match
+             the rest of the site. The card now starts directly with the
+             checklist; .page-header carries the intro sentence instead. -->
+        <div class="page-header">
           <h1>Knowledge Assessment</h1>
           <!-- The .js-question-count spans hold a sensible default of 15 that is
                overwritten by quiz.js once the question file has loaded, so the
                wording always matches the data actually being used. -->
           <p>Test your understanding of IEC 62304 with <span class="js-question-count">15</span> multiple-choice questions. You have <strong>30 seconds</strong> per question. A score of <strong>80% or higher</strong> earns a certificate.</p>
+        </div>
+        <div class="quiz-start-card">
           <ul class="quiz-rules">
             <li><span class="js-question-count">15</span> questions, 4 options each</li>
             <li>30 seconds per question</li>

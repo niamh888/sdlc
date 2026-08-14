@@ -1992,13 +1992,20 @@ a {
   box-shadow: var(--shadow);
 }
 
+/* Now sits directly under .page-header's intro paragraph, on the page
+   background rather than inside the white card — so unlike .quiz-rules'
+   old home, it needs its own border (var(--bg) alone is the page
+   background and would be invisible without one; the card gave it contrast
+   for free before). Left-aligned with no auto-centring, matching
+   .page-header's own left-aligned heading and paragraph above it. */
 .quiz-rules {
   list-style: none;
   background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 28px;
-  margin: 0 auto 32px;
-  max-width: 360px;
+  margin: 20px 0 0;
+  max-width: 400px;
   text-align: left;
 }
 

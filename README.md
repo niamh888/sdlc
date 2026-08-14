@@ -514,7 +514,7 @@ same file and submit a few times.
 | Disabling controls | every async button | Prevents double-submission while a request is in flight |
 | `aria-busy` | every async button | Tells screen readers the control is working, not broken |
 | `setInterval` (callback style) | the quiz timer | Deliberately *not* converted — Promises model a single result, so they suit repeating ticks badly |
-| `defer` on `<script>` | all four HTML pages | Scripts run after the HTML is parsed, in order, without blocking rendering |
+| `defer` on `<script>` | all six HTML pages | Scripts run after the HTML is parsed, in order, without blocking rendering |
 
 ### Four traps worth remembering
 
@@ -563,7 +563,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **606 checks** covering content
+The site ships with an automated test suite: **795 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -608,9 +608,9 @@ python tests/test_site.py --group data --group a11y   # or several
 | `learn` | Cards render from JSON; expand/collapse by mouse *and* keyboard; level toggle swaps content in place without losing expanded state; class filters; **filter notice lists exactly the omitted areas and carries the ISO 14971 caution at every class**; progress tracker, **including that marking a topic studied is blocked until its example document has been opened (Preview or Download), with the blocked attempt auto-expanding the card and moving focus to the Preview link**; banner dismissal persists; 404, malformed JSON, empty list, and retry recovery |
 | `quiz` | Name validation; scoring for correct, wrong and timed-out answers; timer counts down; full 15-question pass and fail runs; certificate contents; shuffling differs between attempts; prefetch downloads exactly one file; level selection; error states and retry |
 | `contact` | Field validation on blur and submit; request body contents and headers; "Sending…" state; success, 422 field errors, 429/404/503 fallbacks, network failure; double-submit guard; spam honeypot hidden three ways |
-| `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all five pages; point-of-collection note; home page topic count matches the data; **content provenance** names the edition, the source of the class mapping and of the Edition 2 status, disclaims IEC affiliation, and states no visitor request reaches IEC |
-| `version` | Version chip present and visible on all five pages; home hero states Edition 1 and that Edition 2 is not covered; Edition 2 notice is a bounded card with a labelled header strip and `role="note"`; the notice carries a source line with a **machine-readable review date** and a link to the provenance section |
-| `a11y` | axe-core (WCAG 2.1 A/AA + best practice) on all five pages **and** the loading, error, mid-quiz, feedback and results states; skip link; focus indicators verified before/after; `aria-current`; `prefers-reduced-motion` |
+| `privacy` | Notice covers the controller, processor, US transfer, retention and supervisory authority; footer link on all six pages; point-of-collection note; home page topic count matches the data; **content provenance** names the edition, the source of the class mapping and of the Edition 2 status, disclaims IEC affiliation, and states no visitor request reaches IEC |
+| `version` | Version chip present and visible on all six pages; home hero states Edition 1 and that Edition 2 is not covered; Edition 2 notice is a bounded card with a labelled header strip and `role="note"`; the notice carries a source line with a **machine-readable review date** and a link to the provenance section |
+| `a11y` | axe-core (WCAG 2.1 A/AA + best practice) on all six pages **and** the loading, error, mid-quiz, feedback and results states; skip link; focus indicators verified before/after; `aria-current`; `prefers-reduced-motion` |
 | `responsive` | No horizontal overflow at 1280/768/480/360px; form fields ≥16px to prevent iOS auto-zoom; tap target heights; usable at a 200% zoom equivalent |
 
 ### Two things worth knowing
@@ -714,7 +714,7 @@ Being honest about the limits matters more than a green tick:
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 606 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 795 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
 | `tests/capture_screenshots.py` | Generates the PNGs under `docs/assets/screenshots/` used in [Screenshots](#screenshots) above |

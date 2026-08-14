@@ -46,7 +46,7 @@ python tests/capture_screenshots.py
 |---|---|
 | ![Home page, light theme](docs/assets/screenshots/index-light.png) | ![Home page, dark theme](docs/assets/screenshots/index-dark.png) |
 
-Below the introduction, a single promotional strip credits St John Lynch & Co and AskRiskIE side by side inside one banner, sized to the same 1100px width as the rest of the page — visible at every viewport, not just wide screens:
+Below the introduction, a single promotional strip credits St John Lynch & Co and AskRiskIE side by side inside one banner, sized to the same width as the rest of the page — visible at every viewport, not just wide screens:
 
 ![Home page promotional strip, crediting St John Lynch & Co and AskRiskIE side by side in one banner](docs/assets/screenshots/index-promo-strip-light.png)
 

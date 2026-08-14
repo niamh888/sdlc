@@ -1678,7 +1678,18 @@ a {
   gap: 20px;
 }
 
+/* display:flex + height:100% so the footer (Read More / Mark as Studied)
+   can be pinned to the bottom via margin-top: auto below. Without this, a
+   card with a short summary is a shorter block of content but still gets
+   stretched to match the tallest card in its grid row (the grid's default
+   align-items: stretch) — the footer just sat wherever the content ended,
+   floating mid-card with blank space beneath it. Pinning it keeps every
+   footer in the row on the same line regardless of how much summary text
+   is above it. */
 .phase-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1849,6 +1860,8 @@ a {
   padding: 12px 20px;
   border-top: 1px solid var(--bg);
   gap: 4px 12px;
+  margin-top: auto; /* pins the footer to the card's bottom edge — see the
+                        .phase-card comment above */
 }
 
 /* The "preview the document first" message. flex-basis: 100% forces it onto

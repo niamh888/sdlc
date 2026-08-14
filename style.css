@@ -3086,13 +3086,29 @@ a {
   color: white;
 }
 
-/* Second footer line holding the privacy link. Kept visually secondary to the
-   citation above it, but underlined so it is unmistakably a link — a legally
-   required notice should not be hard to find. */
-.footer-links {
+/* Second footer line: attribution and the privacy link sharing one row
+   instead of two, separated by a middot. On a wide screen three stacked
+   centred lines (citation / "Developed by" / privacy link) read as sparse
+   and left the row mostly empty; merging the last two into one line uses
+   the width instead of the height. flex-wrap means a narrow viewport where
+   this doesn't fit on one line still degrades gracefully — the privacy
+   link drops to its own line rather than overflowing or being clipped. */
+.footer-meta {
   margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 10px;
 }
 
+.footer-sep {
+  opacity: 0.5;
+}
+
+/* The privacy link stays underlined — a legally required notice should not
+   be hard to find, even sitting inline with the attribution text next to
+   it rather than alone on its own line. */
 .footer-links a {
   text-decoration: underline;
 }

@@ -771,7 +771,9 @@ dependencies — the site is plain HTML, CSS and JavaScript.
 
 ## Standard Covered
 
-IEC 62304:2006 + Amendment 1:2015 — Medical device software — Software life cycle processes
+IEC 62304:2006 + Amendment 1:2015 (Edition 1.1) — Medical device software — Software life cycle processes.  Edition 2 is expected for release in 2027/2028.  
+
+Note: The author of this training is an expert member of IEC 62304 MT49 and lead of sub-team for AI-related requirements under review in ED2.
 
 ### Use of Artificial Intelligence
 

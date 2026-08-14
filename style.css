@@ -1726,9 +1726,12 @@ a {
    only one is ever visible, swapped by the 'opened' class on .phase-card:
      - default: outline path, blue stroke over a page coloured to match the
        card background, so it reads as a closed, unread book.
-     - .opened: solid path, filled entirely in the same blue — a "you've
-       been here" mark once the reader has expanded the card at least once
-       (see togglePhaseCard/markStudied in learn.js). */
+     - .opened: solid path, filled in --primary — the same navy the
+       Mark as Studied button fills with once studied (see
+       .phase-card.studied .mark-studied-btn below), so the "you've been
+       here" book and the "you've certified this" button read as one
+       colour rather than two different blues (see togglePhaseCard/
+       markStudied in learn.js). */
 .book-icon-outline {
   fill: var(--bg-white);
   stroke: var(--accent-fill);
@@ -1737,7 +1740,7 @@ a {
 }
 
 .book-icon-filled {
-  fill: var(--accent-fill);
+  fill: var(--primary);
   display: none;
 }
 
@@ -1858,20 +1861,6 @@ a {
   margin-top: 0;
 }
 
-/* FIX: was --success-light (#27ae60) on a white card — 2.87:1 at 12.5px. Another
-   fill colour used as text; found by auditing a card in its STUDIED state, which
-   no test had ever produced. */
-.studied-badge {
-  font-size: 0.78rem;
-  color: var(--success-text);
-  font-weight: 600;
-  display: none;
-}
-
-.phase-card.studied .studied-badge {
-  display: inline;
-}
-
 .read-more-btn,
 .mark-studied-btn {
   font-size: 0.78rem;
@@ -1895,18 +1884,20 @@ a {
   display: inline-block;
 }
 
-/* Deliberately NOT recoloured or faded once studied — stays in the same
-   navy .btn-secondary appearance the button already had. Two things would
-   otherwise have worked against each other here: this rule used to repaint
-   it pale green, and the generic .btn:disabled rule (opacity: 0.6, meant for
-   a button mid-async-request elsewhere on the site — Send Message, Begin
-   Assessment) faded it further on top, since markStudied() also sets the
-   disabled attribute. The combined result read as "unavailable" rather than
-   "successfully completed" — the wrong signal for a state the reader should
-   feel good about reaching. The button's text already says "Studied" (see
-   markStudied() in learn.js); that plus cursor:default is enough to show
-   there is nothing left to click without implying something is wrong. */
+/* Filled navy once studied — the same fill .btn-secondary:hover already
+   uses (line 624), just made permanent instead of hover-only, and matching
+   .book-icon-filled above so the two "you've done this" signals on the card
+   are one colour. Still overrides opacity itself: the generic .btn:disabled
+   rule (opacity: 0.6, meant for a button mid-async-request elsewhere on the
+   site — Send Message, Begin Assessment) would otherwise fade this on top,
+   since markStudied() also sets the disabled attribute. A faded fill read as
+   "unavailable" rather than "successfully completed" — the wrong signal for
+   a state the reader should feel good about reaching. cursor:default (not
+   not-allowed) says the same thing: nothing left to click, nothing wrong. */
 .phase-card.studied .mark-studied-btn {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
   cursor: default;
   opacity: 1;
 }

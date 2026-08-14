@@ -397,7 +397,6 @@ function renderPhases() {
         // default, and .field-error reserves its line height even then, so
         // showing the message never shifts the button underneath it.
         '<span class="field-error" id="studied-error-' + phase.id + '" role="alert"></span>' +
-        '<span class="studied-badge">&#10003; Studied</span>' +
         // Two buttons live in the same slot; CSS shows exactly one at a time,
         // keyed off .phase-card.opened (see togglePhaseCard). Before the card
         // has ever been expanded, "Mark as Studied" would be asking the

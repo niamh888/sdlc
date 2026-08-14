@@ -95,13 +95,21 @@
                overwritten by quiz.js once the question file has loaded, so the
                wording always matches the data actually being used. -->
           <p>Test your understanding of IEC 62304 with <span class="js-question-count">15</span> multiple-choice questions. You have <strong><span class="js-timer-seconds">30</span> seconds</strong> per question. A score of <strong>80% or higher</strong> earns a certificate.</p>
-          <!-- Was the first thing inside .quiz-start-card, with no heading of its
-               own above it — it just started, which read as a stray box dropped
-               into the top of the card. It is a detail list for the assessment
-               described in the paragraph above, so it belongs under that
-               description, not inside the action card. The card now holds only
-               the level notice, name field and Begin button — the actual task,
-               not the explanation of it. -->
+        </div>
+
+        <!-- Info panel (the checklist) beside the action card (level notice,
+             name field, Begin button), the same info-beside-form idiom the
+             Contact page already uses for .contact-layout below — rather than
+             stacking the checklist above a narrow centred card, which left the
+             right two-thirds of a wide screen empty. Collapses to one column
+             on mobile like .contact-layout does, same breakpoint. -->
+        <div class="quiz-layout">
+
+          <!-- Was the first thing inside .quiz-start-card, with no heading of
+               its own above it — it just started, which read as a stray box
+               dropped into the top of the card. It is a detail list for the
+               assessment described in the paragraph above, so it belongs
+               alongside it, not inside the action card. -->
           <ul class="quiz-rules">
             <li><span class="js-question-count">15</span> questions, 4 options each</li>
             <li><span class="js-timer-seconds">30</span> seconds per question</li>
@@ -109,28 +117,29 @@
             <li>Questions presented in random order</li>
             <li>Score 80% or higher to download a certificate</li>
           </ul>
-        </div>
-        <div class="quiz-start-card">
-          <!-- Level notice — populated by quiz.js from localStorage -->
-          <div class="quiz-level-notice" id="quiz-level-notice" role="status"></div>
 
-          <div class="quiz-name-group">
-            <div class="form-group">
-              <label for="participant-name">Your name <span class="required" aria-hidden="true">*</span></label>
-              <input type="text" id="participant-name" placeholder="Enter your full name" autocomplete="name" aria-required="true">
-              <span class="field-error" id="participant-name-error" role="alert"></span>
+          <div class="quiz-start-card">
+            <!-- Level notice — populated by quiz.js from localStorage -->
+            <div class="quiz-level-notice" id="quiz-level-notice" role="status"></div>
+
+            <div class="quiz-name-group">
+              <div class="form-group">
+                <label for="participant-name">Your name <span class="required" aria-hidden="true">*</span></label>
+                <input type="text" id="participant-name" placeholder="Enter your full name" autocomplete="name" aria-required="true">
+                <span class="field-error" id="participant-name-error" role="alert"></span>
+              </div>
             </div>
-          </div>
-          <button class="btn btn-primary btn-large" id="begin-quiz">Begin Assessment</button>
+            <button class="btn btn-primary btn-large" id="begin-quiz">Begin Assessment</button>
 
-          <!-- ASYNC FAILURE STATE — hidden unless the question file cannot be
-               loaded. There is no separate loading panel on this screen: the
-               Begin Assessment button becomes the loading indicator by
-               switching its own label to "Loading questions…". -->
-          <div class="data-error hidden" id="questions-error" role="alert">
-            <p class="data-error-heading">Could not load the questions</p>
-            <p class="data-error-message" id="questions-error-message"></p>
-            <button class="btn btn-secondary" id="questions-retry">Try again</button>
+            <!-- ASYNC FAILURE STATE — hidden unless the question file cannot be
+                 loaded. There is no separate loading panel on this screen: the
+                 Begin Assessment button becomes the loading indicator by
+                 switching its own label to "Loading questions…". -->
+            <div class="data-error hidden" id="questions-error" role="alert">
+              <p class="data-error-heading">Could not load the questions</p>
+              <p class="data-error-message" id="questions-error-message"></p>
+              <button class="btn btn-secondary" id="questions-retry">Try again</button>
+            </div>
           </div>
         </div>
       </div>

@@ -1978,12 +1978,26 @@ a {
 
 /* ===== QUIZ: START SCREEN ===== */
 
+/* Info panel (checklist) beside the action card, the same idiom
+   .contact-layout already uses for Contact's info-beside-form split — a
+   narrower 1fr column for the descriptive content, a wider 2fr column for
+   the actual task. Without this, the checklist and the (deliberately not
+   full-width) card both sat in a single centred column, leaving the right
+   two-thirds of a wide screen empty. Collapses to one column at the same
+   768px breakpoint .contact-layout does (see the shared media block). */
+.quiz-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 40px;
+  align-items: start;
+}
+
 /* Was .quiz-intro, and held the <h1> too — renamed now that the heading
    has moved out to .page-header above, leaving this as what it actually
-   is: the card holding the checklist, name field and Begin button. */
+   is: the card holding the level notice, name field and Begin button. No
+   longer centred with its own max-width — it fills its .quiz-layout column
+   instead, the same way .contact-form fills its column in .contact-layout. */
 .quiz-start-card {
-  max-width: 740px;
-  margin: 0 auto;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1992,20 +2006,16 @@ a {
   box-shadow: var(--shadow);
 }
 
-/* Now sits directly under .page-header's intro paragraph, on the page
-   background rather than inside the white card — so unlike .quiz-rules'
-   old home, it needs its own border (var(--bg) alone is the page
-   background and would be invisible without one; the card gave it contrast
-   for free before). Left-aligned with no auto-centring, matching
-   .page-header's own left-aligned heading and paragraph above it. */
+/* Fills the left .quiz-layout column. Needs its own border now that it
+   isn't sitting inside the white card — var(--bg) alone is the page
+   background and would otherwise be invisible (the card used to give it
+   contrast for free). */
 .quiz-rules {
   list-style: none;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 28px;
-  margin: 20px 0 0;
-  max-width: 400px;
   text-align: left;
 }
 
@@ -3224,6 +3234,10 @@ a {
   }
 
   .contact-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-layout {
     grid-template-columns: 1fr;
   }
 

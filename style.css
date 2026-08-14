@@ -1,4 +1,6 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -32,23 +34,23 @@
    ============================================================ */
 
 :root {
-  --primary:        #1a3a5c;
-  --primary-light:  #2e5b8a;
+  --primary: #1a3a5c;
+  --primary-light: #2e5b8a;
   /* Darkened from #2980b9 to meet WCAG 2.1 AA contrast (4.5:1 for normal text).
      The old value reached only 4.30:1 as link text on white and 3.85:1 on the
      pale blue hero tag, and white button text on it was also 4.30:1 — all just
      short of the threshold. This value is the darker shade of the same hue
      already present in the palette family, so the design is unchanged in
      character while the worst case rises to 4.74:1. */
-  --accent:         #2471a3;
-  --accent-light:   #5dade2;
-  --success:        #1e8449;
-  --success-light:  #27ae60;
-  --danger:         #c0392b;
-  --warning:        #d35400;
-  --bg:             #f4f6f9;
-  --bg-white:       #ffffff;
-  --text:           #2c3e50;
+  --accent: #2471a3;
+  --accent-light: #5dade2;
+  --success: #1e8449;
+  --success-light: #27ae60;
+  --danger: #c0392b;
+  --warning: #d35400;
+  --bg: #f4f6f9;
+  --bg-white: #ffffff;
+  --text: #2c3e50;
   /* Darkened from #5d6d7e, the same kind of fix as --accent above. The old
      value passed AA (4.5:1) everywhere it was measured, but only just —
      4.91:1 on --bg, which is where most muted text on this site actually
@@ -59,47 +61,60 @@
      than --text (#2c3e50, ~10:1) so the muted/primary hierarchy still
      reads, while raising the worst case to 5.96:1 on --bg and 6.46:1 on
      white. */
-  --text-muted:     #52606d;
-  --border:         #d5d8dc;
-  --shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.12);
-  --radius:         8px;
-  --radius-lg:      12px;
+  --text-muted: #52606d;
+  --border: #d5d8dc;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --radius: 8px;
+  --radius-lg: 12px;
 
   /* --- Role variables (light theme) --- */
-  --heading:            #1a3a5c;  /* heading text; was color: var(--primary) */
-  --heading-sub:        #2e5b8a;  /* sub-heading text; 7.05:1 on white */
-  --accent-fill:        #2471a3;  /* fill behind white text: 5.30:1 */
-  --success-fill:       #1a7a4a;  /* 5.35:1 with white — see the .btn-success fix */
-  --success-fill-hover: #156b3c;  /* 6.56:1 */
-  --success-text:       #18703f;  /* 5.56:1 on the pale green tint */
-  --danger-text:        #c0392b;
-  --warning-text:       #b34700;  /* 5.02:1 on the orange tint; #d35400 was 3.80:1 */
+  --heading: #1a3a5c;
+  /* heading text; was color: var(--primary) */
+  --heading-sub: #2e5b8a;
+  /* sub-heading text; 7.05:1 on white */
+  --accent-fill: #2471a3;
+  /* fill behind white text: 5.30:1 */
+  --success-fill: #1a7a4a;
+  /* 5.35:1 with white — see the .btn-success fix */
+  --success-fill-hover: #156b3c;
+  /* 6.56:1 */
+  --success-text: #18703f;
+  /* 5.56:1 on the pale green tint */
+  --danger-text: #c0392b;
+  --warning-text: #b34700;
+  /* 5.02:1 on the orange tint; #d35400 was 3.80:1 */
 
   /* Pale panel tints. Near-identical shades were collapsed into one variable
      each: #e8f4fd/#eaf3fb and #fdf3f2/#fdf0ee differ by a couple of points per
      channel and are indistinguishable on screen, but every extra variable is
      another value to keep honest in two themes. */
-  --tint-info:          #eaf3fb;
-  --tint-info-text:     #1a5fa0;  /* 5.87:1 */
-  --tint-ok:            #eaf7f0;
-  --tint-ok-text:       #1a7a4a;  /* 4.85:1 */
-  --tint-ok-border:     #a9dfbf;
-  --tint-warn:          #fef9e7;
-  --tint-warn-text:     #6b4e00;  /* 7.34:1 */
-  --tint-warn-border:   #e0cd8a;
-  --tint-bad:           #fdecea;
-  --tint-bad-soft:      #fdf3f2;
-  --tint-bad-text:      #a93226;  /* 5.95:1 */
-  --tint-orange:        #fdf3e8;
-  --notice-bar:         #8a6d1f;  /* white label on it: 4.90:1 */
-  --notice-marker:      #c9a227;
+  --tint-info: #eaf3fb;
+  --tint-info-text: #1a5fa0;
+  /* 5.87:1 */
+  --tint-ok: #eaf7f0;
+  --tint-ok-text: #1a7a4a;
+  /* 4.85:1 */
+  --tint-ok-border: #a9dfbf;
+  --tint-warn: #fef9e7;
+  --tint-warn-text: #6b4e00;
+  /* 7.34:1 */
+  --tint-warn-border: #e0cd8a;
+  --tint-bad: #fdecea;
+  --tint-bad-soft: #fdf3f2;
+  --tint-bad-text: #a93226;
+  /* 5.95:1 */
+  --tint-orange: #fdf3e8;
+  --notice-bar: #8a6d1f;
+  /* white label on it: 4.90:1 */
+  --notice-marker: #c9a227;
   /* Fixed like --notice-bar, not theme-variable like --danger: --danger is a
      TEXT-role red (it must flip to something visible on a dark background,
      which makes it too light — 2.99:1 — for white text on top of it). This is
      a FILL, so it stays this same dark shade in both themes; see the colour
      variable comment block at the top of this file for why that split exists. */
-  --danger-fill:        #a93226;  /* white text on it: 6.62:1 */
+  --danger-fill: #a93226;
+  /* white text on it: 6.62:1 */
 }
 
 /* DARK THEME
@@ -113,51 +128,65 @@
    remain distinguishable from the page (1.11:1 — deliberately subtle, since
    contrast between two backgrounds is depth, not information). */
 [data-theme="dark"] {
-  --primary:        #16324f;
-  --primary-light:  #24537f;
-  --accent:         #7fbcec;  /* link/border/focus text role: 7.95:1 on a card */
-  --accent-light:   #a8d3f2;
-  --success:        #27ae60;
-  --success-light:  #2ecc71;
-  --danger:         #e57373;
-  --warning:        #eda45f;
-  --bg:             #12171e;
-  --bg-white:       #1b2129;
-  --text:           #e3e9ef;  /* 13.25:1 on a card */
-  --text-muted:     #a3b0bd;  /* 7.33:1 — still clears AA, unlike most "muted" greys */
-  --border:         #303a45;
+  --primary: #16324f;
+  --primary-light: #24537f;
+  --accent: #7fbcec;
+  /* link/border/focus text role: 7.95:1 on a card */
+  --accent-light: #a8d3f2;
+  --success: #27ae60;
+  --success-light: #2ecc71;
+  --danger: #e57373;
+  --warning: #eda45f;
+  --bg: #12171e;
+  --bg-white: #1b2129;
+  --text: #e3e9ef;
+  /* 13.25:1 on a card */
+  --text-muted: #a3b0bd;
+  /* 7.33:1 — still clears AA, unlike most "muted" greys */
+  --border: #303a45;
   /* Shadows are nearly invisible on a dark field, so they lean on opacity
      rather than colour to keep giving cards their lift. */
-  --shadow:         0 2px 8px rgba(0, 0, 0, 0.45);
-  --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
 
-  --heading:            #cfe0f0;  /* 12.02:1 */
-  --heading-sub:        #a8c8e8;  /* 9.33:1 */
-  --accent-fill:        #2471a3;  /* unchanged: white text still needs 5.30:1 */
-  --success-fill:       #1a7a4a;
+  --heading: #cfe0f0;
+  /* 12.02:1 */
+  --heading-sub: #a8c8e8;
+  /* 9.33:1 */
+  --accent-fill: #2471a3;
+  /* unchanged: white text still needs 5.30:1 */
+  --success-fill: #1a7a4a;
   --success-fill-hover: #156b3c;
-  --success-text:       #5fc98d;  /* 7.89:1 */
-  --danger-text:        #f08b82;  /* 6.73:1 */
-  --warning-text:       #eda45f;  /* 7.77:1 */
+  --success-text: #5fc98d;
+  /* 7.89:1 */
+  --danger-text: #f08b82;
+  /* 6.73:1 */
+  --warning-text: #eda45f;
+  /* 7.77:1 */
 
   /* Tints become dark, low-saturation fields rather than pale ones. Inverting
      the lightness is not enough on its own — a saturated dark red reads as an
      error state far more loudly than a pale pink does, so these are muted. */
-  --tint-info:          #16293a;
-  --tint-info-text:     #9ccdf0;  /* 8.78:1 */
-  --tint-ok:            #14291f;
-  --tint-ok-text:       #79d0a0;  /* 8.30:1 */
-  --tint-ok-border:     #2a5240;
-  --tint-warn:          #2a2413;
-  --tint-warn-text:     #e8cf8a;  /* 10.09:1 */
-  --tint-warn-border:   #574a25;
-  --tint-bad:           #2e1a19;
-  --tint-bad-soft:      #2a1817;
-  --tint-bad-text:      #f0a49c;  /* 8.21:1 */
-  --tint-orange:        #2d1f12;
-  --notice-bar:         #8a6d1f;
-  --notice-marker:      #d9b545;
-  --danger-fill:        #a93226;  /* unchanged: still 6.62:1 for white text */
+  --tint-info: #16293a;
+  --tint-info-text: #9ccdf0;
+  /* 8.78:1 */
+  --tint-ok: #14291f;
+  --tint-ok-text: #79d0a0;
+  /* 8.30:1 */
+  --tint-ok-border: #2a5240;
+  --tint-warn: #2a2413;
+  --tint-warn-text: #e8cf8a;
+  /* 10.09:1 */
+  --tint-warn-border: #574a25;
+  --tint-bad: #2e1a19;
+  --tint-bad-soft: #2a1817;
+  --tint-bad-text: #f0a49c;
+  /* 8.21:1 */
+  --tint-orange: #2d1f12;
+  --notice-bar: #8a6d1f;
+  --notice-marker: #d9b545;
+  --danger-fill: #a93226;
+  /* unchanged: still 6.62:1 for white text */
 }
 
 /* NO-JAVASCRIPT FALLBACK.
@@ -173,44 +202,44 @@
    build step. This file is hand-written CSS on purpose. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --primary:        #16324f;
-    --primary-light:  #24537f;
-    --accent:         #7fbcec;
-    --accent-light:   #a8d3f2;
-    --success:        #27ae60;
-    --success-light:  #2ecc71;
-    --danger:         #e57373;
-    --warning:        #eda45f;
-    --bg:             #12171e;
-    --bg-white:       #1b2129;
-    --text:           #e3e9ef;
-    --text-muted:     #a3b0bd;
-    --border:         #303a45;
-    --shadow:         0 2px 8px rgba(0, 0, 0, 0.45);
-    --shadow-md:      0 4px 16px rgba(0, 0, 0, 0.6);
-    --heading:            #cfe0f0;
-    --heading-sub:        #a8c8e8;
-    --accent-fill:        #2471a3;
-    --success-fill:       #1a7a4a;
+    --primary: #16324f;
+    --primary-light: #24537f;
+    --accent: #7fbcec;
+    --accent-light: #a8d3f2;
+    --success: #27ae60;
+    --success-light: #2ecc71;
+    --danger: #e57373;
+    --warning: #eda45f;
+    --bg: #12171e;
+    --bg-white: #1b2129;
+    --text: #e3e9ef;
+    --text-muted: #a3b0bd;
+    --border: #303a45;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --heading: #cfe0f0;
+    --heading-sub: #a8c8e8;
+    --accent-fill: #2471a3;
+    --success-fill: #1a7a4a;
     --success-fill-hover: #156b3c;
-    --success-text:       #5fc98d;
-    --danger-text:        #f08b82;
-    --warning-text:       #eda45f;
-    --tint-info:          #16293a;
-    --tint-info-text:     #9ccdf0;
-    --tint-ok:            #14291f;
-    --tint-ok-text:       #79d0a0;
-    --tint-ok-border:     #2a5240;
-    --tint-warn:          #2a2413;
-    --tint-warn-text:     #e8cf8a;
-    --tint-warn-border:   #574a25;
-    --tint-bad:           #2e1a19;
-    --tint-bad-soft:      #2a1817;
-    --tint-bad-text:      #f0a49c;
-    --tint-orange:        #2d1f12;
-    --notice-bar:         #8a6d1f;
-    --notice-marker:      #d9b545;
-    --danger-fill:        #a93226;
+    --success-text: #5fc98d;
+    --danger-text: #f08b82;
+    --warning-text: #eda45f;
+    --tint-info: #16293a;
+    --tint-info-text: #9ccdf0;
+    --tint-ok: #14291f;
+    --tint-ok-text: #79d0a0;
+    --tint-ok-border: #2a5240;
+    --tint-warn: #2a2413;
+    --tint-warn-text: #e8cf8a;
+    --tint-warn-border: #574a25;
+    --tint-bad: #2e1a19;
+    --tint-bad-soft: #2a1817;
+    --tint-bad-text: #f0a49c;
+    --tint-orange: #2d1f12;
+    --notice-bar: #8a6d1f;
+    --notice-marker: #d9b545;
+    --danger-fill: #a93226;
   }
 }
 
@@ -364,7 +393,7 @@ a {
     display: none;
   }
 
-  .promo-card + .promo-card {
+  .promo-card+.promo-card {
     border-top: 1px solid var(--border);
   }
 }
@@ -569,7 +598,8 @@ a {
   padding: 8px 18px;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 0.95rem; /* raised from 0.9rem to sit closer to the 16px body copy */
+  font-size: 0.95rem;
+  /* raised from 0.9rem to sit closer to the 16px body copy */
   font-weight: 500;
   text-decoration: none;
   transition: background 0.2s, color 0.2s;
@@ -867,7 +897,8 @@ a {
   border: 1px solid var(--tint-warn-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  overflow: hidden; /* keeps the bar's square corners inside the rounded card */
+  overflow: hidden;
+  /* keeps the bar's square corners inside the rounded card */
 }
 
 /* The solid header strip is the main "this is a notice" signal — the one thing
@@ -894,7 +925,8 @@ a {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  margin-right: auto; /* pushes the close button to the far edge */
+  margin-right: auto;
+  /* pushes the close button to the far edge */
 }
 
 .update-banner-content {
@@ -1020,7 +1052,8 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap; /* the two buttons drop below the heading on narrow screens */
+  flex-wrap: wrap;
+  /* the two buttons drop below the heading on narrow screens */
   background: var(--primary);
   padding: 10px 18px;
 }
@@ -1042,7 +1075,8 @@ a {
 .deliverables-count {
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.84rem;
-  margin-right: auto; /* pushes the buttons to the far edge */
+  margin-right: auto;
+  /* pushes the buttons to the far edge */
 }
 
 .deliverables-btn {
@@ -1174,46 +1208,47 @@ a {
    selector because the attribute carries higher specificity than :root alone and
    would otherwise win. */
 @media print {
+
   :root,
   :root:not([data-theme]),
   [data-theme="dark"] {
-    --primary:        #1a3a5c;
-    --primary-light:  #2e5b8a;
-    --accent:         #2471a3;
-    --accent-light:   #5dade2;
-    --success:        #1e8449;
-    --success-light:  #27ae60;
-    --danger:         #c0392b;
-    --warning:        #d35400;
-    --bg:             #ffffff;
-    --bg-white:       #ffffff;
-    --text:           #000000;
-    --text-muted:     #333333;
-    --border:         #999999;
-    --shadow:         none;
-    --shadow-md:      none;
-    --heading:            #1a3a5c;
-    --heading-sub:        #2e5b8a;
-    --accent-fill:        #2471a3;
-    --success-fill:       #1a7a4a;
+    --primary: #1a3a5c;
+    --primary-light: #2e5b8a;
+    --accent: #2471a3;
+    --accent-light: #5dade2;
+    --success: #1e8449;
+    --success-light: #27ae60;
+    --danger: #c0392b;
+    --warning: #d35400;
+    --bg: #ffffff;
+    --bg-white: #ffffff;
+    --text: #000000;
+    --text-muted: #333333;
+    --border: #999999;
+    --shadow: none;
+    --shadow-md: none;
+    --heading: #1a3a5c;
+    --heading-sub: #2e5b8a;
+    --accent-fill: #2471a3;
+    --success-fill: #1a7a4a;
     --success-fill-hover: #156b3c;
-    --success-text:       #18703f;
-    --danger-text:        #c0392b;
-    --warning-text:       #b34700;
-    --tint-info:          #ffffff;
-    --tint-info-text:     #1a5fa0;
-    --tint-ok:            #ffffff;
-    --tint-ok-text:       #1a7a4a;
-    --tint-ok-border:     #999999;
-    --tint-warn:          #ffffff;
-    --tint-warn-text:     #6b4e00;
-    --tint-warn-border:   #999999;
-    --tint-bad:           #ffffff;
-    --tint-bad-soft:      #ffffff;
-    --tint-bad-text:      #a93226;
-    --tint-orange:        #ffffff;
-    --notice-bar:         #8a6d1f;
-    --notice-marker:      #8a6d1f;
+    --success-text: #18703f;
+    --danger-text: #c0392b;
+    --warning-text: #b34700;
+    --tint-info: #ffffff;
+    --tint-info-text: #1a5fa0;
+    --tint-ok: #ffffff;
+    --tint-ok-text: #1a7a4a;
+    --tint-ok-border: #999999;
+    --tint-warn: #ffffff;
+    --tint-warn-text: #6b4e00;
+    --tint-warn-border: #999999;
+    --tint-bad: #ffffff;
+    --tint-bad-soft: #ffffff;
+    --tint-bad-text: #a93226;
+    --tint-orange: #ffffff;
+    --notice-bar: #8a6d1f;
+    --notice-marker: #8a6d1f;
   }
 
   /* The toggle is meaningless on paper. */
@@ -1234,6 +1269,7 @@ a {
    page is dropped, and the table is allowed to break across pages without
    splitting a row down the middle. */
 @media print {
+
   /* On the Learn page, printing should give the deliverables list and nothing
      else — that is the only part anyone would put on paper. The surrounding
      furniture is hidden explicitly rather than by a visibility trick, because
@@ -1267,7 +1303,8 @@ a {
   }
 
   .deliverables-btn {
-    display: none; /* buttons are meaningless on paper */
+    display: none;
+    /* buttons are meaningless on paper */
   }
 
   .dl-table {
@@ -1316,7 +1353,8 @@ a {
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  overflow-x: auto; /* very narrow screens scroll the table, not the page */
+  overflow-x: auto;
+  /* very narrow screens scroll the table, not the page */
 }
 
 .sc-table {
@@ -1508,7 +1546,8 @@ a {
 }
 
 .filter-notice-list li::before {
-  content: '\2013'; /* en dash marker; the list is a set, not a sequence */
+  content: '\2013';
+  /* en dash marker; the list is a set, not a sequence */
   position: absolute;
   left: 0;
   color: var(--accent);
@@ -1804,9 +1843,20 @@ a {
   border-radius: 10px;
 }
 
-.class-badge.A { background: var(--tint-ok); color: var(--tint-ok-text); }
-.class-badge.B { background: var(--tint-info); color: var(--tint-info-text); }
-.class-badge.C { background: var(--tint-bad-soft); color: var(--tint-bad-text); }
+.class-badge.A {
+  background: var(--tint-ok);
+  color: var(--tint-ok-text);
+}
+
+.class-badge.B {
+  background: var(--tint-info);
+  color: var(--tint-info-text);
+}
+
+.class-badge.C {
+  background: var(--tint-bad-soft);
+  color: var(--tint-bad-text);
+}
 
 .phase-chevron {
   flex-shrink: 0;
@@ -1854,13 +1904,15 @@ a {
 
 .phase-footer {
   display: flex;
-  flex-wrap: wrap; /* lets .field-error below drop to its own full-width row */
+  flex-wrap: wrap;
+  /* lets .field-error below drop to its own full-width row */
   align-items: center;
   justify-content: flex-end;
   padding: 12px 20px;
   border-top: 1px solid var(--bg);
   gap: 4px 12px;
-  margin-top: auto; /* pins the footer to the card's bottom edge — see the
+  margin-top: auto;
+  /* pins the footer to the card's bottom edge — see the
                         .phase-card comment above */
 }
 
@@ -2370,7 +2422,8 @@ a {
   padding: 10px 14px;
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  font-size: 1rem; /* 16px — do not reduce; see note above */
+  font-size: 1rem;
+  /* 16px — do not reduce; see note above */
   color: var(--text);
   background: var(--bg);
   transition: border-color 0.2s, background 0.2s;
@@ -2495,7 +2548,9 @@ a {
 }
 
 @keyframes spinner-rotate {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Respect the operating system "reduce motion" setting. Some people get
@@ -2509,8 +2564,15 @@ a {
   }
 
   @keyframes spinner-pulse {
-    0%, 100% { opacity: 0.3; }
-    50%      { opacity: 1; }
+
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+
+    50% {
+      opacity: 1;
+    }
   }
 }
 
@@ -2690,21 +2752,7 @@ a {
 }
 
 /* ===== ABOUT PAGE =====
-   Deliberately NOT built on .legal-page: that column is 760px, sized for
-   dense prose, and a 3-across qualification grid inside it would squeeze
-   each card to under 220px. This reuses the wider 1100px .container instead
-   — the same width home's .info-cards already uses — with its own prose
-   band kept to a readable measure via max-width on .about-prose alone,
-   rather than on the whole page. */
-
-/* Left-aligned, NOT margin: 0 auto — a bare paragraph with no card border
-   around it reads as a mistake when it floats centred in the middle of an
-   otherwise full-width, left-aligned page (the h1 above it and the
-   "Technical qualifications" heading below it both start at the left
-   edge). .about-proof and .about-cta below are also capped at 760px and
-   centred, but that reads as a deliberate distinct module because each has
-   its own visible border/background — a callout, not stray text. This one
-   has neither, so it stays flush left like .about-lede does. */
+  
 .about-intro {
   max-width: 760px;
   margin: 0 0 40px;
@@ -2728,7 +2776,7 @@ a {
    nearly twice that wide, it reads as a formatting mistake rather than a
    deliberately measured line length. Widened just enough to feel like part
    of the same layout as the grid below it, short of matching it exactly. */
-.about-section > p.about-lede {
+.about-section>p.about-lede {
   max-width: 960px;
   color: var(--text-muted);
   line-height: 1.7;
@@ -2775,29 +2823,25 @@ a {
   line-height: 1.65;
 }
 
-/* The "proof" section reads as prose, like .legal-page, so it gets that
-   narrower measure even though the rest of the page is full-width. It also
-   sits on a tinted card, the same visual device .legal-summary uses on
-   privacy.html, to mark it as "here is where you go check this yourself"
-   rather than more marketing copy. */
-.about-proof {
+/* The "proof" section was removed 14 Aug 2026.  Can be reintroduced if better proof is available.
+/* .about-proof {
   max-width: 760px;
   margin: 0 auto;
   background: var(--bg);
   border-left: 4px solid var(--accent);
   border-radius: var(--radius);
   padding: 24px 28px;
-}
+} */
 
-.about-proof p {
+/* .about-proof p {
   color: var(--text);
   line-height: 1.75;
   margin-bottom: 14px;
-}
+} */
 
-.about-proof p:last-child {
+/* .about-proof p:last-child {
   margin-bottom: 0;
-}
+} */
 
 .about-cta {
   max-width: 760px;
@@ -2861,7 +2905,8 @@ a {
   }
 
   .doc-table-wrap {
-    overflow-x: visible; /* a fixed page has no viewport to scroll within */
+    overflow-x: visible;
+    /* a fixed page has no viewport to scroll within */
   }
 
   .doc-table-wrap .legal-table tr {
@@ -2991,6 +3036,7 @@ a {
 }
 
 @media (max-width: 768px) {
+
   .doc-preview-actions,
   .example-banner-card {
     max-width: none;
@@ -3155,6 +3201,7 @@ a {
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
+
   /* Was flex-direction: column (logo, then the full nav row stacked below
      it) — replaced by the hamburger. The logo and toggle now share one row
      (flex-wrap, not column, so they sit side by side); .site-nav gets
@@ -3405,6 +3452,7 @@ a {
 /* ===== PRINT ===== */
 
 @media print {
+
   /* Force background colours and borders to render in print/PDF output. */
   * {
     -webkit-print-color-adjust: exact;

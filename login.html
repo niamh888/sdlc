@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC 62304 SDLC Training | Log In</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- THEME, BEFORE FIRST PAINT.
+       This has to be inline and blocking. theme.js is deferred, so it runs after
+       the HTML is parsed — by which time the browser has already painted the
+       light theme, producing a white flash before it repaints dark. Setting the
+       attribute here, above the first pixel of <body>, avoids that.
+       Kept as small as it can be: read the saved choice, fall back to the system
+       setting, set one attribute. All the colour values live in style.css. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* Storage blocked or matchMedia missing: fall through to the CSS default,
+           which is the light theme plus the prefers-color-scheme fallback. */
+      }
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </span>
+      </button>
+      <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="learn.html">Learn</a>
+        <a class="nav-link" href="quiz.html">Quiz</a>
+        <a class="nav-link" href="about.html">About</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Auth state — auth.js shows exactly one of these two, matching
+             whatever the current Supabase session actually is. -->
+        <a class="nav-link active" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
+        <!-- Theme toggle. A real button with aria-pressed: the label states the
+             ACTION and aria-pressed carries the STATE, so it is unambiguous
+             whichever a screen reader reads first. -->
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
+          <span class="theme-toggle-icon" aria-hidden="true">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Sign In</h1>
+        <p>Create a free account to save your assessment results, or log in to an existing one.</p>
+      </div>
+
+      <!-- Shown only when arriving via a "please sign in" redirect from the
+           quiz page (login.html?redirect=quiz.html) — see quiz.js's auth
+           gate and getRedirectTarget() in login.js. Hidden the rest of the
+           time so a direct visit to this page isn't told it was "sent" here. -->
+      <p class="auth-redirect-notice hidden" id="login-redirect-notice" role="status">
+        Sign in to start the assessment — your result is saved to your account.
+      </p>
+
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="Log in or create an account">
+          <button type="button" class="auth-tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="login-panel">Log In</button>
+          <button type="button" class="auth-tab" id="tab-signup" role="tab" aria-selected="false" aria-controls="signup-panel">Sign Up</button>
+        </div>
+
+        <!-- LOG IN -->
+        <div id="login-panel" class="auth-panel" role="tabpanel" aria-labelledby="tab-login">
+          <form id="login-form" novalidate>
+            <div class="form-group">
+              <label for="login-email">Email Address <span class="required" aria-hidden="true">*</span></label>
+              <input type="email" id="login-email" name="email" placeholder="you@example.com" autocomplete="email" aria-required="true">
+              <span class="field-error" id="login-email-error" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password <span class="required" aria-hidden="true">*</span></label>
+              <input type="password" id="login-password" name="password" placeholder="Your password" autocomplete="current-password" aria-required="true">
+              <span class="field-error" id="login-password-error" role="alert"></span>
+            </div>
+
+            <!-- ASYNC FAILURE STATE — revealed by login.js if Supabase rejects
+                 the credentials. Same pattern as #form-error on the contact page. -->
+            <div class="form-error hidden" id="login-error" role="alert">
+              <strong class="form-error-heading">Could not log in</strong>
+              <span class="form-error-message" id="login-error-message"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="login-submit">Log In</button>
+          </form>
+        </div>
+
+        <!-- SIGN UP -->
+        <div id="signup-panel" class="auth-panel hidden" role="tabpanel" aria-labelledby="tab-signup">
+          <form id="signup-form" novalidate>
+            <!-- Stored as Supabase Auth "user metadata" on sign up (see
+                 signUpWithPassword() in auth.js) so quiz.js can greet a
+                 signed-in learner by name instead of asking them to retype
+                 it on every visit to the quiz page. -->
+            <div class="form-group">
+              <label for="signup-name">Full Name <span class="required" aria-hidden="true">*</span></label>
+              <input type="text" id="signup-name" name="name" placeholder="Your full name" autocomplete="name" aria-required="true">
+              <span class="field-error" id="signup-name-error" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="signup-email">Email Address <span class="required" aria-hidden="true">*</span></label>
+              <input type="email" id="signup-email" name="email" placeholder="you@example.com" autocomplete="email" aria-required="true">
+              <span class="field-error" id="signup-email-error" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="signup-password">Password <span class="required" aria-hidden="true">*</span></label>
+              <input type="password" id="signup-password" name="password" placeholder="At least 6 characters" autocomplete="new-password" aria-required="true">
+              <span class="field-error" id="signup-password-error" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="signup-password-confirm">Confirm Password <span class="required" aria-hidden="true">*</span></label>
+              <input type="password" id="signup-password-confirm" name="password_confirm" placeholder="Retype your password" autocomplete="new-password" aria-required="true">
+              <span class="field-error" id="signup-password-confirm-error" role="alert"></span>
+            </div>
+
+            <div class="form-error hidden" id="signup-error" role="alert">
+              <strong class="form-error-heading">Could not create account</strong>
+              <span class="form-error-message" id="signup-error-message"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="signup-submit">Create Account</button>
+
+            <!-- Privacy notice at the point of collection — same reasoning as
+                 the contact form's own note (see contact.html). -->
+            <p class="form-privacy-note">
+              Your email address is stored by Supabase, this site's database provider, and used only to
+              sign you in and identify your quiz results. See our
+              <a href="privacy.html">Privacy &amp; Data Protection</a> page for details.
+            </p>
+          </form>
+        </div>
+
+        <!-- Shown INSTEAD of the sign-up form once signup succeeds but the
+             Supabase project requires the confirmation link to be clicked
+             before a session is issued — see signup-form's submit handler
+             in login.js. -->
+        <div id="auth-success" class="form-success hidden">
+          <div class="success-icon">&#10003;</div>
+          <h2 id="auth-success-heading">Check your email</h2>
+          <p id="auth-success-message"></p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 (ED1)</p>
+      <p class="footer-meta">
+        <span>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- `defer` runs these after the HTML is parsed, in the order listed.
+       assets/js/supabase.min.js defines the global `supabase` client library;
+       supabase-config.js defines this project's URL/key; auth.js creates the
+       one shared client and the signUp/signIn/signOut helpers login.js calls. -->
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="nav.js" defer></script>
+  <script src="theme.js" defer></script>
+  <script src="login.js" defer></script>
+</body>
+</html>

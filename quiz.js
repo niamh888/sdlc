@@ -41,6 +41,12 @@ const QUESTION_SECONDS = {
   advanced: 60
 };
 
+// The course_version row schema.sql seeds and generate_seed_sql.py's
+// questions point at (see supabase/schema.sql) — fixed rather than looked
+// up, for the same reason it is fixed there: it lets this file reference it
+// with no extra database round trip just to find out what it is.
+const COURSE_VERSION_ID = '22222222-2222-2222-2222-222222222222';
+
 // Minimum time the "Loading questions" state stays visible, to avoid a
 // flicker on fast connections. Same reasoning as in learn.js.
 const MIN_LOADING_MS = 250;
@@ -57,7 +63,9 @@ const quizState = {
   timeLeft: 30,           // seconds remaining for the current question — reset to the
                            // level's actual duration by startTimer(); this default is
                            // only ever seen before that first call
-  participantName: ''     // entered on the start screen; used on the certificate
+  participantName: '',    // entered on the start screen; used on the certificate
+  startedAt: null         // ISO timestamp set when the first question appears; sent
+                           // to Supabase alongside the result — see saveAttemptToSupabase()
 };
 
 // Holds the Promise for the question data — not the data itself.
@@ -224,6 +232,7 @@ async function startQuiz() {
     quizState.currentIndex = 0;
     quizState.score = 0;
     quizState.answered = false;
+    quizState.startedAt = new Date().toISOString(); // recorded on the attempt saved to Supabase
 
     // Keep the results screen's "out of N" in step with the real count.
     const scoreTotalEl = document.getElementById('score-total');
@@ -398,6 +407,52 @@ function showResults() {
   } else {
     if (certBtn) certBtn.classList.add('hidden');
   }
+
+  // Fire-and-forget: the results screen above is already fully built and
+  // shown, so nothing here should make the user wait. saveAttemptToSupabase()
+  // is async and reports its own progress via #attempt-save-status.
+  saveAttemptToSupabase(score, total, pct, passed);
+}
+
+// ---------- SAVE ATTEMPT ----------
+// Records this attempt in Supabase (see the quiz_attempts table in
+// supabase/schema.sql). Deliberately does NOT block, or let a failure here
+// disturb, the results screen the user is already looking at — a save
+// failure (offline, an expired session, a misconfigured policy) is
+// disappointing but must never make an assessment the user actually
+// completed look like it failed. #attempt-save-status just tells the truth
+// about what happened, the same "always show loading/success/failure"
+// pattern as everywhere else on this site — see async-utils.js.
+async function saveAttemptToSupabase(score, total, pct, passed) {
+  const statusEl = document.getElementById('attempt-save-status');
+  if (statusEl) statusEl.textContent = 'Saving your result…';
+
+  try {
+    // Re-check the session rather than trusting the gate quiz.js checked on
+    // page load — the user could in principle have signed out in another
+    // tab during the several minutes the assessment took.
+    const session = await getCurrentSession();
+    if (!session) throw new Error('you are signed out, so this result could not be saved');
+
+    const { error } = await supabaseClient.from('quiz_attempts').insert({
+      user_id: session.user.id,
+      course_version_id: COURSE_VERSION_ID,
+      level: getLevel(),
+      participant_name: quizState.participantName,
+      score: score,
+      total: total,
+      pct: pct,
+      passed: passed,
+      started_at: quizState.startedAt
+    });
+    if (error) throw error;
+
+    if (statusEl) statusEl.textContent = '✓ Result saved to your account.';
+
+  } catch (error) {
+    console.error('Could not save quiz attempt:', error);
+    if (statusEl) statusEl.textContent = 'Could not save this result (' + error.message + '). Your certificate is unaffected.';
+  }
 }
 
 // ---------- CERTIFICATE ----------
@@ -566,7 +621,30 @@ function handleTimeout() {
 }
 
 // ---------- INIT ----------
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+  // AUTH GATE — see supabase/schema.sql: quiz_attempts rows are tied to a
+  // real signed-in user (auth.uid() = user_id), so there is no point letting
+  // someone start the assessment while signed out; they would only reach
+  // the results screen to find their score could not be saved. Checking
+  // first, before any of the setup below, avoids that dead end entirely.
+  //
+  // This only runs once, on page load — it will not notice someone signing
+  // in or out in another tab while this tab sits on the gate screen. That is
+  // an acceptable gap here: the normal path back from login.html is a full
+  // page navigation (see login.js), which re-runs this check from scratch.
+  let session;
+  try {
+    session = await getCurrentSession();
+  } catch (error) {
+    console.error('Could not check sign-in status:', error);
+    session = null;
+  }
+
+  if (!session) {
+    showQuizScreen('quiz-auth-required');
+    return; // nothing past this point can do anything useful while signed out
+  }
+
   // Show the current training level on the start screen so the learner knows
   // which question set they are about to sit before they begin.
   const levelNotice = document.getElementById('quiz-level-notice');

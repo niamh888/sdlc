@@ -62,6 +62,10 @@
         <a class="nav-link" href="quiz.html">Quiz</a>
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Auth state — auth.js shows exactly one of these two, matching
+             whatever the current Supabase session actually is. -->
+        <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
         <!-- Theme toggle. A real button with aria-pressed: the label states the
              ACTION and aria-pressed carries the STATE, so it is unambiguous
              whichever a screen reader reads first. -->
@@ -235,8 +239,14 @@
     </div>
   </footer>
 
-  <!-- `defer` runs the script after the HTML is parsed, so it never blocks
-       rendering. The home page has no data to load, so it needs only nav.js. -->
+  <!-- `defer` runs these after the HTML is parsed, in the order listed.
+       assets/js/supabase.min.js defines the global `supabase` client library;
+       supabase-config.js defines this project's URL/key; auth.js creates the
+       one shared client and keeps the "Log in"/"Log out" nav link in sync —
+       needed on every page, not just the ones with their own data to load. -->
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>
 </body>

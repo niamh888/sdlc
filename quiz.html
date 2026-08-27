@@ -65,6 +65,10 @@
         <a class="nav-link" href="quiz.html">Quiz</a>
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Auth state — auth.js shows exactly one of these two, matching
+             whatever the current Supabase session actually is. -->
+        <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
         <!-- Theme toggle. A real button with aria-pressed: the label states the
              ACTION and aria-pressed carries the STATE, so it is unambiguous
              whichever a screen reader reads first. -->
@@ -81,6 +85,23 @@
 
   <main id="main-content">
     <div class="container">
+
+      <!-- Auth gate — shown instead of everything below when nobody is
+           signed in. Quiz results are tied to a real account (see
+           supabase/schema.sql), so signing in is required before the
+           assessment can even start, not just before the score is saved —
+           see the auth check at the top of quiz.js's DOMContentLoaded
+           handler, which calls showQuizScreen('quiz-auth-required') and
+           stops there when there is no session. -->
+      <div id="quiz-auth-required" class="quiz-screen">
+        <div class="page-header">
+          <h1>Sign In Required</h1>
+          <p>Your assessment result, and the certificate you earn from it, are linked to your account so you can find them again later.</p>
+        </div>
+        <div class="quiz-start-card">
+          <a class="btn btn-primary btn-large" href="login.html?redirect=quiz.html">Log In / Sign Up</a>
+        </div>
+      </div>
 
       <!-- Start screen -->
       <div id="quiz-start" class="quiz-screen active">
@@ -122,7 +143,16 @@
             <!-- Level notice — populated by quiz.js from localStorage -->
             <div class="quiz-level-notice" id="quiz-level-notice" role="status"></div>
 
-            <div class="quiz-name-group">
+            <!-- Shown instead of the name field below when the signed-in
+                 account already has a name on file (set at sign up — see
+                 signup-name in login.html). Filled in and un-hidden by
+                 quiz.js's DOMContentLoaded handler. -->
+            <p class="quiz-welcome hidden" id="quiz-welcome" role="status"></p>
+
+            <!-- Fallback for accounts with no stored name — e.g. one created
+                 before this field existed. quiz.js hides this group entirely
+                 whenever #quiz-welcome above is shown instead. -->
+            <div class="quiz-name-group" id="quiz-name-group">
               <div class="form-group">
                 <label for="participant-name">Your name <span class="required" aria-hidden="true">*</span></label>
                 <input type="text" id="participant-name" placeholder="Enter your full name" autocomplete="name" aria-required="true">
@@ -196,6 +226,10 @@
           </div>
           <p id="results-message"></p>
           <div class="results-breakdown" id="results-breakdown"></div>
+          <!-- ASYNC STATUS — filled in by quiz.js's saveAttemptToSupabase(),
+               which runs in the background once this screen is already
+               showing. role="status" announces each change to screen readers. -->
+          <p class="attempt-save-status" id="attempt-save-status" role="status"></p>
           <div class="results-actions">
             <button class="btn btn-primary btn-large" id="retry-quiz">Try Again</button>
             <a class="btn btn-secondary" href="learn.html">Review Content</a>
@@ -254,7 +288,12 @@
   </div>
 
   <!-- `defer` runs these after the HTML is parsed, in the order listed, so
-       async-utils.js has defined delay() and fetchJSON() before quiz.js runs. -->
+       async-utils.js has defined delay() and fetchJSON() before quiz.js runs,
+       and auth.js has created the shared Supabase client (and its
+       getCurrentSession() helper) before quiz.js's own auth gate needs it. -->
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>
   <script src="async-utils.js" defer></script>

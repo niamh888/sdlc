@@ -63,6 +63,10 @@
         <a class="nav-link" href="quiz.html">Quiz</a>
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
+        <!-- Auth state — auth.js shows exactly one of these two, matching
+             whatever the current Supabase session actually is. -->
+        <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
         <!-- Theme toggle. A real button with aria-pressed: the label states the
              ACTION and aria-pressed carries the STATE, so it is unambiguous
              whichever a screen reader reads first. -->
@@ -253,7 +257,11 @@
   <!-- `defer` tells the browser: download these now, but run them only after
        the HTML has finished parsing. Deferred scripts run in the order they
        appear, so async-utils.js is guaranteed to have defined delay() and
-       fetchJSON() before learn.js calls them. -->
+       fetchJSON() before learn.js calls them — and auth.js is guaranteed to
+       have created the shared Supabase client before anything else needs it. -->
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>
   <script src="async-utils.js" defer></script>

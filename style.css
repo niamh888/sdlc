@@ -940,6 +940,39 @@ a {
   color: var(--text-muted);
 }
 
+/* ===== SCROLL REVEAL =====
+   See scroll-reveal.js for how .reveal-pending gets added/removed. The base
+   rule here IS the visible state and defines the transition — this is what
+   makes a missing/failed script harmless: without JS, .reveal-pending is
+   never applied, so every element just renders in its final, visible state. */
+.reveal-on-scroll {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal-on-scroll.reveal-pending {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* Slight stagger across the four testimonial cards so they settle into place
+   one after another rather than all at once — cheap to read as "alive"
+   without being distracting. Transition-delay only matters while
+   .reveal-pending is being removed, so it has no effect on the (identical)
+   no-JS fallback state. */
+.testimonial-grid .reveal-on-scroll:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+.testimonial-grid .reveal-on-scroll:nth-child(3) {
+  transition-delay: 180ms;
+}
+
+.testimonial-grid .reveal-on-scroll:nth-child(4) {
+  transition-delay: 270ms;
+}
+
 /* ===== UPDATE BANNER ===== */
 
 /* The outer element no longer paints anything — it only provides the vertical

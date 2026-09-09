@@ -2012,6 +2012,16 @@ a {
   text-align: left;
 }
 
+/* Replaces .quiz-name-group for a signed-in account that already has a
+   name on file — see #quiz-welcome in quiz.html. */
+.quiz-welcome {
+  max-width: 360px;
+  margin: 0 auto 24px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--heading);
+}
+
 /* ===== QUIZ: LAYOUT ===== */
 
 /* The 740px reading/card width used to live here, centring the whole

@@ -189,10 +189,13 @@ async function startQuiz() {
   const loadErrorEl = document.getElementById('questions-error');
   const loadErrorMsgEl = document.getElementById('questions-error-message');
 
-  // Require a name before starting — it appears on the certificate.
+  // A name is required before starting — it appears on the certificate.
+  // quizState.participantName is already set by now for an account that has
+  // a name on file (see the #quiz-welcome fill-in in DOMContentLoaded below),
+  // so the fallback input is only consulted when that was NOT the case.
   // Validation runs FIRST, before any awaiting, so an empty name is rejected
   // instantly rather than after a needless wait.
-  const name = nameInput ? nameInput.value.trim() : '';
+  const name = quizState.participantName || (nameInput ? nameInput.value.trim() : '');
   if (!name) {
     if (nameError) nameError.textContent = 'Please enter your name to begin.';
     if (nameInput) nameInput.focus();
@@ -643,6 +646,25 @@ document.addEventListener('DOMContentLoaded', async function () {
   if (!session) {
     showQuizScreen('quiz-auth-required');
     return; // nothing past this point can do anything useful while signed out
+  }
+
+  // WELCOME BY NAME — an account created via login.html's sign-up form has
+  // its full name stored as Supabase Auth "user metadata" (see
+  // signUpWithPassword() in auth.js), so a returning learner can be greeted
+  // by name instead of being asked to retype it every time. An account with
+  // no stored name (e.g. one created before this field existed) falls back
+  // to the plain text input, unchanged from before.
+  const storedName = session.user.user_metadata && session.user.user_metadata.full_name;
+  const welcomeEl = document.getElementById('quiz-welcome');
+  const nameGroupEl = document.getElementById('quiz-name-group');
+  if (storedName) {
+    const firstName = storedName.trim().split(/\s+/)[0];
+    if (welcomeEl) {
+      welcomeEl.textContent = 'Welcome, ' + firstName + '!';
+      welcomeEl.classList.remove('hidden');
+    }
+    if (nameGroupEl) nameGroupEl.classList.add('hidden');
+    quizState.participantName = storedName; // full name, still used on the certificate
   }
 
   // Show the current training level on the start screen so the learner knows

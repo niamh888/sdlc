@@ -879,6 +879,67 @@ a {
   line-height: 1.7;
 }
 
+/* ===== TESTIMONIALS (home page) ===== */
+
+.testimonials {
+  margin: 56px 0;
+}
+
+.section-intro {
+  max-width: 720px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.section-intro h2 {
+  font-size: 1.4rem;
+  color: var(--heading);
+  margin-bottom: 8px;
+}
+
+.section-intro p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* Reset the indent/margin a bare <blockquote> carries by default — this is a
+   card in a grid, not an indented quotation sitting in flowing text. */
+.testimonial-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  box-shadow: var(--shadow);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonial-quote {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+.testimonial-attribution {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin-top: auto;
+}
+
+.testimonial-role {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 /* ===== UPDATE BANNER ===== */
 
 /* The outer element no longer paints anything — it only provides the vertical
@@ -2405,6 +2466,17 @@ a {
   border: 1px solid var(--border);
 }
 
+.contact-detail + .contact-detail {
+  margin-top: 12px;
+}
+
+/* Spacing for the "Book a free consult" button that sits inside a
+   .contact-detail box, below its text — .btn has no margin of its own
+   since every other .btn sits alone in a flex row with a gap instead. */
+.contact-detail-btn {
+  margin-top: 12px;
+}
+
 /* ===== CONTACT FORM ===== */
 
 .contact-form {
@@ -3369,6 +3441,10 @@ a {
   }
 
   .info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .testimonial-grid {
     grid-template-columns: 1fr;
   }
 

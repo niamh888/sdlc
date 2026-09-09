@@ -4,8 +4,11 @@
 // WHAT THIS FILE DOES
 // Any element with class="reveal-on-scroll" starts invisible and slightly
 // lower than its final position, then eases into place the first time it
-// enters the viewport. Used on the home page testimonials so the section
-// doesn't land as one flat wall of text.
+// enters the viewport. Not currently wired to any element on the site — the
+// testimonials section that used it moved to stjohnlynch.com instead (see
+// git history). Kept as ready-to-reuse infrastructure: give any element the
+// reveal-on-scroll class and add <script src="scroll-reveal.js" defer> to
+// the page to bring it back.
 //
 // PROGRESSIVE ENHANCEMENT, NOT A REQUIREMENT
 // style.css gives .reveal-on-scroll full opacity and no offset by default —

@@ -879,72 +879,16 @@ a {
   line-height: 1.7;
 }
 
-/* ===== TESTIMONIALS (home page) ===== */
-
-.testimonials {
-  margin: 56px 0;
-}
-
-.section-intro {
-  max-width: 720px;
-  margin: 0 auto 32px;
-  text-align: center;
-}
-
-.section-intro h2 {
-  font-size: 1.4rem;
-  color: var(--heading);
-  margin-bottom: 8px;
-}
-
-.section-intro p {
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-.testimonial-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-/* Reset the indent/margin a bare <blockquote> carries by default — this is a
-   card in a grid, not an indented quotation sitting in flowing text. */
-.testimonial-card {
-  background: var(--bg-white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px 28px;
-  box-shadow: var(--shadow);
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.testimonial-quote {
-  font-size: 0.95rem;
-  color: var(--text);
-  line-height: 1.65;
-  margin-bottom: 14px;
-}
-
-.testimonial-attribution {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--heading);
-  margin-top: auto;
-}
-
-.testimonial-role {
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
 /* ===== SCROLL REVEAL =====
-   See scroll-reveal.js for how .reveal-pending gets added/removed. The base
-   rule here IS the visible state and defines the transition — this is what
-   makes a missing/failed script harmless: without JS, .reveal-pending is
-   never applied, so every element just renders in its final, visible state. */
+   Generic fade+lift-into-view utility — see scroll-reveal.js for how
+   .reveal-pending gets added/removed. Not currently wired to any element on
+   this page (testimonials, the one thing that used it, moved to
+   stjohnlynch.com — see index.html git history if reviving this). Left in
+   place, base rule IS the visible state and defines the transition — this is
+   what makes a missing/failed script harmless: without JS, .reveal-pending
+   is never applied, so any element given this class just renders in its
+   final, visible state. To use again: add class="reveal-on-scroll" to an
+   element and re-add the <script src="scroll-reveal.js" defer> tag. */
 .reveal-on-scroll {
   opacity: 1;
   transform: none;
@@ -954,23 +898,6 @@ a {
 .reveal-on-scroll.reveal-pending {
   opacity: 0;
   transform: translateY(18px);
-}
-
-/* Slight stagger across the four testimonial cards so they settle into place
-   one after another rather than all at once — cheap to read as "alive"
-   without being distracting. Transition-delay only matters while
-   .reveal-pending is being removed, so it has no effect on the (identical)
-   no-JS fallback state. */
-.testimonial-grid .reveal-on-scroll:nth-child(2) {
-  transition-delay: 90ms;
-}
-
-.testimonial-grid .reveal-on-scroll:nth-child(3) {
-  transition-delay: 180ms;
-}
-
-.testimonial-grid .reveal-on-scroll:nth-child(4) {
-  transition-delay: 270ms;
 }
 
 /* ===== UPDATE BANNER ===== */
@@ -3474,10 +3401,6 @@ a {
   }
 
   .info-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .testimonial-grid {
     grid-template-columns: 1fr;
   }
 

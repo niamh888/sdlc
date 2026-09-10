@@ -879,11 +879,166 @@ a {
   line-height: 1.7;
 }
 
+/* ===== COURSE REVIEWS (home page) =====
+   See reviews.js — this replaces the old hardcoded testimonial quotes (moved
+   to stjohnlynch.com) with real reviews loaded from Supabase's
+   course_reviews table. .section-intro/.review-grid deliberately echo the
+   sizing the old .testimonials/.testimonial-grid rules used (see git
+   history) so the section still reads the same in the page's overall
+   rhythm, even though every rule here is new. */
+
+.reviews-section {
+  margin: 56px 0;
+}
+
+.section-intro {
+  max-width: 720px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.section-intro h2 {
+  font-size: 1.4rem;
+  color: var(--heading);
+  margin-bottom: 8px;
+}
+
+.section-intro p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.reviews-empty {
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+/* Reset the indent/margin a bare <blockquote> carries by default — this is a
+   card in a grid, not an indented quotation sitting in flowing text. */
+.review-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  box-shadow: var(--shadow);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-stars {
+  color: var(--warning);
+  letter-spacing: 2px;
+  margin: 0 0 10px;
+}
+
+.review-quote {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+.review-attribution {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin-top: auto;
+}
+
+/* The "leave a review" panel — narrower than the review grid above it and
+   centred, since it is one form rather than a set of cards. */
+.review-form-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+.review-form-wrap h3 {
+  font-size: 1.1rem;
+  color: var(--heading);
+  margin-bottom: 16px;
+}
+
+.review-signed-out p {
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.review-existing-status {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* CSS-only star rating. The inputs are laid out 5,4,3,2,1 in the HTML but
+   displayed 1→5 left-to-right via row-reverse — that reversal is the whole
+   trick: it lets a forward-only CSS sibling combinator (~, "every following
+   sibling") mean "every star BEFORE this one" once the row reads backwards.
+   Real radio inputs underneath (just visually hidden, not display:none, so
+   they stay keyboard- and screen-reader-operable) means this needs no
+   JavaScript to draw itself — reviews.js only ever reads whichever one ends
+   up :checked. */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  border: 0;
+  padding: 0;
+  margin: 4px 0 20px;
+}
+
+.star-rating legend {
+  font-weight: 700;
+  color: var(--heading);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.star-rating input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.star-rating label {
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--border);
+  cursor: pointer;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: var(--warning);
+}
+
+.star-rating input:focus-visible + label {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* ===== SCROLL REVEAL =====
    Generic fade+lift-into-view utility — see scroll-reveal.js for how
    .reveal-pending gets added/removed. Not currently wired to any element on
    this page (testimonials, the one thing that used it, moved to
-   stjohnlynch.com — see index.html git history if reviving this). Left in
+   stjohnlynch.com — see index.html git history if reviving this). Left
    place, base rule IS the visible state and defines the transition — this is
    what makes a missing/failed script harmless: without JS, .reveal-pending
    is never applied, so any element given this class just renders in its
@@ -3405,6 +3560,10 @@ a {
   }
 
   .qual-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-grid {
     grid-template-columns: 1fr;
   }
 

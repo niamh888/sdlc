@@ -180,6 +180,81 @@
         </div>
       </div>
 
+      <!-- COURSE REVIEWS — real reviews written by signed-in participants,
+           stored in Supabase (see supabase/schema.sql's course_reviews
+           table) and shown here only once Niamh has approved them from the
+           Supabase dashboard. All the fetching, moderation-state handling
+           and submit logic lives in reviews.js; this markup just gives it
+           somewhere to render into. blockquote/cite is the semantic pairing
+           for quoted attributed text (same choice the old hardcoded
+           testimonials made), so a screen reader announces each one as a
+           quotation rather than as plain body text. -->
+      <section class="reviews-section" aria-label="Reviews from participants">
+        <div class="section-intro">
+          <h2>What participants say</h2>
+          <p>Reviews from people who have completed this course. Sign in to leave your own — new reviews are checked
+            before they appear here.</p>
+        </div>
+
+        <p class="reviews-load-error form-error hidden" id="reviews-load-error" role="alert">
+          Reviews could not be loaded right now. Please try refreshing the page.
+        </p>
+        <p class="reviews-empty hidden" id="reviews-empty">No reviews yet — be the first to leave one below.</p>
+        <div class="review-grid" id="reviews-list" aria-live="polite"></div>
+
+        <div class="review-form-wrap">
+          <h3>Leave a review</h3>
+
+          <!-- Exactly one of these three is ever visible at a time —
+               reviews.js's refreshReviewFormState() decides which, the same
+               "show exactly one matching state" pattern auth.js uses for the
+               nav's Log in/Log out link. -->
+          <div class="review-signed-out" id="review-signed-out">
+            <p>Sign in to leave a review of this course.</p>
+            <a class="btn btn-primary" href="login.html?redirect=index.html">Log In / Sign Up</a>
+          </div>
+
+          <p class="review-existing-status hidden" id="review-existing-status" role="status"></p>
+
+          <form id="review-form" class="review-form hidden" novalidate>
+            <div class="form-group">
+              <label for="review-name">Your name</label>
+              <input type="text" id="review-name" name="name" placeholder="Your full name" autocomplete="name" aria-required="true">
+            </div>
+
+            <!-- CSS-only star rating: five real radio buttons (keyboard and
+                 screen-reader operable via the fieldset/legend, plus each
+                 label's sr-only text) laid out in REVERSE order and displayed
+                 right-to-left via flex-direction: row-reverse in style.css —
+                 that reversal is what lets a plain CSS sibling selector
+                 (~) light up "this star and every star before it" using
+                 only :checked and :hover, with no JavaScript required to
+                 draw the stars themselves. Each label's visible content is
+                 just the ★ glyph (aria-hidden, since a star character reads
+                 badly aloud); the .sr-only span carries the real accessible
+                 name a screen reader announces instead. reviews.js only
+                 ever reads whichever input ends up checked. -->
+            <fieldset class="star-rating">
+              <legend>Your rating</legend>
+              <input type="radio" id="review-star5" name="review-rating" value="5"><label for="review-star5"><span aria-hidden="true">★</span><span class="sr-only">5 stars</span></label>
+              <input type="radio" id="review-star4" name="review-rating" value="4"><label for="review-star4"><span aria-hidden="true">★</span><span class="sr-only">4 stars</span></label>
+              <input type="radio" id="review-star3" name="review-rating" value="3"><label for="review-star3"><span aria-hidden="true">★</span><span class="sr-only">3 stars</span></label>
+              <input type="radio" id="review-star2" name="review-rating" value="2"><label for="review-star2"><span aria-hidden="true">★</span><span class="sr-only">2 stars</span></label>
+              <input type="radio" id="review-star1" name="review-rating" value="1"><label for="review-star1"><span aria-hidden="true">★</span><span class="sr-only">1 star</span></label>
+            </fieldset>
+
+            <div class="form-group">
+              <label for="review-comment">Your review</label>
+              <textarea id="review-comment" name="comment" rows="4" placeholder="What stood out about the course?" aria-required="true"></textarea>
+            </div>
+
+            <div class="form-error hidden" id="review-form-error" role="alert"></div>
+
+            <button type="submit" class="btn btn-primary" id="review-submit">Submit Review</button>
+          </form>
+        </div>
+      </section>
+
             <!-- PROMOTIONAL STRIP — This is one banner, sized to
            the same 1100px .container always visible regardless of viewport width, with both partners
            inside one card either side of a divider so it reads as a single
@@ -247,6 +322,7 @@
   <script src="assets/js/supabase.min.js" defer></script>
   <script src="supabase-config.js" defer></script>
   <script src="auth.js" defer></script>
+  <script src="reviews.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>
 </body>

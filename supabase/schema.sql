@@ -81,6 +81,31 @@ create table if not exists public.quiz_attempt_answers (
   correct boolean not null
 );
 
+-- ---------- COURSE REVIEWS ----------
+-- Public-facing reviews left by participants, shown on the home page once
+-- approved. A review is born with status = 'pending' and stays invisible to
+-- everyone except its own author until Niamh flips it to 'approved' (or
+-- 'rejected') in the Supabase dashboard's Table Editor — that dashboard acts
+-- as the project owner and so bypasses RLS entirely, which is why no
+-- update/delete policy exists below for any other role. Same reasoning as
+-- quiz_attempts: once submitted, a review cannot be edited from outside the
+-- dashboard, so approving one is an honest "this is really what they wrote"
+-- guarantee, not something the reviewer (or anyone else) could quietly edit
+-- afterwards. One review per person per course (see the unique constraint) —
+-- if a rejected review needs redoing, that is a manual delete in the
+-- dashboard, not a resubmission through the site.
+create table if not exists public.course_reviews (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  course_id uuid not null references public.courses(id) on delete cascade,
+  participant_name text not null,
+  rating int not null check (rating between 1 and 5),
+  comment text not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now(),
+  unique (user_id, course_id)
+);
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 --
@@ -95,6 +120,7 @@ alter table public.course_versions enable row level security;
 alter table public.quiz_questions enable row level security;
 alter table public.quiz_attempts enable row level security;
 alter table public.quiz_attempt_answers enable row level security;
+alter table public.course_reviews enable row level security;
 
 -- Courses and course versions are harmless to read publicly (no personal
 -- data, no answers) — useful later for a public course catalogue page.
@@ -156,6 +182,46 @@ create policy "Users read their own attempt answers"
       where a.id = attempt_id and a.user_id = auth.uid()
     )
   );
+
+-- COURSE REVIEWS — public-facing reviews left by participants, shown on the
+-- home page once approved. A review is born with status = 'pending' and
+-- stays invisible to everyone except its own author until Niamh flips it to
+-- 'approved' (or 'rejected') in the Supabase dashboard's Table Editor — that
+-- dashboard acts as the project owner and so bypasses RLS entirely, which is
+-- why no update/delete policy exists below for any other role. Same
+-- reasoning as quiz_attempts: once submitted, a review cannot be edited from
+-- outside the dashboard, so approving one is an honest "this is really what
+-- they wrote" guarantee, not something the reviewer (or anyone else) could
+-- quietly edit afterwards.
+
+-- Every visitor, signed in or not, can read APPROVED reviews — that is what
+-- the home page displays to everyone. No login is required to READ a
+-- review, only to write one.
+drop policy if exists "Approved reviews are publicly readable" on public.course_reviews;
+create policy "Approved reviews are publicly readable"
+  on public.course_reviews for select
+  using (status = 'approved');
+
+-- A signed-in user can also read their OWN review regardless of status, so
+-- the page can tell them "awaiting approval" instead of the review just
+-- silently not appearing.
+drop policy if exists "Users read their own review" on public.course_reviews;
+create policy "Users read their own review"
+  on public.course_reviews for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- A signed-in user may insert only a review of their own, and only ever as
+-- 'pending' — the check on status stops a crafted request from marking a
+-- brand-new review pre-approved. The table's unique(user_id, course_id)
+-- constraint (see above) is what actually limits this to one review per
+-- person per course; if a rejected review needs redoing, that is a manual
+-- delete in the dashboard, not a resubmission through the site.
+drop policy if exists "Users insert their own pending review" on public.course_reviews;
+create policy "Users insert their own pending review"
+  on public.course_reviews for insert
+  to authenticated
+  with check (auth.uid() = user_id and status = 'pending');
 
 -- ============================================================
 -- SEED: the course and its current version

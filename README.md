@@ -704,11 +704,15 @@ Being honest about the limits matters more than a green tick:
 | `contact.html` | Feedback and contact form |
 | `about.html` | About page to highlight the credentials of the author to deliver this course.
 | `privacy.html` | Privacy and data protection notice, linked from every footer |
+| `verify.html` | Public, no-login lookup that confirms a printed certificate is genuine by its Certificate ID |
+| `my-results.html` | Signed-in learner's own quiz history — date completed, score, pass/fail, reprint any past certificate |
 | `style.css` | Shared CSS — professional medical theme, responsive layout, loading and error states |
 | `async-utils.js` | **Shared async helpers** — `delay()` and `fetchJSON()`, plus the main explanation of how asynchronous JavaScript works |
 | `nav.js` | Shared navigation — highlights active page link |
 | `learn.js` | Topic card rendering, async content loading, expand/collapse, level toggle, safety class filter, per-class deliverables list and CSV export, progress tracking |
 | `quiz.js` | Quiz engine — async question loading with prefetch, shuffle, timer, scoring, results, certificate |
+| `verify.js` | Certificate lookup — calls the `verify_certificate` database function, no sign-in required |
+| `my-results.js` | Fetches the signed-in user's past quiz_attempts rows and reprints any past certificate using its real completion date |
 | `contact.js` | Form validation and asynchronous submission with timeout and error handling |
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |

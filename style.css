@@ -2789,6 +2789,42 @@ a {
   color: var(--text);
 }
 
+/* ===== VERIFY CERTIFICATE PAGE ===== */
+/* verify.js's #verify-found and #verify-not-found sit as SIBLINGS of
+   .auth-card, not nested inside it — see the comment in verify.html — so
+   they need their own width/centring to still line up under the 440px card
+   above them, and their own top margin since, unlike the contact page's
+   success panel, they appear ALONGSIDE the form rather than replacing it. */
+.form-success#verify-found,
+.verify-not-found {
+  max-width: 440px;
+  margin: 24px auto 0;
+}
+
+.verify-details {
+  text-align: left;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.verify-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.verify-details dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.verify-details dd {
+  color: var(--heading);
+  font-weight: 700;
+  text-align: right;
+}
+
 /* ===== ASYNC STATES: LOADING AND ERROR ===== */
 /* Styles for the three states every asynchronous operation has: loading,
    success and failure. The success state is just the normal page content;
@@ -3601,6 +3637,65 @@ a {
   }
 }
 
+/* ===== MY RESULTS PAGE ===== */
+/* See my-results.js. .result-card echoes .review-card/.info-card's "white
+   card, border, radius-lg, shadow" look, kept consistent across every grid
+   of cards on the site rather than inventing a fourth variant. */
+
+.results-empty {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 24px 0;
+}
+
+.results-empty .btn {
+  margin-top: 16px;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.result-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+}
+
+.result-badges {
+  margin-bottom: 10px;
+}
+
+/* Reuses .level-notice-badge's pill shape (see QUIZ: LEVEL NOTICE above) —
+   only the pass/fail colour pairing below is new. */
+.result-badge-pass {
+  background: var(--tint-ok);
+  color: var(--tint-ok-text);
+}
+
+.result-badge-fail {
+  background: var(--tint-bad);
+  color: var(--tint-bad-text);
+}
+
+.result-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.result-score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 14px;
+}
+
 /* ===== CERTIFICATE ===== */
 
 /* Hidden on screen — only rendered during window.print(). */
@@ -3729,6 +3824,21 @@ a {
   line-height: 1.5;
 }
 
+.cert-verify {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* The ID and URL are what someone actually copies out by hand, so they get
+   a monospace font (unambiguous 0/O, 1/l/I — the usual reason for choosing
+   one anywhere a human retypes a code) even though nothing else on the
+   certificate does. */
+.cert-verify span {
+  font-family: 'Courier New', Courier, monospace;
+}
+
 /* ===== PRINT ===== */
 
 @media print {
@@ -3739,19 +3849,25 @@ a {
     print-color-adjust: exact;
   }
 
-  /* Hide everything except the certificate — SCOPED TO THE QUIZ PAGE.
+  /* Hide everything except the certificate — SCOPED TO PAGES THAT HAVE ONE.
      These rules used to apply everywhere, which meant `main` was hidden on every
      page and printing the Learn or Contact page produced a blank sheet. The
-     page-quiz class on <body> in quiz.html confines them to where the
-     certificate actually exists. */
+     page-quiz class on <body> in quiz.html (and page-my-results in
+     my-results.html, for reprinting a past certificate — see my-results.js)
+     confines them to where a #certificate element actually exists. */
   .page-quiz .site-header,
   .page-quiz main,
   .page-quiz .site-footer,
-  .page-quiz .skip-link {
+  .page-quiz .skip-link,
+  .page-my-results .site-header,
+  .page-my-results main,
+  .page-my-results .site-footer,
+  .page-my-results .skip-link {
     display: none !important;
   }
 
-  .page-quiz #certificate {
+  .page-quiz #certificate,
+  .page-my-results #certificate {
     display: block !important;
   }
 }

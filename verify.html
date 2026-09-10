@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC 62304 SDLC Training | Verify a Certificate</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- THEME, BEFORE FIRST PAINT. See index.html for why this has to be
+       inline and blocking rather than left to theme.js. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* Storage blocked or matchMedia missing: fall through to the CSS default,
+           which is the light theme plus the prefers-color-scheme fallback. */
+      }
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </span>
+      </button>
+      <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="learn.html">Learn</a>
+        <a class="nav-link" href="quiz.html">Quiz</a>
+        <a class="nav-link" href="about.html">About</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
+        <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
+          <span class="theme-toggle-icon" aria-hidden="true">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Verify a Certificate</h1>
+        <p>Every certificate this course issues carries a Certificate ID. Paste it below to confirm it is genuine —
+          no account or sign-in needed. This looks up a real record in our database, not a name typed into the
+          certificate itself, so it cannot be faked by editing a PDF.</p>
+      </div>
+
+      <div class="auth-card">
+        <form id="verify-form" novalidate>
+          <div class="form-group">
+            <label for="verify-id">Certificate ID</label>
+            <input type="text" id="verify-id" name="certId" placeholder="e.g. f47ac10b-58cc-4372-a567-0e02b2c3d479" autocomplete="off" aria-required="true">
+            <span class="field-error" id="verify-id-error" role="alert"></span>
+          </div>
+
+          <div class="form-error hidden" id="verify-error" role="alert"></div>
+
+          <button type="submit" class="btn btn-primary btn-full" id="verify-submit">Verify</button>
+        </form>
+      </div>
+
+      <!-- Exactly one of these two is shown after a lookup completes — see
+           verify.js's showResult(). Both start hidden; nothing is shown
+           until a real lookup has actually happened. Siblings of .auth-card
+           rather than nested inside it — each is already its own card (see
+           .form-success/.form-error in style.css), so nesting one inside
+           the other would draw two borders/shadows around the same box. The
+           form stays visible throughout (unlike the contact page's form,
+           which the equivalent success panel replaces), so trying a second
+           ID doesn't need a page reload. -->
+      <div class="form-success hidden" id="verify-found" role="status">
+        <div class="success-icon">&#10003;</div>
+        <h2>Certificate Verified</h2>
+        <dl class="verify-details">
+          <div><dt>Name</dt><dd id="verify-name"></dd></div>
+          <div><dt>Course</dt><dd id="verify-course"></dd></div>
+          <div><dt>Score</dt><dd id="verify-score"></dd></div>
+          <div><dt>Date</dt><dd id="verify-date"></dd></div>
+        </dl>
+      </div>
+
+      <div class="form-error verify-not-found hidden" id="verify-not-found" role="status">
+        No certificate was found with that ID. Double-check it was copied in full and try again.
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 (ED1)</p>
+      <p class="footer-meta">
+        <span>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span class="footer-links"><a href="verify.html">Verify a Certificate</a></span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="verify.js" defer></script>
+  <script src="nav.js" defer></script>
+  <script src="theme.js" defer></script>
+</body>
+</html>

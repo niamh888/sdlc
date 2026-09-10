@@ -64,8 +64,10 @@ const quizState = {
                            // level's actual duration by startTimer(); this default is
                            // only ever seen before that first call
   participantName: '',    // entered on the start screen; used on the certificate
-  startedAt: null         // ISO timestamp set when the first question appears; sent
+  startedAt: null,        // ISO timestamp set when the first question appears; sent
                            // to Supabase alongside the result — see saveAttemptToSupabase()
+  attemptId: null         // this attempt's future quiz_attempts.id, generated up front —
+                           // see the comment on crypto.randomUUID() below for why
 };
 
 // Holds the Promise for the question data — not the data itself.
@@ -236,6 +238,17 @@ async function startQuiz() {
     quizState.score = 0;
     quizState.answered = false;
     quizState.startedAt = new Date().toISOString(); // recorded on the attempt saved to Supabase
+
+    // Generated HERE, before the attempt even begins, rather than left for
+    // the database's own default (see the `id uuid primary key default
+    // gen_random_uuid()` column in supabase/schema.sql) — see
+    // populateCertificate() and saveAttemptToSupabase() below for why: the
+    // certificate needs this ID the instant it is drawn, which must not
+    // depend on waiting for a network save to finish (or succeed at all).
+    // crypto.randomUUID() produces the exact same shape of value Postgres's
+    // gen_random_uuid() would have, so it slots into that same `id` column
+    // as a normal, explicit insert value instead of the default.
+    quizState.attemptId = crypto.randomUUID();
 
     // Keep the results screen's "out of N" in step with the real count.
     const scoreTotalEl = document.getElementById('score-total');
@@ -438,6 +451,17 @@ async function saveAttemptToSupabase(score, total, pct, passed) {
     if (!session) throw new Error('you are signed out, so this result could not be saved');
 
     const { error } = await supabaseClient.from('quiz_attempts').insert({
+      // Explicit id, not left to the column's default — this is what makes
+      // the certificate's ID (already shown on screen, printed instantly by
+      // populateCertificate() below) the SAME id this row ends up with, so
+      // verify.html's lookup finds it. If this save fails, the certificate
+      // still carries a real-looking ID, but verify.html will honestly
+      // report "not found" for it — which is correct: it never made it into
+      // the database, so there is nothing to confirm. That is a deliberate
+      // trade-off, not a bug — see the comment on #attempt-save-status
+      // above for why a save failure must never block the certificate
+      // itself.
+      id: quizState.attemptId,
       user_id: session.user.id,
       course_version_id: COURSE_VERSION_ID,
       level: getLevel(),
@@ -481,6 +505,8 @@ function populateCertificate(score, total, pct) {
   const dateEl       = document.getElementById('cert-date');
   const courseNameEl = document.getElementById('cert-course-name'); // e.g. "IEC 62304 Essentials — Advanced Level"
   const standardEl   = document.getElementById('cert-standard');   // the descriptive line beneath the course name
+  const certIdEl     = document.getElementById('cert-id');
+  const verifyUrlEl  = document.getElementById('cert-verify-url');
 
   if (nameEl)       nameEl.textContent  = quizState.participantName;
   if (scoreEl)      scoreEl.textContent = score + ' / ' + total + ' (' + pct + '%)';
@@ -491,6 +517,21 @@ function populateCertificate(score, total, pct) {
   // contains a <br> line break. The content is entirely our own hardcoded
   // strings — no user input — so innerHTML is safe in this context.
   if (standardEl)   standardEl.innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
+
+  // CERTIFICATE ID + VERIFY LINK — see the long comment on quizState.attemptId
+  // in startQuiz() for why this id already exists before the Supabase save
+  // has even started. Built from the page's OWN location (origin + path)
+  // rather than a hardcoded domain, so this prints the right URL whether
+  // running locally (http://localhost:8000/verify.html?...) or on the real
+  // site (see README.md for the GitHub Pages URL this resolves to there) —
+  // one fewer place a domain could go stale if the site ever moves.
+  if (certIdEl) certIdEl.textContent = quizState.attemptId;
+  if (verifyUrlEl) {
+    const verifyUrl = window.location.origin
+      + window.location.pathname.replace(/quiz\.html$/, 'verify.html')
+      + '?id=' + quizState.attemptId;
+    verifyUrlEl.textContent = verifyUrl;
+  }
 }
 
 // ---------- DOWNLOAD CERTIFICATE ----------

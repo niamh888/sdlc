@@ -224,6 +224,80 @@ create policy "Users insert their own pending review"
   with check (auth.uid() = user_id and status = 'pending');
 
 -- ============================================================
+-- CERTIFICATE VERIFICATION
+--
+-- Every certificate quiz.js generates carries a "Certificate ID" — actually
+-- just the quiz_attempts.id it corresponds to (see quiz.js's
+-- saveAttemptToSupabase(), which now generates that id in the BROWSER and
+-- sends it as part of the insert, rather than letting the database invent
+-- one, specifically so the certificate can show it immediately without
+-- waiting on the save to finish). Anyone holding that ID — an employer, an
+-- auditor — can paste it into verify.html to confirm the certificate is
+-- real.
+--
+-- That page needs a way to look up ONE attempt by ID without being signed
+-- in, which the "Users read their own attempts" policy above deliberately
+-- does not allow (nobody else's session should be able to read someone
+-- else's row directly). Rather than loosen that policy — which would let
+-- anyone holding the anon key page through and harvest every participant's
+-- name and score, not just look up one they already have the ID for — this
+-- function is the one narrow, deliberate exception:
+--   * SECURITY DEFINER makes it run with the permissions of whoever OWNS
+--     the function (the database admin), not the anon/authenticated caller,
+--     so it can read quiz_attempts directly regardless of RLS.
+--   * It takes the id as a REQUIRED parameter and returns at most one row —
+--     there is no way to call it with no filter and get everyone's data,
+--     the way a loosened SELECT policy would allow.
+--   * It returns only the handful of fields an employer plausibly needs
+--     (name, course, level, score, date) — never the user_id, an email, or
+--     any other account detail.
+--   * It only ever returns a row for a PASSED attempt, so it cannot be used
+--     to check whether a given ID belongs to a failed attempt either — a
+--     wrong or made-up ID and a real-but-failed one look identical (nothing
+--     found), which is the honest answer in both cases anyway, since only a
+--     pass ever produces a certificate to verify.
+-- set search_path pins name resolution to the public schema, which stops a
+-- SECURITY DEFINER function (a known Postgres foot-gun) from being tricked
+-- into running a same-named function or table from a different schema.
+create or replace function public.verify_certificate(cert_id uuid)
+returns table (
+  participant_name text,
+  level text,
+  score int,
+  total int,
+  pct int,
+  completed_at timestamptz,
+  course_title text,
+  version_label text
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    qa.participant_name,
+    qa.level,
+    qa.score,
+    qa.total,
+    qa.pct,
+    qa.completed_at,
+    c.title as course_title,
+    cv.version_label
+  from public.quiz_attempts qa
+  join public.course_versions cv on cv.id = qa.course_version_id
+  join public.courses c on c.id = cv.course_id
+  where qa.id = cert_id
+    and qa.passed = true;
+$$;
+
+-- EXECUTE, not SELECT — this grants permission to CALL the function above,
+-- not direct table access, so it does not reopen anything the RLS policies
+-- above closed. Granted to anon specifically so verify.html works for a
+-- visitor who is not signed in at all, which is the normal case for someone
+-- checking a certificate they were handed.
+grant execute on function public.verify_certificate(uuid) to anon, authenticated;
+
+-- ============================================================
 -- SEED: the course and its current version
 --
 -- Fixed, hand-picked UUIDs (not gen_random_uuid()) so this file can be

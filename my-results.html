@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEC 62304 SDLC Training | My Results</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- THEME, BEFORE FIRST PAINT. See index.html for why this has to be
+       inline and blocking rather than left to theme.js. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('62304_theme');
+        var dark = saved
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* Storage blocked or matchMedia missing: fall through to the CSS default,
+           which is the light theme plus the prefers-color-scheme fallback. */
+      }
+    })();
+  </script>
+</head>
+<!-- page-my-results scopes the certificate print rules to this page, the
+     same way page-quiz does on quiz.html — see style.css's @media print
+     block. Without it, printing from THIS page would hide #certificate
+     along with everything else instead of showing it full-page. -->
+<body class="page-my-results">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">&#9877;</span>
+        <div class="logo-text">
+          <span class="logo-title">IEC 62304 Training</span>
+          <span class="logo-sub">Medical Device Software Lifecycle</span>
+          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+        </div>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+        <span class="nav-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </span>
+      </button>
+      <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="learn.html">Learn</a>
+        <a class="nav-link" href="quiz.html">Quiz</a>
+        <a class="nav-link" href="about.html">About</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
+        <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
+        <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
+          <span class="theme-toggle-icon" aria-hidden="true">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </span>
+          <span class="theme-toggle-label sr-only">Switch to dark theme</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+
+      <div class="page-header">
+        <h1>My Results</h1>
+        <p>Every quiz attempt you've completed while signed in, with the date you completed it. Any attempt that
+          passed can be reprinted as a certificate at any time — you never need to retake the quiz just to get another
+          copy.</p>
+      </div>
+
+      <!-- Mirrors quiz.html's #quiz-auth-required screen — this page is
+           meaningless while signed out, since "my results" has no meaning
+           without knowing who "my" is. -->
+      <div id="results-auth-required" class="hidden">
+        <div class="page-header">
+          <h2>Sign In Required</h2>
+          <p>Your results are linked to your account, so you'll need to sign in to see them.</p>
+        </div>
+        <div class="quiz-start-card">
+          <a class="btn btn-primary btn-large" href="login.html?redirect=my-results.html">Log In / Sign Up</a>
+        </div>
+      </div>
+
+      <!-- ASYNC STATE 1: LOADING — same .data-status pattern as learn.html. -->
+      <div class="data-status" id="results-loading" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <p class="data-status-text">Loading your results&hellip;</p>
+      </div>
+
+      <!-- ASYNC STATE 3: FAILURE -->
+      <div class="data-error hidden" id="results-error" role="alert">
+        <p class="data-error-heading">Could not load your results</p>
+        <p class="data-error-message" id="results-error-message"></p>
+        <button class="btn btn-secondary" id="results-retry">Try again</button>
+      </div>
+
+      <!-- Shown when the fetch succeeds but returns zero rows — a
+           signed-in account that has never sat the quiz. -->
+      <div class="results-empty hidden" id="results-empty">
+        <p>You haven't completed a quiz yet.</p>
+        <a class="btn btn-primary" href="quiz.html">Take the Quiz</a>
+      </div>
+
+      <!-- ASYNC STATE 2: SUCCESS — one card per row, built by my-results.js
+           from the quiz_attempts table (most recent first). -->
+      <div class="results-grid" id="results-grid"></div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 (ED1)</p>
+      <p class="footer-meta">
+        <span>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></span>
+        <span class="footer-sep" aria-hidden="true">&middot;</span>
+        <span class="footer-links"><a href="verify.html">Verify a Certificate</a></span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Certificate — hidden on screen, shown only during window.print().
+       Identical structure and element ids to quiz.html's own #certificate
+       (see my-results.js's populateCertificateFor(), which is deliberately
+       written against the same ids so the same CSS in style.css draws both
+       without a single new rule) — the difference is only WHERE the data
+       populating it comes from: quiz.js reads the quiz just taken, this page
+       reads a stored row and its ACTUAL completion date, not today's date. -->
+  <div id="certificate" aria-hidden="true">
+    <div class="cert-page">
+      <div class="cert-inner">
+        <span class="cert-logo-icon" aria-hidden="true">⚕</span>
+        <p class="cert-site-name">IEC 62304 Essentials</p>
+        <h1 class="cert-heading">Certificate of Completion</h1>
+        <p class="cert-presented">This certifies that</p>
+        <p class="cert-name" id="cert-name"></p>
+        <p class="cert-completed">has successfully completed</p>
+        <p class="cert-course-name" id="cert-course-name">IEC 62304 Essentials</p>
+        <p class="cert-standard" id="cert-standard">
+          An introduction to IEC 62304:2006+AMD1:2015<br>
+          Medical device software &mdash; Software life cycle processes
+        </p>
+        <div class="cert-meta">
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Score</span>
+            <span class="cert-meta-value" id="cert-score"></span>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Pass Mark</span>
+            <span class="cert-meta-value">80%</span>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Date</span>
+            <span class="cert-meta-value" id="cert-date"></span>
+          </div>
+        </div>
+        <p class="cert-disclaimer">Issued by St John Lynch &amp; Co Ltd &mdash; Based on IEC 62304:2006+AMD1:2015</p>
+        <p class="cert-verify">
+          Certificate ID: <span id="cert-id"></span><br>
+          Verify at <span id="cert-verify-url"></span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/supabase.min.js" defer></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="my-results.js" defer></script>
+  <script src="nav.js" defer></script>
+  <script src="theme.js" defer></script>
+</body>
+</html>

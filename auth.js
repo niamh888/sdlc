@@ -81,6 +81,11 @@ async function signOutCurrentUser() {
 function updateAuthNav(session) {
   const loginLink = document.getElementById('nav-login-link');
   const logoutBtn = document.getElementById('nav-logout-btn');
+  // Optional, unlike the two above: #nav-my-results-link exists on every
+  // page (see my-results.html), but is looked up defensively (no early
+  // return if missing) so a page that somehow lacks it still gets a working
+  // Log in/Log out toggle rather than the whole function bailing out.
+  const myResultsLink = document.getElementById('nav-my-results-link');
   if (!loginLink || !logoutBtn) return; // defensive — every page should have both
 
   if (session) {
@@ -89,10 +94,14 @@ function updateAuthNav(session) {
     // The signed-in email is shown as a tooltip rather than in the button's
     // own text, so the nav bar stays the same width whether signed in or not.
     logoutBtn.title = 'Signed in as ' + session.user.email;
+    // "My Results" only means anything once signed in — a signed-out
+    // visitor has no attempts of their own to show.
+    if (myResultsLink) myResultsLink.classList.remove('hidden');
   } else {
     loginLink.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
     logoutBtn.removeAttribute('title');
+    if (myResultsLink) myResultsLink.classList.add('hidden');
   }
 }
 

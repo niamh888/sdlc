@@ -1,0 +1,27 @@
+# Render "infra as code" — lets Render's dashboard read this project's
+# deploy config straight from the repo (New -> Blueprint) instead of Niamh
+# clicking through every setting by hand. DATABASE_URL/JWT_SECRET/
+# ADMIN_PASSWORD/SESSION_SECRET are marked sync:false, meaning Render will
+# prompt for them once in its dashboard rather than expecting them here —
+# they are exactly the values that must never be committed to this repo.
+services:
+  - type: web
+    name: sdlc-training-api
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://niamh888.github.io

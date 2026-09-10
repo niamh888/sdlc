@@ -1,0 +1,27 @@
+# Pinned to MINIMUM versions rather than exact patch releases — this avoids
+# requesting a specific patch that may not exist yet on PyPI by the time this
+# is installed, while still keeping everything on the SQLAlchemy 2.0 /
+# Pydantic v2 generation this project is written against.
+#
+# psycopg (v3), not psycopg2-binary — psycopg2's wheels have historically
+# lagged behind new Python releases; psycopg3 keeps up better and is the
+# driver SQLAlchemy's own docs now recommend for new projects.
+
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy>=2.0.36
+alembic>=1.13
+psycopg[binary]>=3.2
+pyjwt>=2.9
+bcrypt>=4.2
+pydantic>=2.9
+pydantic-settings>=2.6
+email-validator>=2.2
+python-multipart>=0.0.12
+sqladmin>=0.19
+itsdangerous>=2.2
+python-dotenv>=1.0
+
+# Test-only
+pytest>=8.3
+httpx>=0.27

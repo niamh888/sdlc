@@ -1,0 +1,9 @@
+# Real secrets and local-only files — never committed. See .env.example for
+# the placeholder version that DOES get committed.
+.env
+*.db
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/

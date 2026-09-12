@@ -93,10 +93,14 @@ async function getCurrentSession() {
     const user = await apiFetch('/auth/me');
     return { user: user };
   } catch (error) {
-    // An expired or otherwise invalid token reads as "not signed in", the
-    // same as never having one — and clearing it here means the next
-    // check does not repeat the same failed request.
-    clearStoredToken();
+    // Only a real 401 (the server itself says this token is invalid —
+    // expired, forged, or the account is gone) means "not signed in".
+    // Anything else — offline, the backend asleep on a free-tier host, or
+    // (the bug this comment used to not account for) the browser cancelling
+    // this very request because the page is navigating away right after a
+    // fresh sign-in — is a temporary failure, NOT proof the token is bad,
+    // and must not throw away a token that might be perfectly valid.
+    if (error.status === 401) clearStoredToken();
     return null;
   }
 }
@@ -107,7 +111,14 @@ async function signUpWithPassword(email, password, fullName) {
     body: JSON.stringify({ email: email, password: password, full_name: fullName })
   });
   setStoredToken(data.access_token);
-  notifyAuthChanged();
+  // Passed directly rather than re-fetched via getCurrentSession() — this
+  // is ALWAYS immediately followed by a full-page redirect (see login.js),
+  // which cancels any request still in flight when the browser navigates
+  // away. Re-validating over the network right here used to race that
+  // navigation and could wipe the token this function just stored — using
+  // the user object already in hand from the signup response avoids the
+  // race entirely instead of merely tolerating it.
+  notifyAuthChanged({ user: data.user });
   // No "email confirmation pending" branch any more — this backend never
   // requires it (see backend/app/routers/auth.py's own comment on why), so
   // a session is always returned. login.js's signup handler used to check
@@ -121,7 +132,7 @@ async function signInWithPassword(email, password) {
     body: JSON.stringify({ email: email, password: password })
   });
   setStoredToken(data.access_token);
-  notifyAuthChanged();
+  notifyAuthChanged({ user: data.user }); // see the comment in signUpWithPassword() above
   return { session: { user: data.user } };
 }
 
@@ -129,7 +140,7 @@ async function signOutCurrentUser() {
   // Nothing to tell the server — a JWT is not a session row the backend
   // holds; it just stops being sent anywhere once removed from storage.
   clearStoredToken();
-  notifyAuthChanged();
+  notifyAuthChanged(null); // already known — no need to ask the server to confirm "signed out"
 }
 
 // ---------- NAV SYNC ----------
@@ -181,8 +192,16 @@ function onAuthStateChange(callback) {
   authChangeListeners.push(callback);
 }
 
-function notifyAuthChanged() {
-  getCurrentSession().then(function (session) {
+// `knownSession` lets a caller that already has the answer (signup/login
+// just got a user back; sign-out just cleared everything) skip asking the
+// server to confirm something it already knows — see the comment in
+// signUpWithPassword() for why that skip is not just an optimisation but a
+// real bug fix. Passed as `undefined` (i.e. omitted) by the 'storage'
+// listener below, which genuinely doesn't know what changed in another tab
+// and has no redirect of its own about to cancel the check anyway.
+function notifyAuthChanged(knownSession) {
+  const sessionPromise = knownSession !== undefined ? Promise.resolve(knownSession) : getCurrentSession();
+  sessionPromise.then(function (session) {
     authChangeListeners.forEach(function (callback) {
       callback(session ? 'SIGNED_IN' : 'SIGNED_OUT', session);
     });

@@ -63,7 +63,7 @@
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
         <!-- Auth state — auth.js shows exactly one of these two, matching
-             whatever the current Supabase session actually is. -->
+             whatever the current sign-in state actually is. -->
         <!-- Signed-in only — auth.js's updateAuthNav() shows this exactly
              when it shows the Log out button, same toggle, same reasoning. -->
         <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
@@ -184,9 +184,10 @@
       </div>
 
       <!-- COURSE REVIEWS — real reviews written by signed-in participants,
-           stored in Supabase (see supabase/schema.sql's course_reviews
-           table) and shown here only once Niamh has approved them from the
-           Supabase dashboard. All the fetching, moderation-state handling
+           stored in this site's own backend database (see
+           backend/app/models.py's CourseReview) and shown here only once
+           Niamh has approved them from the backend's own admin panel at
+           /admin. All the fetching, moderation-state handling
            and submit logic lives in reviews.js; this markup just gives it
            somewhere to render into. blockquote/cite is the semantic pairing
            for quoted attributed text (same choice the old hardcoded
@@ -320,12 +321,11 @@
   </footer>
 
   <!-- `defer` runs these after the HTML is parsed, in the order listed.
-       assets/js/supabase.min.js defines the global `supabase` client library;
-       supabase-config.js defines this project's URL/key; auth.js creates the
-       one shared client and keeps the "Log in"/"Log out" nav link in sync —
-       needed on every page, not just the ones with their own data to load. -->
-  <script src="assets/js/supabase.min.js" defer></script>
-  <script src="supabase-config.js" defer></script>
+       api-config.js defines API_BASE_URL, this site's own backend's
+       address; auth.js reads it and keeps the "Log in"/"Log out" nav link
+       in sync — needed on every page, not just the ones with their own
+       data to load. -->
+  <script src="api-config.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="reviews.js" defer></script>
   <script src="nav.js" defer></script>

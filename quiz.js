@@ -3,16 +3,14 @@
 // ============================================================
 //
 // ASYNCHRONOUS DATA LOADING
-// Both question sets used to be hardcoded arrays in this file — roughly 250
-// lines of content. They now live in two separate JSON files:
-//
-//     data/questions-intro.json      15 overview-level questions
-//     data/questions-advanced.json   15 clause-referenced questions
-//
-// Splitting them fixed a real inefficiency. The old version defined BOTH
-// sets on every page load and then threw one away, so every visitor paid to
-// parse 30 questions in order to sit 15. Now only the file matching the
-// user's chosen level is requested.
+// The two question sets (15 overview-level, 15 clause-referenced) used to
+// be hardcoded arrays in this file, then moved to two static JSON files
+// (data/questions-*.json), and now live in this site's own backend
+// database instead (see backend/app/routers/quiz.py's GET /quiz-questions,
+// and backend/seed.py for how they got loaded into it out of those same
+// JSON files). Only the level the learner actually chose is ever
+// requested — same reasoning as when this first moved out of hardcoded
+// arrays: no visitor should pay to receive 30 questions in order to sit 15.
 //
 // This file also demonstrates a pattern worth learning: PREFETCHING. The
 // request starts as soon as the page loads, but the result is not needed
@@ -24,12 +22,6 @@
 // ============================================================
 
 // ---------- CONFIG ----------
-// Which file to fetch for each training level.
-const QUESTION_URLS = {
-  intro: 'data/questions-intro.json',
-  advanced: 'data/questions-advanced.json'
-};
-
 // Seconds per question, by level. Advanced questions are clause-referenced
 // (see the level notice below) — 30 seconds was tight for reading both the
 // question and four answer options before choosing, so Advanced gets double
@@ -41,10 +33,10 @@ const QUESTION_SECONDS = {
   advanced: 60
 };
 
-// The course_version row schema.sql seeds and generate_seed_sql.py's
-// questions point at (see supabase/schema.sql) — fixed rather than looked
-// up, for the same reason it is fixed there: it lets this file reference it
-// with no extra database round trip just to find out what it is.
+// The course_version row backend/seed.py creates and every quiz question
+// belongs to (see backend/app/models.py) — fixed rather than looked up, for
+// the same reason it is fixed there: it lets this file reference it with no
+// extra request just to find out what it is.
 const COURSE_VERSION_ID = '22222222-2222-2222-2222-222222222222';
 
 // Minimum time the "Loading questions" state stays visible, to avoid a
@@ -65,7 +57,7 @@ const quizState = {
                            // only ever seen before that first call
   participantName: '',    // entered on the start screen; used on the certificate
   startedAt: null,        // ISO timestamp set when the first question appears; sent
-                           // to Supabase alongside the result — see saveAttemptToSupabase()
+                           // to the backend alongside the result — see saveAttemptToApi()
   attemptId: null         // this attempt's future quiz_attempts.id, generated up front —
                            // see the comment on crypto.randomUUID() below for why
 };
@@ -89,32 +81,38 @@ function getLevel() {
 }
 
 // ---------- LOAD ----------
-// Fetches and validates one question set. Errors are deliberately allowed to
-// propagate to whoever awaits this — see the note in async-utils.js about not
-// catching errors where you cannot act on them.
+// Fetches and validates one question set from this site's own backend.
+// Errors are deliberately allowed to propagate to whoever awaits this — see
+// the note in async-utils.js about not catching errors where you cannot
+// act on them.
 async function loadQuestions(level) {
   // Promise.all runs the fetch and the anti-flicker delay CONCURRENTLY, so
   // the total wait is the longer of the two rather than the sum of both.
   // Array destructuring on the left picks out the fetch result (element 0);
   // the delay's result is not useful, so it is left unnamed.
+  //
+  // apiFetch() (see auth.js) throws its own error for a 401 (signed out) or
+  // any other non-2xx response, so a failure here already carries a
+  // sensible message — the validation below only needs to catch a
+  // successful-but-malformed response.
   const [questions] = await Promise.all([
-    fetchJSON(QUESTION_URLS[level]),
+    apiFetch('/quiz-questions?level=' + encodeURIComponent(level)),
     delay(MIN_LOADING_MS)
   ]);
 
   // Validate at the boundary, where external data enters the program, so
   // that the rest of the quiz can trust its input completely. A malformed
   // question would otherwise fail much later and much more confusingly —
-  // a missing `correct` index, for instance, would silently mark every
+  // a missing `correct_index`, for instance, would silently mark every
   // answer wrong instead of reporting a data problem.
   if (!Array.isArray(questions) || questions.length === 0) {
-    throw new Error('The question file did not contain any questions.');
+    throw new Error('No questions were returned for this level.');
   }
 
   questions.forEach(function (q, i) {
-    const validIndex = typeof q.correct === 'number' && q.correct >= 0 && q.correct < (q.options || []).length;
-    if (!q.q || !Array.isArray(q.options) || !validIndex) {
-      throw new Error('Question ' + (i + 1) + ' in the question file is incomplete or malformed.');
+    const validIndex = typeof q.correct_index === 'number' && q.correct_index >= 0 && q.correct_index < (q.options || []).length;
+    if (!q.question || !Array.isArray(q.options) || !validIndex) {
+      throw new Error('Question ' + (i + 1) + ' from the server is incomplete or malformed.');
     }
   });
 
@@ -237,17 +235,16 @@ async function startQuiz() {
     quizState.currentIndex = 0;
     quizState.score = 0;
     quizState.answered = false;
-    quizState.startedAt = new Date().toISOString(); // recorded on the attempt saved to Supabase
+    quizState.startedAt = new Date().toISOString(); // recorded on the attempt saved to the backend
 
     // Generated HERE, before the attempt even begins, rather than left for
-    // the database's own default (see the `id uuid primary key default
-    // gen_random_uuid()` column in supabase/schema.sql) — see
-    // populateCertificate() and saveAttemptToSupabase() below for why: the
-    // certificate needs this ID the instant it is drawn, which must not
-    // depend on waiting for a network save to finish (or succeed at all).
-    // crypto.randomUUID() produces the exact same shape of value Postgres's
-    // gen_random_uuid() would have, so it slots into that same `id` column
-    // as a normal, explicit insert value instead of the default.
+    // the backend to invent one (see the `id` column's default in
+    // backend/app/models.py) — see populateCertificate() and
+    // saveAttemptToApi() below for why: the certificate needs this ID the
+    // instant it is drawn, which must not depend on waiting for a network
+    // save to finish (or succeed at all). crypto.randomUUID() produces a
+    // standard-shaped UUID string, exactly the format that column expects
+    // as a normal, explicit value instead of its default.
     quizState.attemptId = crypto.randomUUID();
 
     // Keep the results screen's "out of N" in step with the real count.
@@ -292,7 +289,7 @@ function showQuestion() {
 
   // Progress bar width as a percentage of questions completed so far.
   document.getElementById('quiz-progress-bar').style.width = ((idx / total) * 100) + '%';
-  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('question-text').textContent = q.question;
 
   // Build answer buttons from the options array.
   const optionsGrid = document.getElementById('options-grid');
@@ -321,14 +318,14 @@ function selectAnswer(selectedIndex) {
   clearTimer();
 
   const q = quizState.shuffled[quizState.currentIndex];
-  const isCorrect = selectedIndex === q.correct;
+  const isCorrect = selectedIndex === q.correct_index;
 
   if (isCorrect) quizState.score++;
 
   // Reveal which answer was correct and mark the user's wrong choice red.
   document.querySelectorAll('.option-btn').forEach(function (btn, i) {
     btn.disabled = true;
-    if (i === q.correct) btn.classList.add('correct');
+    if (i === q.correct_index) btn.classList.add('correct');
     else if (i === selectedIndex) btn.classList.add('incorrect');
   });
 
@@ -425,21 +422,22 @@ function showResults() {
   }
 
   // Fire-and-forget: the results screen above is already fully built and
-  // shown, so nothing here should make the user wait. saveAttemptToSupabase()
+  // shown, so nothing here should make the user wait. saveAttemptToApi()
   // is async and reports its own progress via #attempt-save-status.
-  saveAttemptToSupabase(score, total, pct, passed);
+  saveAttemptToApi(score, total, pct, passed);
 }
 
 // ---------- SAVE ATTEMPT ----------
-// Records this attempt in Supabase (see the quiz_attempts table in
-// supabase/schema.sql). Deliberately does NOT block, or let a failure here
-// disturb, the results screen the user is already looking at — a save
-// failure (offline, an expired session, a misconfigured policy) is
-// disappointing but must never make an assessment the user actually
-// completed look like it failed. #attempt-save-status just tells the truth
-// about what happened, the same "always show loading/success/failure"
-// pattern as everywhere else on this site — see async-utils.js.
-async function saveAttemptToSupabase(score, total, pct, passed) {
+// Records this attempt via this site's own backend (POST /attempts — see
+// backend/app/routers/quiz.py). Deliberately does NOT block, or let a
+// failure here disturb, the results screen the user is already looking
+// at — a save failure (offline, an expired session, the backend being
+// asleep on a free-tier host) is disappointing but must never make an
+// assessment the user actually completed look like it failed.
+// #attempt-save-status just tells the truth about what happened, the same
+// "always show loading/success/failure" pattern as everywhere else on this
+// site — see async-utils.js.
+async function saveAttemptToApi(score, total, pct, passed) {
   const statusEl = document.getElementById('attempt-save-status');
   if (statusEl) statusEl.textContent = 'Saving your result…';
 
@@ -450,29 +448,30 @@ async function saveAttemptToSupabase(score, total, pct, passed) {
     const session = await getCurrentSession();
     if (!session) throw new Error('you are signed out, so this result could not be saved');
 
-    const { error } = await supabaseClient.from('quiz_attempts').insert({
-      // Explicit id, not left to the column's default — this is what makes
-      // the certificate's ID (already shown on screen, printed instantly by
-      // populateCertificate() below) the SAME id this row ends up with, so
-      // verify.html's lookup finds it. If this save fails, the certificate
-      // still carries a real-looking ID, but verify.html will honestly
-      // report "not found" for it — which is correct: it never made it into
-      // the database, so there is nothing to confirm. That is a deliberate
-      // trade-off, not a bug — see the comment on #attempt-save-status
-      // above for why a save failure must never block the certificate
-      // itself.
-      id: quizState.attemptId,
-      user_id: session.user.id,
-      course_version_id: COURSE_VERSION_ID,
-      level: getLevel(),
-      participant_name: quizState.participantName,
-      score: score,
-      total: total,
-      pct: pct,
-      passed: passed,
-      started_at: quizState.startedAt
+    await apiFetch('/attempts', {
+      method: 'POST',
+      body: JSON.stringify({
+        // Explicit id, not left to the backend to invent — this is what
+        // makes the certificate's ID (already shown on screen, printed
+        // instantly by populateCertificate() below) the SAME id this row
+        // ends up saved under, so verify.html's lookup finds it. If this
+        // save fails, the certificate still carries a real-looking ID, but
+        // verify.html will honestly report "not found" for it — which is
+        // correct: it never made it into the database, so there is
+        // nothing to confirm. That is a deliberate trade-off, not a bug —
+        // see the comment on #attempt-save-status above for why a save
+        // failure must never block the certificate itself.
+        id: quizState.attemptId,
+        course_version_id: COURSE_VERSION_ID,
+        level: getLevel(),
+        participant_name: quizState.participantName,
+        score: score,
+        total: total,
+        pct: pct,
+        passed: passed,
+        started_at: quizState.startedAt
+      })
     });
-    if (error) throw error;
 
     if (statusEl) statusEl.textContent = '✓ Result saved to your account.';
 
@@ -519,8 +518,8 @@ function populateCertificate(score, total, pct) {
   if (standardEl)   standardEl.innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
 
   // CERTIFICATE ID + VERIFY LINK — see the long comment on quizState.attemptId
-  // in startQuiz() for why this id already exists before the Supabase save
-  // has even started. Built from the page's OWN location (origin + path)
+  // in startQuiz() for why this id already exists before the save to the
+  // backend has even started. Built from the page's OWN location (origin + path)
   // rather than a hardcoded domain, so this prints the right URL whether
   // running locally (http://localhost:8000/verify.html?...) or on the real
   // site (see README.md for the GitHub Pages URL this resolves to there) —
@@ -648,11 +647,11 @@ function handleTimeout() {
   // Reveal the correct answer even though the user didn't click it.
   document.querySelectorAll('.option-btn').forEach(function (btn, i) {
     btn.disabled = true;
-    if (i === q.correct) btn.classList.add('correct');
+    if (i === q.correct_index) btn.classList.add('correct');
   });
 
   const feedbackText = document.getElementById('feedback-text');
-  const timeoutText = 'Time\'s up. The correct answer was: "' + q.options[q.correct] + '". ' + q.explanation;
+  const timeoutText = 'Time\'s up. The correct answer was: "' + q.options[q.correct_index] + '". ' + q.explanation;
   feedbackText.textContent = '⏱ ' + timeoutText;
   feedbackText.style.color = 'var(--warning)';
 
@@ -666,11 +665,12 @@ function handleTimeout() {
 
 // ---------- INIT ----------
 document.addEventListener('DOMContentLoaded', async function () {
-  // AUTH GATE — see supabase/schema.sql: quiz_attempts rows are tied to a
-  // real signed-in user (auth.uid() = user_id), so there is no point letting
-  // someone start the assessment while signed out; they would only reach
-  // the results screen to find their score could not be saved. Checking
-  // first, before any of the setup below, avoids that dead end entirely.
+  // AUTH GATE — POST /attempts on the backend requires a valid signed-in
+  // token (see backend/app/security.py's get_current_user), so there is no
+  // point letting someone start the assessment while signed out; they
+  // would only reach the results screen to find their score could not be
+  // saved. Checking first, before any of the setup below, avoids that dead
+  // end entirely.
   //
   // This only runs once, on page load — it will not notice someone signing
   // in or out in another tab while this tab sits on the gate screen. That is
@@ -690,12 +690,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   // WELCOME BY NAME — an account created via login.html's sign-up form has
-  // its full name stored as Supabase Auth "user metadata" (see
-  // signUpWithPassword() in auth.js), so a returning learner can be greeted
-  // by name instead of being asked to retype it every time. An account with
-  // no stored name (e.g. one created before this field existed) falls back
-  // to the plain text input, unchanged from before.
-  const storedName = session.user.user_metadata && session.user.user_metadata.full_name;
+  // its full name stored directly on the account (see the User model in
+  // backend/app/models.py and signUpWithPassword() in auth.js), so a
+  // returning learner can be greeted by name instead of being asked to
+  // retype it every time. An account with no stored name falls back to the
+  // plain text input, unchanged from before.
+  const storedName = session.user.full_name;
   const welcomeEl = document.getElementById('quiz-welcome');
   const nameGroupEl = document.getElementById('quiz-name-group');
   if (storedName) {

@@ -66,7 +66,7 @@
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
         <!-- Auth state — auth.js shows exactly one of these two, matching
-             whatever the current Supabase session actually is. -->
+             whatever the current sign-in state actually is. -->
         <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
         <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
         <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
@@ -89,7 +89,7 @@
 
       <!-- Auth gate — shown instead of everything below when nobody is
            signed in. Quiz results are tied to a real account (see
-           supabase/schema.sql), so signing in is required before the
+           backend/app/models.py), so signing in is required before the
            assessment can even start, not just before the score is saved —
            see the auth check at the top of quiz.js's DOMContentLoaded
            handler, which calls showQuizScreen('quiz-auth-required') and
@@ -227,7 +227,7 @@
           </div>
           <p id="results-message"></p>
           <div class="results-breakdown" id="results-breakdown"></div>
-          <!-- ASYNC STATUS — filled in by quiz.js's saveAttemptToSupabase(),
+          <!-- ASYNC STATUS — filled in by quiz.js's saveAttemptToApi(),
                which runs in the background once this screen is already
                showing. role="status" announces each change to screen readers. -->
           <p class="attempt-save-status" id="attempt-save-status" role="status"></p>
@@ -288,7 +288,7 @@
         <p class="cert-disclaimer">Issued by St John Lynch &amp; Co Ltd &mdash; Based on IEC 62304:2006+AMD1:2015</p>
         <!-- Filled in by populateCertificate() in quiz.js. Verifiable because
              cert-id is the actual quiz_attempts.id this attempt was saved
-             under (see supabase/schema.sql's verify_certificate() function)
+             under (see backend/app/routers/certificates.py's verify route)
              — anyone holding it can confirm this certificate is genuine at
              the printed URL, without needing to sign in. -->
         <p class="cert-verify">
@@ -300,11 +300,11 @@
   </div>
 
   <!-- `defer` runs these after the HTML is parsed, in the order listed, so
-       async-utils.js has defined delay() and fetchJSON() before quiz.js runs,
-       and auth.js has created the shared Supabase client (and its
-       getCurrentSession() helper) before quiz.js's own auth gate needs it. -->
-  <script src="assets/js/supabase.min.js" defer></script>
-  <script src="supabase-config.js" defer></script>
+       async-utils.js has defined delay() before quiz.js runs, and auth.js
+       has read api-config.js's API_BASE_URL (and defined its
+       getCurrentSession()/apiFetch() helpers) before quiz.js's own auth
+       gate needs them. -->
+  <script src="api-config.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>

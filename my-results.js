@@ -3,8 +3,8 @@
 // ============================================================
 //
 // WHAT THIS FILE DOES, IN PLAIN TERMS
-// Every quiz attempt has always been saved to Supabase's quiz_attempts table
-// (see saveAttemptToSupabase() in quiz.js) — user, score, level, and both a
+// Every quiz attempt has always been saved to this site's own backend (see
+// saveAttemptToApi() in quiz.js) — user, score, level, and both a
 // started_at and a completed_at timestamp. Until now, nothing on the site
 // ever read that data back. This page is that missing other half: it fetches
 // every attempt belonging to the signed-in user and lists it, most recent
@@ -51,21 +51,12 @@ async function loadMyResults() {
   }
 
   try {
-    // course_versions(...) and its nested courses(...) are a FOREIGN KEY
-    // EMBED — PostgREST (what Supabase's client talks to) follows the
-    // course_version_id -> course_versions -> courses relationship server
-    // side and hands back each attempt with its course details already
-    // attached, in one request, rather than this file making a second query
-    // per row. Each of those two tables has its own "publicly readable"
-    // policy (see supabase/schema.sql), so the embed succeeds even though
-    // this request is really only authorised to read the quiz_attempts
-    // rows themselves via the "Users read their own attempts" policy.
-    const { data, error } = await supabaseClient
-      .from('quiz_attempts')
-      .select('id, level, participant_name, score, total, pct, passed, started_at, completed_at, course_versions(version_label, courses(title))')
-      .eq('user_id', session.user.id)
-      .order('completed_at', { ascending: false });
-    if (error) throw error;
+    // GET /attempts/me (see backend/app/routers/quiz.py) already comes back
+    // with each attempt's course_version AND that version's course nested
+    // in — a SQLAlchemy joinedload on the backend did that join server
+    // side, in one request, the same job PostgREST's foreign-key embed
+    // used to do when this page talked to Supabase directly.
+    const data = await apiFetch('/attempts/me');
 
     loadingEl.classList.add('hidden');
 
@@ -144,11 +135,11 @@ function printCertificateFor(attempt) {
     ? 'An in-depth study of IEC 62304:2006+AMD1:2015'
     : 'An introduction to IEC 62304:2006+AMD1:2015';
 
-  // Falls back to the course's only current title if the foreign-key embed
-  // came back empty for any reason (it shouldn't — courses/course_versions
-  // rows are never deleted — but a certificate must never fail to print
-  // over a missing display label).
-  const courseTitle = (attempt.course_versions && attempt.course_versions.courses && attempt.course_versions.courses.title)
+  // Falls back to the course's only current title if the nested
+  // course_version/course data came back empty for any reason (it
+  // shouldn't — courses/course_versions rows are never deleted — but a
+  // certificate must never fail to print over a missing display label).
+  const courseTitle = (attempt.course_version && attempt.course_version.course && attempt.course_version.course.title)
     || 'IEC 62304 Essentials';
 
   // The date that matters here is when the attempt was actually completed —
@@ -192,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Signing in or out on this same page (e.g. clicking Log out) should
   // immediately reflect in what this page shows, same as reviews.js does
   // for the review form.
-  supabaseClient.auth.onAuthStateChange(function () {
+  onAuthStateChange(function () {
     loadMyResults();
   });
 });

@@ -2,9 +2,10 @@
 // login.js  —  Log in / Sign up forms
 // ============================================================
 //
-// Relies on auth.js having already created `supabaseClient` and defined
-// signInWithPassword() / signUpWithPassword() — see the <script> order at
-// the bottom of login.html. Structurally this mirrors contact.js: blur
+// Relies on auth.js having already defined signInWithPassword() /
+// signUpWithPassword() (both talk to this site's own backend — see
+// api-config.js) — see the <script> order at the bottom of login.html.
+// Structurally this mirrors contact.js: blur
 // validation, a disabled/aria-busy button while the request is in flight,
 // and the same three async states (loading / success / failure).
 // ============================================================
@@ -62,10 +63,12 @@ function getRedirectTarget() {
 }
 
 // ---------- ERROR MESSAGES ----------
-// Supabase's own error messages are written for developers reading logs
-// ("Invalid login credentials", "User already registered"). Both are close
-// enough to plain English to leave mostly as-is, but rephrased slightly so
-// they read as sentences aimed at the person filling in the form.
+// This site's own backend deliberately reuses the exact wording Supabase
+// used to send ("Invalid login credentials", "User already registered" —
+// see backend/app/routers/auth.py), written for developers reading logs
+// rather than a person filling in a form. Both are close enough to plain
+// English to leave mostly as-is, but rephrased slightly here into real
+// sentences aimed at that person instead.
 function friendlyAuthError(error) {
   const msg = error && error.message ? error.message : 'Something went wrong. Please try again.';
   if (/invalid login credentials/i.test(msg)) {
@@ -155,8 +158,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const signupSubmit = document.getElementById('signup-submit');
   const signupError = document.getElementById('signup-error');
   const signupErrorMessage = document.getElementById('signup-error-message');
-  const authSuccess = document.getElementById('auth-success');
-  const authSuccessMessage = document.getElementById('auth-success-message');
 
   document.getElementById('signup-name').addEventListener('blur', function () {
     showFieldError('signup-name', 'signup-name-error', validateNameField(this.value.trim()));
@@ -194,24 +195,12 @@ document.addEventListener('DOMContentLoaded', function () {
     signupError.classList.add('hidden');
 
     try {
-      const result = await signUpWithPassword(email, password, name);
-
-      if (result.session) {
-        // Email confirmation is OFF for this project — Supabase signed the
-        // new account in immediately, so send them straight on their way.
-        window.location.href = getRedirectTarget();
-        return;
-      }
-
-      // Email confirmation is ON — Supabase created the account but will not
-      // issue a session until the confirmation link is clicked. Say so
-      // honestly instead of pretending signup finished the job; a fake
-      // "Account created!" here would just leave the next login attempt
-      // failing for a reason the user was never told about.
-      signupForm.classList.add('hidden');
-      authSuccessMessage.textContent =
-        'We’ve sent a confirmation link to ' + email + '. Click it, then come back here and log in.';
-      authSuccess.classList.remove('hidden');
+      // This backend never requires email confirmation (see
+      // backend/app/routers/auth.py) — a session comes back immediately,
+      // every time, so there is no second "check your inbox" branch to
+      // handle here the way the old Supabase version needed.
+      await signUpWithPassword(email, password, name);
+      window.location.href = getRedirectTarget();
 
     } catch (error) {
       signupErrorMessage.textContent = friendlyAuthError(error);

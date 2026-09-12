@@ -64,7 +64,7 @@
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
         <!-- Auth state — auth.js shows exactly one of these two, matching
-             whatever the current Supabase session actually is. -->
+             whatever the current sign-in state actually is. -->
         <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
         <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
         <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
@@ -261,9 +261,8 @@
        the HTML has finished parsing. Deferred scripts run in the order they
        appear, so async-utils.js is guaranteed to have defined delay() and
        fetchJSON() before learn.js calls them — and auth.js is guaranteed to
-       have created the shared Supabase client before anything else needs it. -->
-  <script src="assets/js/supabase.min.js" defer></script>
-  <script src="supabase-config.js" defer></script>
+       have read api-config.js's API_BASE_URL before anything else needs it. -->
+  <script src="api-config.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>

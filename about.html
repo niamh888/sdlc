@@ -71,7 +71,7 @@
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
         <!-- Auth state — auth.js shows exactly one of these two, matching
-             whatever the current Supabase session actually is. -->
+             whatever the current sign-in state actually is. -->
         <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
         <a class="nav-link" id="nav-login-link" href="login.html">Log in</a>
         <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
@@ -212,11 +212,10 @@
   </footer>
 
   <!-- `defer` runs these after the HTML is parsed, in the order listed.
-       assets/js/supabase.min.js defines the global `supabase` client library;
-       supabase-config.js defines this project's URL/key; auth.js creates the
-       one shared client and keeps the "Log in"/"Log out" nav link in sync. -->
-  <script src="assets/js/supabase.min.js" defer></script>
-  <script src="supabase-config.js" defer></script>
+       api-config.js defines API_BASE_URL, this site's own backend's
+       address; auth.js reads it and keeps the "Log in"/"Log out" nav link
+       in sync. -->
+  <script src="api-config.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>

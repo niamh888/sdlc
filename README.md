@@ -6,6 +6,10 @@ An interactive web-based training course covering the IEC 62304 medical device s
 
 Hosted on GitHub Pages: [https://niamh888.github.io/sdlc/](https://niamh888.github.io/sdlc/)
 
+## Backend
+
+Accounts, quiz results, certificate verification and course reviews are served by this project's own backend — see [`backend/README.md`](backend/README.md) for setup, endpoints, and deployment. Everything in *this* README below covers the static frontend only.
+
 ## Project Overview
 
 This course is designed for software developers, quality engineers, and regulatory affairs professionals working on medical device software. It covers the 13 process areas defined in IEC 62304:2006+AMD1:2015 across Clauses 4–9.
@@ -706,13 +710,18 @@ Being honest about the limits matters more than a green tick:
 | `privacy.html` | Privacy and data protection notice, linked from every footer |
 | `verify.html` | Public, no-login lookup that confirms a printed certificate is genuine by its Certificate ID |
 | `my-results.html` | Signed-in learner's own quiz history — date completed, score, pass/fail, reprint any past certificate |
+| `login.html` | Log in / sign up — tabbed card, backed by `login.js` and `auth.js` |
 | `style.css` | Shared CSS — professional medical theme, responsive layout, loading and error states |
+| `api-config.js` | One constant, `API_BASE_URL` — where this site's own backend (see `backend/`) actually lives |
+| `auth.js` | Shared API client — token storage, `apiFetch()`, session state, keeps the "Log in"/"Log out" nav link in sync everywhere |
+| `login.js` | Log in / sign up form validation and submission, via `auth.js` |
 | `async-utils.js` | **Shared async helpers** — `delay()` and `fetchJSON()`, plus the main explanation of how asynchronous JavaScript works |
 | `nav.js` | Shared navigation — highlights active page link |
 | `learn.js` | Topic card rendering, async content loading, expand/collapse, level toggle, safety class filter, per-class deliverables list and CSV export, progress tracking |
 | `quiz.js` | Quiz engine — async question loading with prefetch, shuffle, timer, scoring, results, certificate |
-| `verify.js` | Certificate lookup — calls the `verify_certificate` database function, no sign-in required |
-| `my-results.js` | Fetches the signed-in user's past quiz_attempts rows and reprints any past certificate using its real completion date |
+| `reviews.js` | Home page course reviews — loads approved reviews, submit form with moderation-status states |
+| `verify.js` | Certificate lookup — calls the backend's `/certificates/{id}/verify` endpoint, no sign-in required |
+| `my-results.js` | Fetches the signed-in user's past quiz attempts and reprints any past certificate using its real completion date |
 | `contact.js` | Form validation and asynchronous submission with timeout and error handling |
 | `data/phases.json` | **Content** — the 13 IEC 62304 process areas |
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |

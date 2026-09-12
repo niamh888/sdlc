@@ -20,7 +20,14 @@ from app.database import Base  # noqa: E402
 from app import models  # noqa: E402,F401 — importing this registers every table on Base.metadata below
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+
+# Same scheme rewrite as app/database.py — see its comment for why. Alembic
+# builds its OWN engine independently of that file, so this has to be
+# repeated here rather than reused.
+_database_url = settings.database_url
+if _database_url.startswith("postgresql://"):
+    _database_url = _database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+config.set_main_option("sqlalchemy.url", _database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

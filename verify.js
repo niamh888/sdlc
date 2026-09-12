@@ -4,13 +4,14 @@
 //
 // WHAT THIS FILE DOES, IN PLAIN TERMS
 // The certificate quiz.js prints carries a "Certificate ID" — really just
-// the row ID of that attempt in Supabase's quiz_attempts table (see
-// populateCertificate() in quiz.js). This page takes that ID and calls a
-// database FUNCTION — not a plain table query — called verify_certificate()
-// (see supabase/schema.sql for the full explanation of why it is a function
-// and not a relaxed table policy). That function is the only thing on this
-// page that touches the database; everything below is just calling it and
-// showing whichever of its two possible outcomes actually happened.
+// the row ID of that attempt in this site's own backend database (see
+// populateCertificate() in quiz.js). This page sends that ID to
+// GET /certificates/{id}/verify (see backend/app/routers/certificates.py
+// for the full explanation of why that is its own narrow endpoint rather
+// than a general "look up any attempt" one). That endpoint is the only
+// thing on this page that touches the database; everything below is just
+// calling it and showing whichever of its two possible outcomes actually
+// happened.
 //
 // Deliberately requires NO sign-in — an employer or auditor checking a
 // certificate they were handed will usually not have (and should not need)
@@ -56,22 +57,13 @@ async function verifyCertificate(certId) {
   submitBtn.textContent = 'Verifying…';
 
   try {
-    // .rpc() calls a database FUNCTION (verify_certificate in
-    // supabase/schema.sql) rather than querying a table directly — see that
-    // file for why this needed to be a function rather than a relaxed
-    // SELECT policy. It returns an ARRAY (a SQL "returns table" function can
-    // in principle hand back more than one row), which here is either empty
-    // (no match) or has exactly one element (the id column is a primary
-    // key, so it can never match more than one row).
-    const { data, error } = await supabaseClient.rpc('verify_certificate', { cert_id: certId });
-    if (error) throw error;
+    // A 404 here (see backend/app/routers/certificates.py) means "no
+    // certificate", not a real error — apiFetch() throws for it the same
+    // as any other non-2xx response, so that is caught and handled as its
+    // own case below rather than falling through to the generic error
+    // message.
+    const cert = await apiFetch('/certificates/' + encodeURIComponent(certId) + '/verify');
 
-    if (!data || data.length === 0) {
-      showResult('not-found');
-      return;
-    }
-
-    const cert = data[0];
     document.getElementById('verify-name').textContent = cert.participant_name;
     document.getElementById('verify-course').textContent = cert.course_title + ' — ' + cert.version_label;
     document.getElementById('verify-score').textContent = cert.score + ' / ' + cert.total + ' (' + cert.pct + '%)';
@@ -81,9 +73,13 @@ async function verifyCertificate(certId) {
     showResult('found');
 
   } catch (error) {
-    console.error('Certificate verification failed:', error);
-    errorEl.textContent = 'Could not check this certificate right now (' + error.message + '). Please try again.';
-    errorEl.classList.remove('hidden');
+    if (error.status === 404) {
+      showResult('not-found');
+    } else {
+      console.error('Certificate verification failed:', error);
+      errorEl.textContent = 'Could not check this certificate right now (' + error.message + '). Please try again.';
+      errorEl.classList.remove('hidden');
+    }
 
   } finally {
     submitBtn.disabled = false;

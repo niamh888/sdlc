@@ -52,7 +52,7 @@
         <a class="nav-link" href="about.html">About</a>
         <a class="nav-link" href="contact.html">Contact</a>
         <!-- Auth state — auth.js shows exactly one of these two, matching
-             whatever the current Supabase session actually is. -->
+             whatever the current sign-in state actually is. -->
         <a class="nav-link hidden" id="nav-my-results-link" href="my-results.html">My Results</a>
         <a class="nav-link active" id="nav-login-link" href="login.html">Log in</a>
         <button class="nav-link nav-auth-btn hidden" id="nav-logout-btn" type="button">Log out</button>
@@ -106,8 +106,8 @@
               <span class="field-error" id="login-password-error" role="alert"></span>
             </div>
 
-            <!-- ASYNC FAILURE STATE — revealed by login.js if Supabase rejects
-                 the credentials. Same pattern as #form-error on the contact page. -->
+            <!-- ASYNC FAILURE STATE — revealed by login.js if the backend
+                 rejects the credentials. Same pattern as #form-error on the contact page. -->
             <div class="form-error hidden" id="login-error" role="alert">
               <strong class="form-error-heading">Could not log in</strong>
               <span class="form-error-message" id="login-error-message"></span>
@@ -120,10 +120,11 @@
         <!-- SIGN UP -->
         <div id="signup-panel" class="auth-panel hidden" role="tabpanel" aria-labelledby="tab-signup">
           <form id="signup-form" novalidate>
-            <!-- Stored as Supabase Auth "user metadata" on sign up (see
-                 signUpWithPassword() in auth.js) so quiz.js can greet a
-                 signed-in learner by name instead of asking them to retype
-                 it on every visit to the quiz page. -->
+            <!-- Stored directly on the account on sign up (see the User
+                 model in backend/app/models.py and signUpWithPassword() in
+                 auth.js) so quiz.js can greet a signed-in learner by name
+                 instead of asking them to retype it on every visit to the
+                 quiz page. -->
             <div class="form-group">
               <label for="signup-name">Full Name <span class="required" aria-hidden="true">*</span></label>
               <input type="text" id="signup-name" name="name" placeholder="Your full name" autocomplete="name" aria-required="true">
@@ -155,21 +156,11 @@
             <!-- Privacy notice at the point of collection — same reasoning as
                  the contact form's own note (see contact.html). -->
             <p class="form-privacy-note">
-              Your email address is stored by Supabase, this site's database provider, and used only to
+              Your email address is stored in this site's own database and used only to
               sign you in and identify your quiz results. See our
               <a href="privacy.html">Privacy &amp; Data Protection</a> page for details.
             </p>
           </form>
-        </div>
-
-        <!-- Shown INSTEAD of the sign-up form once signup succeeds but the
-             Supabase project requires the confirmation link to be clicked
-             before a session is issued — see signup-form's submit handler
-             in login.js. -->
-        <div id="auth-success" class="form-success hidden">
-          <div class="success-icon">&#10003;</div>
-          <h2 id="auth-success-heading">Check your email</h2>
-          <p id="auth-success-message"></p>
         </div>
       </div>
 
@@ -190,11 +181,10 @@
   </footer>
 
   <!-- `defer` runs these after the HTML is parsed, in the order listed.
-       assets/js/supabase.min.js defines the global `supabase` client library;
-       supabase-config.js defines this project's URL/key; auth.js creates the
-       one shared client and the signUp/signIn/signOut helpers login.js calls. -->
-  <script src="assets/js/supabase.min.js" defer></script>
-  <script src="supabase-config.js" defer></script>
+       api-config.js defines API_BASE_URL, this site's own backend's
+       address; auth.js reads it and defines the signUp/signIn/signOut
+       helpers login.js calls. -->
+  <script src="api-config.js" defer></script>
   <script src="auth.js" defer></script>
   <script src="nav.js" defer></script>
   <script src="theme.js" defer></script>

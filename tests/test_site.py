@@ -26,6 +26,14 @@ The script starts its own web server on a free port, so you do NOT need to run
 Exit code is 0 if everything passed and 1 if anything failed, so it can be
 wired into CI later.
 
+The 'quiz' group ALSO starts a real backend of its own — the assessment is
+gated behind sign-in now (see quiz.js's auth gate), so testing it needs a
+real account to sign up. Same disposable-SQLite-database approach as
+tests/capture_backend_screenshots.py, for the same reason: it needs the
+backend's virtual environment to already exist once (see backend/README.md's
+'First-time setup'), but never touches the real Neon database. Skip it with
+`--group` if that setup hasn't been done yet.
+
     python tests/test_site.py --headed     watch it run in a visible browser
     python tests/test_site.py --group quiz run one group only (see GROUPS below)
 
@@ -57,11 +65,17 @@ import io
 import json
 import os
 import re
+import shutil
 import socket
 import socketserver
+import subprocess
 import sys
+import tempfile
 import threading
+import time
+import urllib.error
 import urllib.request
+import uuid
 
 try:
     from playwright.sync_api import sync_playwright
@@ -360,6 +374,112 @@ def launch_browser(p, headed=False):
                      'Original error: %s' % e)
 
 
+# ============================================================
+# BACKEND (needed only for the 'quiz' group)
+# ============================================================
+# The quiz now requires a signed-in account (see quiz.js's auth gate), which
+# in turn needs a real backend to sign up against — see backend/README.md.
+# Same disposable-database approach as tests/capture_backend_screenshots.py,
+# and for the same reason: this test signs up real accounts and saves real
+# quiz attempts, and doing that against the real Neon database on every test
+# run would leave a trail of fake test data in production. A fresh SQLite
+# file in a temp directory gives the real backend code something real to
+# read and write without touching anything that matters.
+#
+# BACKEND_PORT is not arbitrary — it MUST be 8001, because api-config.js
+# hardcodes that exact port for any page served from 127.0.0.1/localhost
+# (see that file's own comment). The frontend server above keeps its
+# existing ephemeral port; CORS_ORIGINS is set to '*' for this throwaway
+# instance specifically so it never has to match that port ahead of time.
+BACKEND_DIR = os.path.join(ROOT, 'backend')
+VENV_PYTHON = os.path.join(BACKEND_DIR, 'venv', 'Scripts', 'python.exe')
+BACKEND_PORT = 8001
+BACKEND_BASE = 'http://127.0.0.1:%d' % BACKEND_PORT
+
+
+def start_backend():
+    """Migrates + seeds a fresh throwaway SQLite database, then starts the
+    real backend against it. Returns (process, tmp_dir) — stop_backend()
+    needs both to shut down and clean up afterwards."""
+    if not os.path.exists(VENV_PYTHON):
+        sys.exit(
+            "\nThe quiz group needs the backend's virtual environment, which "
+            "doesn't exist yet.\nSet it up once — see backend/README.md's "
+            "'First-time setup' — or run with --group excluding quiz,\n"
+            "e.g.:  python tests/test_site.py --group data --group home")
+
+    tmp_dir = tempfile.mkdtemp(prefix='sdlc_test_db_')
+    db_path = os.path.join(tmp_dir, 'test.db').replace('\\', '/')
+
+    env = dict(os.environ)
+    env.update({
+        'DATABASE_URL': 'sqlite:///%s' % db_path,
+        'JWT_SECRET': 'test-run-jwt-secret-not-used-anywhere-real',
+        'ADMIN_USERNAME': 'admin',
+        'ADMIN_PASSWORD': 'test-run-admin-password-not-used-anywhere-real',
+        'SESSION_SECRET': 'test-run-session-secret-not-used-anywhere-real',
+        'CORS_ORIGINS': '*',
+    })
+
+    print('Setting up a throwaway backend database for the quiz group...')
+    subprocess.run([VENV_PYTHON, '-m', 'alembic', 'upgrade', 'head'],
+                    cwd=BACKEND_DIR, env=env, check=True,
+                    stdout=subprocess.DEVNULL)
+    subprocess.run([VENV_PYTHON, 'seed.py'], cwd=BACKEND_DIR, env=env, check=True,
+                    stdout=subprocess.DEVNULL)
+
+    process = subprocess.Popen(
+        [VENV_PYTHON, '-m', 'uvicorn', 'app.main:app', '--port', str(BACKEND_PORT)],
+        cwd=BACKEND_DIR, env=env,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+
+    for _ in range(60):
+        try:
+            urllib.request.urlopen(BACKEND_BASE + '/health', timeout=1)
+            break
+        except (urllib.error.URLError, ConnectionError):
+            time.sleep(0.5)
+    else:
+        process.terminate()
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        sys.exit('Backend never came up on %s' % BACKEND_BASE)
+
+    print('Backend      : %s (throwaway database)' % BACKEND_BASE)
+    return process, tmp_dir
+
+
+def stop_backend(process, tmp_dir):
+    process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def sign_up_test_learner(pg, base):
+    """Signs up a fresh, unique account directly against the backend API —
+    not through the sign-up form — and seeds the resulting token into
+    localStorage before the quiz page ever loads. test_quiz()'s existing
+    checks (empty-name validation, filling '#participant-name' by hand) all
+    assume the plain name INPUT is visible, which only stays true for an
+    account with no stored name (see quiz.js's WELCOME BY NAME block) — and
+    the sign-up FORM always collects a name, so going through it here would
+    hide that input and break every one of those existing checks. A direct
+    API call can set full_name to '' , which the real sign-up form
+    deliberately never allows. A new random email every call means this can
+    be called once per browser context in the same run with no collisions.
+    """
+    email = 'test-%s@example.com' % uuid.uuid4().hex[:12]
+    resp = pg.request.post(BACKEND_BASE + '/auth/signup', data={
+        'email': email, 'password': 'password123', 'full_name': '',
+    })
+    token = resp.json()['access_token']
+    pg.goto(base + '/index.html')
+    pg.evaluate("(t) => localStorage.setItem('62304_authToken', t)", token)
+
+
 def fetch_axe():
     """Download axe-core, the accessibility engine. Returns None if offline, in
     which case the accessibility group is skipped rather than failing — being
@@ -440,6 +560,15 @@ def new_page(browser, width=1280, height=900, **kw):
     # Catch any attempt to reach the real Formspree endpoint that a test forgot
     # to stub. Recording it here means the guard below can fail loudly.
     pg.on('request', lambda r: pg.live_requests.append(r.url) if 'formspree.io' in r.url else None)
+    return ctx, pg
+
+
+def new_signed_in_page(browser, base, width=1280, height=900, **kw):
+    """Same as new_page(), plus a freshly signed-up account already in
+    localStorage — every quiz test needs one now that quiz.html gates the
+    whole assessment behind sign-in (see sign_up_test_learner())."""
+    ctx, pg = new_page(browser, width=width, height=height, **kw)
+    sign_up_test_learner(pg, base)
     return ctx, pg
 
 
@@ -1744,7 +1873,13 @@ def test_learn(browser, base):
 def test_quiz(browser, base):
     R.group('quiz — features and scoring')
 
-    ctx, pg = new_page(browser)
+    # A real signed-out visit is covered separately below — this group is
+    # about the assessment mechanics themselves, which now require an
+    # account before they're even reachable at all (see quiz.js's auth
+    # gate). new_signed_in_page() signs up a fresh account with NO stored
+    # name specifically so '#quiz-name-group' stays visible and empty, the
+    # same starting state every check below already assumed.
+    ctx, pg = new_signed_in_page(browser, base)
     pg.goto(base + '/quiz.html')
 
     pg.locator('#begin-quiz').click()
@@ -1772,8 +1907,11 @@ def test_quiz(browser, base):
     later_t = int(pg.locator('#timer-display').inner_text())
     R.check('timer counts down', later_t < start_t, '%d then %d' % (start_t, later_t))
 
-    # answering marks correct / incorrect and locks the options
-    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+    # answering marks correct / incorrect and locks the options.
+    # quizState.shuffled[i].correct_index, not .correct — the field was
+    # renamed when questions moved from the two static JSON files to the
+    # backend's own /quiz-questions endpoint (see quiz.js's loadQuestions()).
+    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct_index")
     pg.locator('.option-btn').nth(correct_idx).click()
     pg.wait_for_selector('#question-feedback.visible', timeout=8000)
     R.check('correct answer highlighted',
@@ -1790,7 +1928,7 @@ def test_quiz(browser, base):
     # a wrong answer
     pg.locator('#next-question').click()
     pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
-    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+    correct_idx = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct_index")
     wrong_idx = (correct_idx + 1) % 4
     pg.locator('.option-btn').nth(wrong_idx).click()
     pg.wait_for_selector('#question-feedback.visible', timeout=8000)
@@ -1806,7 +1944,7 @@ def test_quiz(browser, base):
     # timeout behaviour. Rather than wait a real 30 seconds, push the countdown
     # near zero and let the existing interval expire naturally — the production
     # code path is unchanged, only the starting value differs.
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'Timeout Test')
     pg.locator('#begin-quiz').click()
@@ -1822,7 +1960,7 @@ def test_quiz(browser, base):
     ctx.close()
 
     # full run, all correct → pass + certificate
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     # Stub window.print BEFORE navigating. add_init_script only affects documents
     # loaded after it is registered, so calling it after goto() silently does
     # nothing — and the real print dialog is a modal that would hang the run.
@@ -1833,7 +1971,7 @@ def test_quiz(browser, base):
     pg.wait_for_selector('#quiz-active.active', timeout=10000)
     for _ in range(15):
         pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
-        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct_index")
         pg.locator('.option-btn').nth(ci).click()
         pg.wait_for_selector('#question-feedback.visible', timeout=8000)
         pg.locator('#next-question').click()
@@ -1859,6 +1997,16 @@ def test_quiz(browser, base):
             '15 / 15' in pg.locator('#cert-score').inner_text(),
             pg.locator('#cert-score').inner_text())
     R.check('certificate dated', len(pg.locator('#cert-date').inner_text()) > 5)
+    # New since the backend migration — a certificate now carries a real,
+    # working Certificate ID (see the long comment on quizState.attemptId in
+    # quiz.js) rather than being purely decorative.
+    R.check('certificate shows a Certificate ID',
+            len(pg.locator('#cert-id').inner_text().strip()) > 10,
+            pg.locator('#cert-id').inner_text())
+    pg.wait_for_timeout(1000)  # let the background save to the API settle
+    R.check('result reported saved, not failed',
+            'Could not save' not in pg.locator('#attempt-save-status').inner_text(),
+            pg.locator('#attempt-save-status').inner_text())
     pg.locator('#download-cert').click()
     pg.wait_for_timeout(400)
     R.check('download triggers print()', pg.evaluate('() => window.__printed === true'))
@@ -1869,14 +2017,14 @@ def test_quiz(browser, base):
     ctx.close()
 
     # all wrong → fail, no certificate
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'Failing Learner')
     pg.locator('#begin-quiz').click()
     pg.wait_for_selector('#quiz-active.active', timeout=10000)
     for _ in range(15):
         pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
-        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
+        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct_index")
         pg.locator('.option-btn').nth((ci + 1) % 4).click()
         pg.wait_for_selector('#question-feedback.visible', timeout=8000)
         pg.locator('#next-question').click()
@@ -1891,7 +2039,7 @@ def test_quiz(browser, base):
     ctx.close()
 
     # questions are shuffled between attempts
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     firsts = set()
     for _ in range(4):
         pg.goto(base + '/quiz.html')
@@ -1904,16 +2052,19 @@ def test_quiz(browser, base):
     ctx.close()
 
     # ---- async: level selection, prefetch, failure ----
+    # Questions are now fetched from the backend's own /quiz-questions
+    # endpoint, not data/questions-*.json directly — the checks below track
+    # and fault-inject THAT request instead. See quiz.js's loadQuestions().
     R.group('quiz — async loading and failure')
 
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     requested = []
-    pg.on('request', lambda r: requested.append(r.url) if '/data/' in r.url else None)
+    pg.on('request', lambda r: requested.append(r.url) if '/quiz-questions' in r.url else None)
     pg.goto(base + '/quiz.html')
     pg.wait_for_timeout(1500)
-    R.check('question file prefetched before any click',
-            any('questions-intro.json' in u for u in requested), requested)
-    R.check('only ONE question file downloaded', len(requested) == 1, requested)
+    R.check('question set prefetched before any click',
+            any('level=intro' in u for u in requested), requested)
+    R.check('only ONE request for questions', len(requested) == 1, requested)
     before = len(requested)
     pg.fill('#participant-name', 'Prefetch Test')
     pg.locator('#begin-quiz').click()
@@ -1922,24 +2073,29 @@ def test_quiz(browser, base):
             len(requested) == before, requested)
     ctx.close()
 
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     pg.goto(base + '/learn.html')
     pg.wait_for_selector('.phase-card', timeout=10000)
     pg.locator('.level-btn[data-level="advanced"]').click()
     requested = []
-    pg.on('request', lambda r: requested.append(r.url) if '/data/' in r.url else None)
+    pg.on('request', lambda r: requested.append(r.url) if '/quiz-questions' in r.url else None)
     pg.goto(base + '/quiz.html')
     pg.wait_for_timeout(1500)
-    R.check('advanced level fetches the advanced set',
-            any('questions-advanced.json' in u for u in requested), requested)
-    R.check('intro set not downloaded when advanced is chosen',
-            not any('questions-intro.json' in u for u in requested), requested)
+    R.check('advanced level requests the advanced set',
+            any('level=advanced' in u for u in requested), requested)
+    R.check('intro set not requested when advanced is chosen',
+            not any('level=intro' in u for u in requested), requested)
     R.check('advanced badge shown on the start screen',
             'Advanced assessment' in pg.locator('#quiz-level-notice').inner_text())
     ctx.close()
 
-    ctx, pg = new_page(browser)
-    pg.route('**/questions-intro.json', lambda r: r.fulfill(status=500, body='boom'))
+    ctx, pg = new_signed_in_page(browser, base)
+    # A JSON body matching the real backend's own error shape (see
+    # backend/app/main.py — FastAPI's error responses are {"detail": "..."}),
+    # so apiFetch() extracts the same message a real 500 from the backend
+    # would produce, rather than falling back to a generic statusText.
+    pg.route('**/quiz-questions*', lambda r: r.fulfill(
+        status=500, content_type='application/json', body='{"detail": "Server error (500)"}'))
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'Error Test')
     pg.locator('#begin-quiz').click()
@@ -1952,21 +2108,22 @@ def test_quiz(browser, base):
     R.check('begin button re-enabled by finally', not pg.locator('#begin-quiz').is_disabled())
     R.check('begin button label restored',
             pg.locator('#begin-quiz').inner_text().strip() == 'Begin Assessment')
-    pg.unroute('**/questions-intro.json')
+    pg.unroute('**/quiz-questions*')
     pg.locator('#questions-retry').click()
     pg.wait_for_selector('#quiz-active.active', timeout=10000)
     R.check('retry recovers and starts the quiz', pg.locator('#quiz-active').is_visible())
     ctx.close()
 
-    ctx, pg = new_page(browser)
-    pg.route('**/questions-intro.json', lambda r: r.fulfill(
+    ctx, pg = new_signed_in_page(browser, base)
+    pg.route('**/quiz-questions*', lambda r: r.fulfill(
         status=200, content_type='application/json',
-        body='[{"q":"Bad question","options":["a","b"],"correct":9}]'))
+        body='[{"id":"11111111-1111-1111-1111-111111111111","question":"Bad question",'
+             '"options":["a","b"],"correct_index":9,"explanation":"n/a"}]'))
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'Schema Test')
     pg.locator('#begin-quiz').click()
     pg.wait_for_selector('#questions-error:not(.hidden)', timeout=10000)
-    R.check('out-of-range correct index rejected',
+    R.check('out-of-range correct_index rejected',
             'incomplete or malformed' in pg.locator('#questions-error-message').inner_text(),
             pg.locator('#questions-error-message').inner_text())
     ctx.close()
@@ -3083,6 +3240,12 @@ def main():
     # document, so it needs axe-core downloaded too, not just the a11y group.
     axe_src = fetch_axe() if ('a11y' in groups or 'docs' in groups) else None
 
+    # Only the quiz group needs a real backend (the assessment is gated
+    # behind sign-in — see quiz.js's auth gate) — starting one costs a few
+    # real seconds (a migration + seed run), not worth paying for a run of
+    # e.g. --group data alone.
+    backend_process, backend_tmp_dir = (start_backend() if 'quiz' in groups else (None, None))
+
     try:
         with sync_playwright() as p:
             browser = launch_browser(p, headed=args.headed)
@@ -3120,6 +3283,8 @@ def main():
                 browser.close()
     finally:
         httpd.shutdown()
+        if backend_process is not None:
+            stop_backend(backend_process, backend_tmp_dir)
 
     exit_code = R.report()
 

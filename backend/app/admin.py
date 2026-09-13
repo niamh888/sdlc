@@ -9,6 +9,7 @@
 # not building any UI by hand.
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
+from sqladmin.fields import SelectField
 from starlette.requests import Request
 
 from .config import settings
@@ -56,6 +57,28 @@ class CourseReviewAdmin(ModelView, model=CourseReview):
     column_searchable_list = [CourseReview.participant_name, CourseReview.comment]
     column_sortable_list = [CourseReview.status, CourseReview.rating, CourseReview.created_at]
     form_columns = [CourseReview.status]
+    # A DROPDOWN, not a free-text box — the status column is a plain string
+    # in the database (see models.py), so SQLAlchemy/SQLAdmin has no way to
+    # know on its own that only these three values are meaningful. Without
+    # this, the edit form rendered `status` as an open text field, and a
+    # typo (a stray capital letter, a trailing space) silently saved as a
+    # value routers/reviews.py's `status == "approved"` check would never
+    # match — the review would just never appear on the site, with no error
+    # anywhere to explain why. form_overrides swaps in sqladmin's own
+    # SelectField for this one column; form_args is where that field's own
+    # constructor arguments (its `choices`) actually get supplied — a
+    # top-level `form_choices` looks like it should exist but does not, in
+    # this version of the library.
+    form_overrides = {"status": SelectField}
+    form_args = {
+        "status": {
+            "choices": [
+                ("pending", "Pending"),
+                ("approved", "Approved"),
+                ("rejected", "Rejected"),
+            ]
+        }
+    }
     can_create = False
     name = "Review"
     name_plural = "Reviews"

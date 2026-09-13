@@ -159,10 +159,10 @@ function printCertificateFor(attempt) {
   document.getElementById('cert-standard').innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
   document.getElementById('cert-id').textContent = attempt.id;
 
-  const verifyUrl = window.location.origin
-    + window.location.pathname.replace(/my-results\.html$/, 'verify.html')
-    + '?id=' + attempt.id;
-  document.getElementById('cert-verify-url').textContent = verifyUrl;
+  // Just the site's own address, not a full verify.html?id=... link — see
+  // the matching comment in quiz.js's populateCertificate() for why.
+  document.getElementById('cert-verify-url').textContent =
+    window.location.origin + window.location.pathname.replace(/my-results\.html$/, '');
 
   // Unlike downloadCertificate() in quiz.js, no delay() is needed before
   // this — that one exists purely to let the browser paint a "Preparing

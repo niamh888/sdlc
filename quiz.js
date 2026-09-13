@@ -517,19 +517,20 @@ function populateCertificate(score, total, pct) {
   // strings — no user input — so innerHTML is safe in this context.
   if (standardEl)   standardEl.innerHTML = levelDesc + '<br>Medical device software — Software life cycle processes';
 
-  // CERTIFICATE ID + VERIFY LINK — see the long comment on quizState.attemptId
+  // CERTIFICATE ID + VERIFY SITE — see the long comment on quizState.attemptId
   // in startQuiz() for why this id already exists before the save to the
-  // backend has even started. Built from the page's OWN location (origin + path)
-  // rather than a hardcoded domain, so this prints the right URL whether
-  // running locally (http://localhost:8000/verify.html?...) or on the real
-  // site (see README.md for the GitHub Pages URL this resolves to there) —
-  // one fewer place a domain could go stale if the site ever moves.
+  // backend has even started. Deliberately just the site's own address, NOT
+  // the full verify.html?id=... link — a bare site name reads as a proper
+  // printed credential; a long URL with the id already baked into it looked
+  // cluttered and unprofessional printed out. Someone verifying this reads
+  // the Certificate ID above and types both into the site's own "Verify a
+  // Certificate" page (linked in every page's footer) themselves.
+  // window.location.origin + the current directory (not a hardcoded
+  // domain) so this still prints the right address whether running locally
+  // or on the real deployed site.
   if (certIdEl) certIdEl.textContent = quizState.attemptId;
   if (verifyUrlEl) {
-    const verifyUrl = window.location.origin
-      + window.location.pathname.replace(/quiz\.html$/, 'verify.html')
-      + '?id=' + quizState.attemptId;
-    verifyUrlEl.textContent = verifyUrl;
+    verifyUrlEl.textContent = window.location.origin + window.location.pathname.replace(/quiz\.html$/, '');
   }
 }
 

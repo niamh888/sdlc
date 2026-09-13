@@ -2428,7 +2428,11 @@ def test_privacy(browser, base):
 
     ctx, pg = new_page(browser)
     pg.goto(base + '/index.html')
-    pg.locator('.footer-links a').click()
+    # Scoped to the privacy link specifically — the footer now also carries
+    # a "Verify a Certificate" link (added once certificates could be
+    # checked, see verify.html), so an unscoped '.footer-links a' matches
+    # two elements and Playwright's strict mode refuses to guess which one.
+    pg.locator('.footer-links a[href="privacy.html"]').click()
     pg.wait_for_load_state()
     R.check('footer link navigates to the notice', pg.url.endswith('privacy.html'), pg.url)
     ctx.close()
@@ -2676,10 +2680,19 @@ def test_nav_toggle(browser, base):
 
     # Every link and the theme toggle inside the open menu should be a
     # comfortable tap target, not just technically visible.
+    #
+    # w > 0 && h > 0 excludes elements that are conditionally hidden (a 0x0
+    # rect from display:none) BEFORE judging their size — without it, "Log
+    # out" (hidden while signed out) and now also "My Results" (hidden the
+    # same way — see auth.js's updateAuthNav()) always measured as 0px and
+    # always failed, regardless of the tap-height rule this check actually
+    # exists to enforce. Latent since Log out was added; only surfaced once
+    # this whole suite ran past the point that used to crash it (see
+    # test_quiz's own sign-in fix).
     tap = pg.evaluate("""() => [...document.querySelectorAll('#site-nav .nav-link, #site-nav .theme-toggle')].map(el => {
         const r = el.getBoundingClientRect();
-        return { t: el.textContent.trim().slice(0, 18) || 'theme-toggle', h: Math.round(r.height) };
-    }).filter(x => x.h < 24)""")
+        return { t: el.textContent.trim().slice(0, 18) || 'theme-toggle', h: Math.round(r.height), w: Math.round(r.width) };
+    }).filter(x => x.w > 0 && x.h > 0 && x.h < 24)""")
     R.check('open-menu items are a usable tap height', not tap, tap)
 
     toggle.click()
@@ -2823,6 +2836,7 @@ def test_a11y_dark(browser, base, axe_src):
     # never measured.
     for scheme in ['light', 'dark']:
         ctx, pg = dark_ctx(browser, scheme)
+        sign_up_test_learner(pg, base)  # quiz.html is gated behind sign-in
         pg.goto(base + '/quiz.html')
         pg.fill('#participant-name', 'Contrast Check')
         pg.locator('#begin-quiz').click()
@@ -2855,6 +2869,7 @@ def test_a11y_dark(browser, base, axe_src):
     # earlier audit had waited long enough to see it.
     for scheme in ['light', 'dark']:
         ctx, pg = dark_ctx(browser, scheme)
+        sign_up_test_learner(pg, base)  # quiz.html is gated behind sign-in
         pg.goto(base + '/quiz.html')
         pg.fill('#participant-name', 'Timer Check')
         pg.locator('#begin-quiz').click()
@@ -3039,7 +3054,7 @@ def test_a11y(browser, base, axe_src):
     R.check('deliverables list has no violations', not v, [x['id'] for x in v])
     ctx.close()
 
-    ctx, pg = new_page(browser)
+    ctx, pg = new_signed_in_page(browser, base)
     pg.goto(base + '/quiz.html')
     pg.fill('#participant-name', 'A11y Test')
     pg.locator('#begin-quiz').click()

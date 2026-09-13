@@ -8,7 +8,15 @@ Hosted on GitHub Pages: [https://niamh888.github.io/sdlc/](https://niamh888.gith
 
 ## Backend
 
-Accounts, quiz results, certificate verification and course reviews are served by this project's own backend — see [`backend/README.md`](backend/README.md) for setup, endpoints, and deployment. Everything in *this* README below covers the static frontend only.
+Accounts, quiz results, certificate verification and course reviews are served by this project's own backend — a separate Python project in [`backend/`](backend), not a third-party service. See [`backend/README.md`](backend/README.md) for setup, every endpoint, and deployment, and [`backend/ERD.md`](backend/ERD.md) for the database schema as an entity-relationship diagram. Everything else in *this* README covers the static frontend only.
+
+**Stack:** FastAPI + SQLAlchemy + Alembic migrations, deployed on Render, backed by a Postgres database on Neon. This replaced an earlier version built on Supabase (its Auth, auto-generated REST API, and Row Level Security policies) — that schema still exists at [`supabase/schema.sql`](supabase/schema.sql) as a historical record of the same tables under a different enforcement model, superseded rather than deleted.
+
+**A few decisions worth knowing before reading the code:**
+- **No email confirmation on sign-up.** An account is active immediately with just an email and password. This is a deliberate choice, not an oversight — it sidesteps depending on a third-party email service entirely, at the cost of not proving an email address is real.
+- **The Certificate ID is chosen by the browser, not the server.** `quiz.js` generates it the instant the quiz starts, so a certificate can display a real, working ID immediately on passing — even before the save to the database has started, let alone finished. See the ERD's notes for the full reasoning.
+- **Reviews are moderated in a separate `/admin` panel**, not the main site — its own login (a single username/password pair, unrelated to any learner account), reachable directly at the backend's own URL. This replaces what a Supabase project's dashboard used to do.
+- **Row Level Security is gone.** Supabase enforced "you may only read your own data" as a database policy; this backend enforces the same rules in Python instead (every route that touches per-user data filters explicitly by the signed-in user's id). Functionally equivalent, but a real trade-off — see the ERD's notes.
 
 ## Project Overview
 
@@ -96,6 +104,80 @@ Scoring below the 80% pass mark shows "Keep Studying" and no certificate offer, 
 ### Privacy
 
 ![Privacy notice page](docs/assets/screenshots/privacy-light.png)
+
+### Accounts, quiz saving, certificates, reviews and admin
+
+Everything below involves this project's own backend (see
+[Backend](#backend) further down, and [`backend/ERD.md`](backend/ERD.md) for
+the database schema) — an account, a saved quiz attempt, a submitted review,
+or an admin login, not just static content. Captured the same honest way as
+everything above (`tests/capture_backend_screenshots.py`, a sibling to
+`capture_screenshots.py` — see that script's own header comment for why a
+second script exists rather than extending the first), except this one also
+stands up a **disposable local backend** first: a throwaway SQLite database,
+migrated and seeded fresh, torn down when the run finishes. Regenerate with:
+
+```bash
+python tests/capture_backend_screenshots.py
+```
+
+Signing up creates a real account and returns straight to the site — no
+email confirmation step (see [Backend](#backend) for why):
+
+| Log In | Sign Up |
+|---|---|
+| ![Log in / sign up card, Log In tab](docs/assets/screenshots/login-light.png) | ![Log in / sign up card, Sign Up tab](docs/assets/screenshots/login-signup-light.png) |
+
+The quiz refuses to even start while signed out — a result has to belong to
+a real account, so there is no point beginning an assessment that could
+never be saved:
+
+![Quiz page's sign-in-required gate, shown instead of the assessment while signed out](docs/assets/screenshots/quiz-auth-required-light.png)
+
+A pass saves the attempt in the background (see the "Result saved to your
+account" line) and offers a certificate — carrying a real Certificate ID
+tied to that saved row, not a decoration:
+
+![Quiz results screen after a 100% pass, with the result-saved status line and a Download Certificate button](docs/assets/screenshots/quiz-results-pass-light.png)
+
+![Certificate of completion, with the issuer's logo, a Certificate ID, and the site address to verify it at](docs/assets/screenshots/certificate-light.png)
+
+**My Results** is the other half of that saved data — every attempt a
+signed-in learner has ever made, with the real date it happened, and a
+button to reprint any past certificate on demand:
+
+![My Results page listing past quiz attempts with date, score, pass/fail and a View Certificate button](docs/assets/screenshots/my-results-light.png)
+
+**Verifying a certificate** needs no account at all — paste the ID from a
+certificate you were handed and it looks the row up directly:
+
+| Found | Not found |
+|---|---|
+| ![Verify a Certificate page showing a confirmed certificate's name, course, score and date](docs/assets/screenshots/verify-found-light.png) | ![Verify a Certificate page reporting no certificate found for a made-up ID](docs/assets/screenshots/verify-not-found-light.png) |
+
+**Reviews** go through the same "nothing shows publicly until checked"
+pipeline as everywhere a stranger's text can appear. Signed out, the home
+page only ever shows already-approved reviews:
+
+![Home page reviews section, signed out, showing an approved review and a sign-in prompt to leave one](docs/assets/screenshots/reviews-signed-out-light.png)
+
+Submitting one doesn't publish it — it shows the author their own review is
+awaiting approval, while the public list stays unchanged for everyone else:
+
+![Home page after submitting a review, showing an awaiting-approval status message](docs/assets/screenshots/reviews-pending-light.png)
+
+Approving happens in the backend's own `/admin` panel (a separate login from
+the site itself — see [Backend](#backend)), where `status` is a real
+dropdown rather than free text, specifically so a mistyped value can't
+silently make a review never appear with no error anywhere to explain why:
+
+| Reviews list | Editing one |
+|---|---|
+| ![Admin panel Reviews list, showing a pending review](docs/assets/screenshots/admin-reviews-list-light.png) | ![Admin panel's Edit Review screen, with the status field](docs/assets/screenshots/admin-review-edit-light.png) |
+
+Once approved, the exact same review appears on the public home page:
+
+![Home page reviews section after admin approval, now showing the review publicly](docs/assets/screenshots/reviews-approved-light.png)
 
 ## Safety Class Applicability
 

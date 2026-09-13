@@ -3818,10 +3818,30 @@ a {
   color: var(--heading);
 }
 
-.cert-disclaimer {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  line-height: 1.5;
+/* Replaces the old .cert-disclaimer — a single 0.68rem, muted-grey line
+   that was too easy to miss entirely (a real legibility problem, not just
+   a style preference). Bigger, darker (--heading, not --text-muted) and
+   paired with the issuer's own logo, so who actually issued the
+   certificate reads as clearly as the course name itself does above it. */
+.cert-issuer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.cert-issuer-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.cert-issuer-text {
+  font-size: 0.85rem;
+  color: var(--heading);
+  line-height: 1.4;
+  text-align: left;
 }
 
 .cert-verify {

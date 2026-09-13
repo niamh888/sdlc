@@ -285,7 +285,18 @@
             <span class="cert-meta-value" id="cert-date"></span>
           </div>
         </div>
-        <p class="cert-disclaimer">Issued by St John Lynch &amp; Co Ltd &mdash; Based on IEC 62304:2006+AMD1:2015</p>
+        <!-- Made deliberately more prominent than a plain text line — the
+             previous version (0.68rem, muted grey) was easy to miss
+             entirely, which was reported as a real accessibility problem,
+             not just a style preference. The logo has a transparent
+             background and is pure black, so it stays legible printed in
+             colour OR black-and-white, and against the certificate's own
+             forced-white background (see .cert-page in style.css) regardless
+             of the site's light/dark theme. -->
+        <div class="cert-issuer">
+          <img class="cert-issuer-logo" src="assets/img/sjl-logo.png" alt="St John Lynch &amp; Co Ltd logo">
+          <p class="cert-issuer-text">Issued by <strong>St John Lynch &amp; Co Ltd</strong><br>Based on IEC 62304:2006+AMD1:2015</p>
+        </div>
         <!-- Filled in by populateCertificate() in quiz.js. Verifiable because
              cert-id is the actual quiz_attempts.id this attempt was saved
              under (see backend/app/routers/certificates.py's verify route)

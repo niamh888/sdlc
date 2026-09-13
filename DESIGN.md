@@ -25,32 +25,45 @@ rest, applied reflexively to this project's own development), see
 
 ## Site Structure
 
-The site uses six separate HTML pages with shared CSS and shared navigation. A single-page application was considered and rejected in favour of this structure because separate pages are easier to maintain, load only the JavaScript they need, and are more appropriate for a multi-section educational tool.
+The site uses nine separate HTML pages with shared CSS and shared navigation. A single-page application was considered and rejected in favour of this structure because separate pages are easier to maintain, load only the JavaScript they need, and are more appropriate for a multi-section educational tool.
 
 ```
-index.html      Home — introduction and entry points
-learn.html      Learn — 13 lifecycle topic cards (Clauses 4–9)
-quiz.html       Quiz — 15-question timed assessment
-about.html      About — course provenance and the author's credentials
-contact.html    Contact — feedback form
-privacy.html    Privacy and data protection notice
+index.html         Home — introduction, entry points, and course reviews
+learn.html         Learn — 13 lifecycle topic cards (Clauses 4–9)
+quiz.html          Quiz — 15-question timed assessment (sign-in required)
+about.html         About — course provenance and the author's credentials
+contact.html       Contact — feedback form
+privacy.html       Privacy and data protection notice
+login.html         Log in / create an account
+my-results.html    A signed-in learner's own past quiz attempts and certificates
+verify.html        Confirm a certificate is genuine — no sign-in needed
 ```
 
 `privacy.html` is reachable from the footer of every page rather than the main
-navigation. The main nav is kept to the five learning/business destinations so it
-stays scannable; a legal notice belongs where users conventionally look for one. It
-is deliberately not a nav item, and `nav.js` needs no change to accommodate this —
-when no nav link matches the current page, nothing is highlighted.
+navigation, alongside `verify.html` (added once certificates carried a checkable
+ID — see [Backend Architecture](#backend-architecture)). The main nav stays limited
+to the core learning/business destinations so it stays scannable; a legal notice and
+a certificate lookup both belong where users conventionally look for one, not
+competing for space with Home/Learn/Quiz. `login.html` and `my-results.html` are
+main-nav items, but the latter only appears once signed in (`auth.js` shows/hides
+it, the same toggle it already used for Log in/Log out) — a signed-out visitor has
+no results of their own to see.
 
 Shared across all pages:
 - `style.css`      — all visual styling
 - `nav.js`         — sets the active state on the current page's nav link
 - `async-utils.js` — shared asynchronous helpers (`delay()`, `fetchJSON()`)
+- `api-config.js`  — where the backend actually lives (see [Backend Architecture](#backend-architecture))
+- `auth.js`        — shared API client: token storage, `apiFetch()`, session state, keeps the Log in/Log out/My Results nav links in sync everywhere
 
 Page-specific JavaScript:
 - `learn.js`
 - `quiz.js`
 - `contact.js`
+- `login.js` — the log in / sign up forms
+- `reviews.js` — the home page's course reviews (list + submit form)
+- `my-results.js` — past quiz attempts, certificate reprinting
+- `verify.js` — the certificate lookup
 
 Content data, loaded at runtime rather than hardcoded in the scripts:
 ```
@@ -81,6 +94,7 @@ opening the HTML files directly from disk no longer works. See the README.
 - Sticky header with logo and navigation links
 - Hero section: headline, subtitle, two CTA buttons, four stat cards (svg graphic of process flow and 13 process areas / 3 safety classes / 15 questions)
 - Three info cards below: What is IEC 62304 / Who needs it / How to use the course
+- Course reviews — approved reviews from past participants, plus a form to leave one (signed in) or a sign-in prompt (signed out); see [Backend Architecture](#backend-architecture)
 - Promo with links to St John Lynch & Co and AskRiskIE for Risk Management (sites/tools belonging to author)
 - Footer with standard citation
 
@@ -93,7 +107,7 @@ opening the HTML files directly from disk no longer works. See the README.
 
 ### Version disclosure (site-wide)
 
-A `.version-chip` in the site header on all five pages reads `Edition 1 · 2006+A1:2015`.
+A `.version-chip` in the site header on every page reads `Edition 1 · 2006+A1:2015`.
 
 It is site-wide rather than home-page-only because a learner can arrive directly on the quiz from a link or a bookmark and would otherwise never be told which edition they are being assessed on. It sits in the header rather than in a strip below it to avoid spending vertical space on every page, and rather than in the footer because a version people need *before* they start studying should not be below the fold. White on the navy header measures 11.6:1, so it stays legible at 0.68rem.
 
@@ -211,7 +225,7 @@ The filename encodes the class (`iec62304-deliverables-class-b.csv`) so three ex
 2. **Countdown timer** — a `setInterval` per question, 30 seconds at Introductory level and 60 at Advanced (`QUESTION_SECONDS` in `quiz.js` — the clause-referenced Advanced questions take longer to read). The timer turns amber at 10 seconds remaining and red at 5, regardless of the starting duration. If it expires, the correct answer is revealed automatically and the question is marked wrong.
 3. **Results rendering** — the final screen is populated dynamically from the quiz state object, showing personalised pass/fail messaging and a score breakdown grid.
 
-**Data model:** Two files of 15 question objects each — `data/questions-intro.json` (overview-level) and `data/questions-advanced.json` (clause-referenced, requiring in-depth knowledge of specific §references and Amendment 1 changes). Each object holds the question string, four option strings, the index of the correct answer (0-based), and an explanation. `getLevel()` reads the training level from `localStorage` and only the matching file is downloaded — the previous version defined both arrays on every page load and discarded one, making every visitor parse 30 questions to sit 15. The loaded array is shuffled with a Fisher-Yates shuffle on each attempt so questions appear in a different order every time.
+**Data model:** 30 questions — 15 overview-level, 15 clause-referenced (requiring in-depth knowledge of specific §references and Amendment 1 changes) — now served from the backend's `quiz_questions` table (see [Backend Architecture](#backend-architecture)) rather than the two static JSON files this originally shipped with. `data/questions-intro.json` / `data/questions-advanced.json` still exist as the source of truth `backend/seed.py` loads into the database — editing a question means editing the JSON file, then re-running the seed script, not editing the database by hand. `getLevel()` reads the training level from `localStorage` and only that level's 15 questions are requested — the previous version defined both arrays on every page load and discarded one, making every visitor parse 30 questions to sit 15. The loaded array is shuffled with a Fisher-Yates shuffle on each attempt so questions appear in a different order every time.
 
 Each question is validated on load (question text present, options an array, `correct` within range). A malformed question is reported by number rather than failing silently — an out-of-range `correct` index would otherwise mark every answer wrong with no indication why.
 
@@ -331,11 +345,117 @@ Not every reflow is breakpoint-driven. The footer's "Developed by … · Privacy
 
 ---
 
+## Backend Architecture
+
+This site started as, and mostly still is, a static site with no server —
+the Learn/Quiz content, the CSV export, the class filtering, all run
+entirely in the browser (see "Client-side file generation" below). Accounts,
+saved quiz results, certificate verification and course reviews are the
+exception: those need somewhere durable and trusted to live, which a static
+site cannot provide on its own. That "somewhere" is a separate backend
+project in `backend/` — Python, FastAPI, SQLAlchemy — documented in full in
+[`backend/README.md`](backend/README.md) (setup, every endpoint) and
+[`backend/ERD.md`](backend/ERD.md) (the database schema as a diagram). This
+section covers the decisions behind it, not the mechanics already written up
+there.
+
+**Why a self-built backend instead of a third-party one.** An earlier
+version of this used Supabase — a hosted Postgres database plus a
+ready-made Auth service and an auto-generated REST API, secured with Row
+Level Security policies written directly against the database (still on
+record at `supabase/schema.sql`, kept as history rather than deleted). That
+worked, but it meant the actual server-side logic — who can read what,
+password handling, token issuing — lived entirely inside a third party's
+configuration, not in this project's own code. Replacing it with a
+hand-written FastAPI service makes that logic something this project
+actually owns and can be read, tested and explained line by line, which
+matters more for a training/portfolio project than for a product racing to
+ship.
+
+**Why FastAPI + SQLAlchemy specifically.** FastAPI's automatic interactive
+docs (`/docs`, generated from the route definitions themselves) mean every
+endpoint is checkable by hand with no separate tool. Its Pydantic-based
+request/response models (`backend/app/schemas.py`) are a hard boundary
+between "what the database looks like" (`app/models.py`) and "what the API
+promises a caller" — a field simply left out of a response schema cannot
+leak, the same guarantee an RLS `select` policy used to provide, enforced
+here at a different layer instead. SQLAlchemy is the standard Python ORM
+that pairing implies; Alembic (SQLAlchemy's own migration tool) tracks
+schema changes as reviewable, reversible files rather than hand-run `ALTER
+TABLE` statements.
+
+**Row Level Security became Python.** Supabase's policies enforced "you may
+only read your own quiz attempts" *inside the database* — a query that got
+the filtering wrong simply could not return someone else's row, full stop.
+This backend enforces the identical rule in each route instead (`backend/
+app/routers/*.py` — every query touching per-user data filters explicitly by
+`current_user.id`, derived from a verified JWT, never trusted from the
+request itself). That is a real trade-off, not a free equivalent: it works,
+and every route is unit-tested for it, but it depends on each route getting
+its own filtering right rather than being structurally unable to get it
+wrong. Worth knowing before extending the API rather than discovering it the
+hard way.
+
+**Authentication: JWT bearer tokens, not cookies.** `POST /auth/login` and
+`/auth/signup` return a signed token; `auth.js` stores it in `localStorage`
+and attaches it as an `Authorization: Bearer …` header on every request that
+needs to know who's asking (`apiFetch()`, the one function every other
+script goes through rather than building that header itself). Chosen over
+a session cookie because the frontend (GitHub Pages) and the backend
+(Render) are genuinely different origins — a cross-origin cookie needs
+`SameSite=None; Secure` plus matching CORS credential settings on both
+sides, real complexity a bearer token in a header sidesteps entirely. There
+is deliberately no email confirmation step on sign-up: a plain email and
+password is active immediately, which avoids depending on a third-party
+email-sending service at all, at the honest cost of never proving the email
+address is real.
+
+**The Certificate ID exists before the certificate does.** `quiz.js`
+generates it with `crypto.randomUUID()` the moment the quiz starts, not when
+it is saved — so the certificate on screen can show a real, working ID
+instantly on a pass, without waiting on (or depending on the success of) the
+background save to the database. `POST /attempts` accepts that
+client-chosen id rather than generating its own; if the save later fails,
+the certificate still carries a real-looking ID, and `verify.html` honestly
+reports "not found" for it — correct, since it never reached the database.
+See the long comment on `quizState.attemptId` in `quiz.js`, and the ERD's
+own notes, for the full reasoning.
+
+**Certificate verification is one narrow, public function — not an open
+table.** `GET /certificates/{id}/verify` needs no sign-in (an employer
+checking a certificate they were handed should not need an account), but it
+is not a relaxed "read any attempt" endpoint: it takes the id as a required
+parameter, returns at most one row, only the handful of fields a verifier
+plausibly needs, and only ever for a *passed* attempt — a wrong id and a
+real but failed one report identically ("not found"), which is the honest
+answer either way, since only a pass ever produced a certificate to verify.
+
+**Review moderation lives in a separate admin panel, not the main site.**
+`/admin` (SQLAdmin, generated from the same SQLAlchemy models) replaces what
+Supabase's dashboard Table Editor used to do — a single hardcoded
+username/password pair, unrelated to any learner account, protected by its
+own session cookie rather than the JWT bearer tokens the public API uses.
+Reviews can only ever be *created* through the public `POST /reviews` route
+(a real participant's real submission); the admin panel can only change a
+review's `status` between pending/approved/rejected — a dropdown restricted
+to those three exact values, not free text, after a mistyped capital letter
+in early testing silently made an approval never take effect (the check
+elsewhere in the code is an exact string match, with no error surfaced when
+it fails to match).
+
+**Deployment:** the backend runs on Render (a free-tier web service) against
+a Postgres database on Neon (a separate free tier, chosen specifically
+because Render's own free Postgres expires after 30–90 days and Neon's does
+not) — see [GitHub and Deployment](#github-and-deployment) below and
+`backend/render.yaml` for the concrete configuration.
+
+---
+
 ## JavaScript Architecture
 
-Each page script is self-contained. There is no shared global state between pages. Functions are scoped by file. Event listeners are attached inside `DOMContentLoaded` callbacks so the DOM is always ready before manipulation begins.
+Each page script is otherwise self-contained — functions are scoped by file, and event listeners are attached inside `DOMContentLoaded` callbacks so the DOM is always ready before manipulation begins. The one deliberate exception is sign-in state: `auth.js` (see [Backend Architecture](#backend-architecture)) is loaded on every page and is genuinely shared, since "am I signed in" has to mean the same thing everywhere.
 
-All pages load `nav.js`, then `async-utils.js`, then their page script, each marked `defer`. Deferred scripts run after the HTML is parsed and in document order, which guarantees the shared helpers are defined before any page script calls them, without blocking rendering.
+Every page loads `api-config.js` and `auth.js` first, then that page's own script(s), then `nav.js` and `theme.js` last — each marked `defer`. Deferred scripts run after the HTML is parsed and in document order, which guarantees `api-config.js`'s `API_BASE_URL` and `auth.js`'s `apiFetch()`/`getCurrentSession()` are defined before any page script that needs them, without blocking rendering.
 
 Key patterns used:
 - **Event delegation** (`learn.js`) — one `click` listener on the card grid handles expand, collapse, and mark-as-studied for all 13 cards
@@ -356,8 +476,10 @@ Key patterns used:
 
 ## GitHub and Deployment
 
-Repository: [https://github.com/niamh888/sdlc](https://github.com/niamh888/sdlc)
+Repository: [https://github.com/niamh888/sdlc](https://github.com/niamh888/sdlc) — one repo, two independently deployed halves.
 
-Hosted via GitHub Pages at the root of the `main` branch. No build step is required — the site is plain HTML, CSS, and JavaScript.
+**Frontend:** hosted via GitHub Pages at the root of the `main` branch. No build step is required — the site is plain HTML, CSS, and JavaScript. `api-config.js` auto-detects which backend to talk to (the machine running it locally, or the real deployed one) purely from the page's own hostname, so the exact same files work in both places with nothing to toggle by hand before or after deploying — see [Backend Architecture](#backend-architecture).
+
+**Backend:** deployed separately on Render, reading `backend/render.yaml` as a Blueprint (Render's term for "build this from a config file already in the repo" — see `backend/README.md`'s Deploying section for the exact steps) against a Postgres database hosted on Neon. Four values (`DATABASE_URL`, `JWT_SECRET`, `ADMIN_PASSWORD`, `SESSION_SECRET`) are deliberately left out of that file and entered by hand in Render's own dashboard instead — they are exactly the values that must never be committed to a public repository.
 
 Commit strategy: build and commit frequently - based on subject-matter changes, with regression testing for all changes.

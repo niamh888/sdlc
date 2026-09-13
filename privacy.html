@@ -91,17 +91,20 @@
 
       <div class="legal-page">
 
-        <p class="legal-updated">Last updated: 30 July 2026</p>
+        <p class="legal-updated">Last updated: 13 September 2026</p>
 
         <!-- SUMMARY FIRST — the honest short version, so nobody has to read the
              whole page to understand what happens. -->
         <div class="legal-summary">
           <h2>The short version</h2>
           <ul>
-            <li>This site sets <strong>no cookies</strong>, uses <strong>no analytics</strong>, and loads <strong>nothing from advertising or tracking companies</strong>.</li>
-            <li>The <strong>only</strong> information you actively give us is what you type into the contact form. It is used to reply to you and nothing else.</li>
-            <li>Contact form messages are handled by <strong>Formspree</strong>, a service based in the <strong>United States</strong>, which turns your message into an email to us.</li>
-            <li>Your <strong>quiz name and score are never sent anywhere</strong>. They stay in your browser and disappear when you close the tab.</li>
+            <li>This site sets <strong>no cookies for you as a visitor or learner</strong>, uses <strong>no analytics</strong>, and loads <strong>nothing from advertising or tracking companies</strong>.</li>
+            <li>What you type into the <strong>contact form</strong> is used only to reply to you.</li>
+            <li>Contact form messages are handled by <strong>Formspree</strong>, a service based in the <strong>United States</strong>.</li>
+            <li>If you <strong>create an account</strong>, we store your email address, a securely hashed password, and (optionally) your name — used to sign you in and to save your quiz results to your own account.</li>
+            <li>A completed quiz attempt (your name, score and the date) is saved so you can find it again and reprint your certificate — the account, database and backend that store this are all hosted <strong>in the EU (Frankfurt, Germany)</strong>, not transferred elsewhere.</li>
+            <li>A <strong>certificate's ID is deliberately enough on its own</strong> for anyone to confirm it is genuine, without signing in — see "Accounts, quiz results and certificates" below for what that means in practice.</li>
+            <li>A <strong>course review</strong> you submit is checked by us before publishing; once approved, your name, star rating and comment are visible to <strong>anyone</strong> who visits the home page.</li>
             <li>We never sell or share your information for marketing.</li>
           </ul>
         </div>
@@ -160,26 +163,65 @@
               <td><code>62304_previewedDocs</code></td>
               <td>Remembers which example documents you have previewed or downloaded &mdash; a topic can only be marked studied after this</td>
             </tr>
+            <tr>
+              <td><code>62304_authToken</code></td>
+              <td>Only written once you sign in. Keeps you signed in across visits, and is sent back to our backend with each request that needs to know who you are &mdash; see "Accounts, quiz results and certificates" above. Removed the moment you log out</td>
+            </tr>
           </tbody>
         </table>
 
-        <p>None of the five items above identifies you. All stay on your device, are never transmitted to us or anyone else, and can be cleared at any time through your browser's "clear browsing data" settings. Because they exist purely to make the site work as you have asked it to, no consent banner is required for any of them.</p>
-        <p>This site sets <strong>no cookies at all</strong>.</p>
+        <p>The first five items above do not identify you, stay on your device, and are never transmitted to us or anyone else. The sixth, your sign-in token, is different in exactly the way its description says: it is sent to our backend on every request that needs to know who you are, which is what "being signed in" actually means. All six can be cleared at any time through your browser's "clear browsing data" settings, and the sixth is also removed the moment you log out. No consent banner is required for any of them &mdash; the first five exist purely to make the site work as you have already asked it to, and the sixth exists purely to keep you signed in, which is the feature you asked for by logging in, not to track you.</p>
+        <p>This site sets <strong>no cookies</strong> for you as a visitor or learner &mdash; the table above uses <code>localStorage</code>, a different browser storage mechanism, not cookies (see "Accounts, quiz results and certificates" above for the one cookie this site does set, on an internal admin tool you never encounter).</p>
 
-        <h2>The quiz and your certificate</h2>
-        <p>This is worth stating plainly, because it is the part people most often assume works the other way: <strong>the name you type before the quiz, your answers, and your score are never sent anywhere.</strong> They exist only in your browser's memory while the tab is open, are used to fill in the certificate you print yourself, and are gone the moment you close or reload the page.</p>
-        <p>We do not know who has taken the quiz, what anyone scored, or how many certificates have been produced. There is no account, no login, and no record kept.</p>
+        <h2>Accounts, quiz results and certificates</h2>
+        <p>This section used to say the opposite of what follows — quiz results were once kept only in your browser's memory and never sent anywhere. That stopped being true once accounts, saved results and certificate verification were built, and this notice is updated to match, not left describing an earlier version of the site.</p>
+
+        <h3>What we collect</h3>
+        <p>When you create an account: your <strong>email address</strong>, a <strong>securely hashed password</strong>, and optionally your <strong>full name</strong>. A password hash is a one-way cryptographic transformation — we could not read your actual password even if we wanted to, and it is never logged or stored anywhere in plain text.</p>
+        <p>Each time you complete a quiz attempt: the <strong>name</strong> you sat it under, your <strong>score</strong>, whether you <strong>passed</strong>, the <strong>level</strong> (Introductory or Advanced), and the <strong>date and time</strong> you started and finished it. This is tied to your account.</p>
+
+        <h3>Why we need it</h3>
+        <p>To let you sign back in, see your own past results on the <a href="my-results.html">My Results</a> page, and reprint a certificate at any time without retaking the assessment. A certificate also carries a <strong>Certificate ID</strong> — see below for what that enables.</p>
+
+        <h3>Our legal basis</h3>
+        <p>We rely on <strong>legitimate interests</strong> under Article 6(1)(f) of the UK and EU GDPR: you have chosen to create an account specifically to use this feature, and we cannot provide it — signing you back in, showing you your own results — without keeping this data.</p>
+
+        <h3>Certificate verification is deliberately public</h3>
+        <p>The <strong>Certificate ID</strong> printed on every certificate is a long, effectively unguessable code. Anyone who has it — typically because you showed or sent them your certificate — can look up the name, course, score and date it confirms at <a href="verify.html">Verify a Certificate</a>, <strong>without needing an account or signing in</strong>. This is what lets an employer or auditor confirm a certificate is genuine on their own, which is the whole point of it. It also means that ID is not fully private once it exists: treat it the way you would the certificate itself — something you choose to share, not something we publish or list anywhere ourselves. A certificate for an assessment you did not pass is never available this way; only a genuine pass ever produces a certificate at all.</p>
+        <p>Course reviews work differently and are covered in their own section below — this verification feature never exposes anything beyond what a certificate itself already shows.</p>
+
+        <h3>Who processes it, and where</h3>
+        <p>This data is stored in a Postgres database hosted by <strong>Neon</strong>, and handled by our own backend application (written specifically for this site, not a third-party product) hosted by <strong>Render</strong>. Both are explicitly configured to run in the <strong>EU — Frankfurt, Germany (AWS eu-central-1)</strong>. Unlike the contact form, <strong>no transfer outside the European Economic Area happens for this data</strong> — it is both stored and processed inside the EU throughout.</p>
+        <p>A separate, internal admin tool — used only by us, to check and approve course reviews before they appear publicly (see below) — sets a login cookie of its own on the device used to access it. This is not something you encounter as a visitor or learner; it exists only for our own account, reached at a separate address you are never sent to.</p>
+
+        <h3>How long we keep it</h3>
+        <p>There is no automatic deletion today — your account, its quiz results, and any reviews you have submitted are kept until you ask us to remove them. See <strong>Your rights</strong> below for how.</p>
+
+        <h2>Course reviews</h2>
+
+        <h3>What we collect</h3>
+        <p>The <strong>name</strong> you give, a <strong>star rating</strong> from 1 to 5, and the <strong>comment</strong> you write, submitted from the home page while signed in.</p>
+
+        <h3>Why we need it, and our legal basis</h3>
+        <p>To show prospective participants real feedback from people who have completed the course. The legal basis is <strong>consent</strong> under Article 6(1)(a): submitting the review form is a clear, deliberate action, and nothing you write is published without you having taken it.</p>
+
+        <h3>Moderation, and what becomes public</h3>
+        <p>Every review is checked by us before it can appear — new reviews are never shown automatically. Once approved, <strong>your name, star rating and comment are visible to anyone who visits the home page, signed in or not.</strong> A review that is rejected, or still awaiting a decision, is never shown to anyone but you.</p>
+        <p>You can ask for a published review to be removed at any time using the same contact address as every other request on this page — see <strong>Your rights</strong> below.</p>
+
+        <h3>Who processes it, and where</h3>
+        <p>The same Render- and Neon-hosted backend described above, in the same EU region — no transfer outside the EEA for reviews either.</p>
 
         <h2>Hosting and server logs</h2>
-        <p>This site is hosted on <strong>GitHub Pages</strong>. Like any web server, GitHub's servers record technical details of requests, which can include your IP address and which browser you are using. This happens automatically for every website you visit and is necessary to deliver pages to you. We have no access to those logs and cannot look you up in them. GitHub processes them under its own privacy statement.</p>
+        <p>The frontend of this site is hosted on <strong>GitHub Pages</strong>; accounts, quiz results, certificate verification and reviews are handled by our own backend on <strong>Render</strong>, backed by a database on <strong>Neon</strong> (both EU-hosted — see above). Like any web server, each of these records technical details of requests, which can include your IP address and which browser you are using. This happens automatically for every website and API you use and is necessary to deliver pages and responses to you. We have no separate access to GitHub's or Render's own infrastructure logs beyond what each provider publishes under its own privacy statement, and do not use them to look anyone up.</p>
 
         <h2>What this site does not do</h2>
         <ul>
-          <li>No cookies</li>
-          <li>No analytics or visitor statistics — we genuinely do not know how many people use this site</li>
+          <li>No cookies for you as a visitor or learner (the one exception — our own internal admin login — is covered above, and is not something you ever encounter)</li>
+          <li>No analytics or visitor statistics — we genuinely do not know how many people use this site, only how many accounts and quiz attempts exist</li>
           <li>No advertising, tracking pixels, or third-party scripts of any kind</li>
-          <li>No external fonts or content delivery networks; every file the page loads comes from this site</li>
-          <li>No selling, renting, or sharing of personal information</li>
+          <li>No external fonts or content delivery networks — every visual asset (HTML, CSS, JavaScript, images) comes from this site; the only other systems it talks to are its own backend (Render and Neon, both EU-hosted) and, for the contact form only, Formspree</li>
+          <li>No selling, renting, or sharing of personal information for marketing — a course review is the one thing you provide that is published, and only once you have submitted it and we have approved it, exactly as described above</li>
           <li>No automated decision-making or profiling</li>
         </ul>
 
@@ -193,7 +235,7 @@
           <li><strong>Object</strong> — object to our processing where we rely on legitimate interests</li>
           <li><strong>Portability</strong> — receive your information in a transferable format</li>
         </ul>
-        <p>To exercise any of these, email <a href="mailto:niamh@stjohnlynch.com">niamh@stjohnlynch.com</a>. We will respond within one month. In practice, the only information we are likely to hold is a contact form message you have sent us.</p>
+        <p>To exercise any of these, email <a href="mailto:niamh@stjohnlynch.com">niamh@stjohnlynch.com</a>. We will respond within one month. Depending on what you have used the site for, we may hold a contact form message, an account (email, name, password hash), your quiz results, or a course review you have submitted — say which applies, or ask for all of it, and we will act on whichever is actually there. There is no self-service "delete my account" button on the site today; a deletion request is handled by us by hand on receiving your email.</p>
         <p>If you are unhappy with how we have handled your information, you can complain to the Irish supervisory authority, the <strong>Data Protection Commission</strong> (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer">dataprotection.ie</a>).</p>
 
         <h2>Changes to this notice</h2>

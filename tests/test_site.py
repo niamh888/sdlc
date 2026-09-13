@@ -2377,7 +2377,7 @@ def test_privacy(browser, base):
     # for every 62304_* key actually written and require each to appear in the
     # table. The notice can no longer fall behind the code.
     keys = set()
-    for name in ('learn.js', 'quiz.js', 'theme.js', 'nav.js', 'contact.js'):
+    for name in ('learn.js', 'quiz.js', 'theme.js', 'nav.js', 'contact.js', 'auth.js'):
         path = os.path.join(ROOT, name)
         if os.path.exists(path):
             with open(path, encoding='utf-8') as f:
@@ -3255,11 +3255,15 @@ def main():
     # document, so it needs axe-core downloaded too, not just the a11y group.
     axe_src = fetch_axe() if ('a11y' in groups or 'docs' in groups) else None
 
-    # Only the quiz group needs a real backend (the assessment is gated
-    # behind sign-in — see quiz.js's auth gate) — starting one costs a few
-    # real seconds (a migration + seed run), not worth paying for a run of
-    # e.g. --group data alone.
-    backend_process, backend_tmp_dir = (start_backend() if 'quiz' in groups else (None, None))
+    # 'quiz' and 'a11y' are the two groups that actually sign in and use the
+    # quiz (a11y audits the quiz's own screens, and dark-mode contrast
+    # checks specific to the pass screen and the low-time timer warning —
+    # see test_a11y/test_a11y_dark) — both need a real backend, since the
+    # assessment is gated behind sign-in (see quiz.js's auth gate). Starting
+    # one costs a few real seconds (a migration + seed run), not worth
+    # paying for a run of e.g. --group data alone.
+    needs_backend = 'quiz' in groups or 'a11y' in groups
+    backend_process, backend_tmp_dir = (start_backend() if needs_backend else (None, None))
 
     try:
         with sync_playwright() as p:

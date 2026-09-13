@@ -37,7 +37,7 @@
   },
   {
     "q": "A software system can contribute to a hazardous situation which still results in unacceptable risk after risk controls external to the software have been considered, and the possible harm is death or serious injury. Which safety class applies?",
-    "options": ["Class A", "Class B", "Class C", "There is no Class D"],
+    "options": ["Class A", "Class B", "Class C", "Class D"],
     "correct": 2,
     "explanation": "That is the Class C test in §4.3 as amended, and the wording matters. Under Amendment 1, software that could contribute to a hazardous situation involving death or serious injury is not automatically Class C — if risk control measures external to the software reduce the risk to an acceptable level, it may be Class A. Class A does not simply mean no injury is possible. There is no Class D in IEC 62304."
   },

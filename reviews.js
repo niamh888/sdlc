@@ -135,9 +135,14 @@ async function refreshReviewFormState() {
     formEl.classList.add('hidden');
     if (existingEl) {
       existingEl.classList.remove('hidden');
+      // "above", not "below" — the approved-reviews grid sits BEFORE this
+      // form in the page (see index.html), and saying "below" read as
+      // simply wrong the moment a review was actually approved. Worded to
+      // avoid directional language entirely instead of just flipping it,
+      // so a future reshuffle of the page can't make this wrong again.
       const statusMessages = {
         pending: 'Your review has been submitted and is awaiting approval before it appears publicly. Thank you!',
-        approved: 'Your review has been approved and appears below. Thank you!',
+        approved: 'Your review has been approved and is now shown to visitors. Thank you!',
         rejected: 'Your review was not approved for public display.'
       };
       existingEl.textContent = statusMessages[existingReview.status] || '';

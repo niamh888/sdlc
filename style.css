@@ -914,9 +914,18 @@ a {
   margin-bottom: 24px;
 }
 
+/* flex-wrap, not a fixed 2-column grid — the review COUNT varies (zero
+   early on, one, a handful, eventually many), and a rigid 2-column grid
+   left a lone review jammed into the left column with an empty gap beside
+   it, visibly misaligned with the centred .review-form-wrap below it. Flex
+   with a sensible basis wraps naturally at any count: one card centres
+   itself, several wrap into a row and re-flow as more arrive, with no
+   breakpoint-specific override needed (compare the old fixed-grid version,
+   which needed a separate single-column rule under 768px — this doesn't). */
 .review-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
   margin-bottom: 40px;
 }
@@ -932,6 +941,8 @@ a {
   margin: 0;
   display: flex;
   flex-direction: column;
+  flex: 1 1 320px;
+  max-width: 400px;
 }
 
 .review-stars {
@@ -3596,10 +3607,6 @@ a {
   }
 
   .qual-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .review-grid {
     grid-template-columns: 1fr;
   }
 

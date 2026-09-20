@@ -89,37 +89,6 @@ def shoot(pg, name):
     print('  wrote %s' % os.path.relpath(path, ROOT))
 
 
-def answer_one_question_correctly(pg):
-    """Answer just the first question correctly, purely to move the quiz on to
-    a state worth photographing — the full run lives in test_site.py."""
-    with open(os.path.join(ROOT, 'data', 'questions-intro.json'), encoding='utf-8') as f:
-        import json
-        first = json.load(f)[0]
-    pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
-    # Question order is shuffled, so match on text rather than assuming Q1 is first.
-    want = first['options'][first['correct']].strip().lower()
-    buttons = pg.locator('.option-btn')
-    idx = next((i for i in range(buttons.count())
-                if buttons.nth(i).inner_text().strip().lower() == want), 0)
-    buttons.nth(idx).click()
-    pg.wait_for_selector('#question-feedback.visible', timeout=8000)
-
-
-def run_full_quiz(pg, correct_count, total=15):
-    """Answers every question — the first `correct_count` correctly, the rest
-    wrong — and waits for the results screen. Same technique test_site.py
-    uses for its all-right/all-wrong runs, generalised to any score so a
-    below-pass-mark result (e.g. 8/15) can be photographed too."""
-    for i in range(total):
-        pg.wait_for_selector('.option-btn:not([disabled])', timeout=8000)
-        ci = pg.evaluate("() => quizState.shuffled[quizState.currentIndex].correct")
-        idx = ci if i < correct_count else (ci + 1) % 4
-        pg.locator('.option-btn').nth(idx).click()
-        pg.wait_for_selector('#question-feedback.visible', timeout=8000)
-        pg.locator('#next-question').click()
-    pg.wait_for_selector('#quiz-results.active', timeout=8000)
-
-
 def main():
     os.makedirs(OUT, exist_ok=True)
     httpd, base = start_server()
@@ -206,38 +175,16 @@ def main():
                 ctx.close()
 
                 # ---- Quiz ----
-                ctx, pg = new_page(browser, 'light')
-                pg.goto(base + '/quiz.html')
-                pg.wait_for_timeout(200)
-                shoot(pg, 'quiz-start-light')
-                pg.fill('#participant-name', 'Ada Lovelace')
-                pg.locator('#begin-quiz').click()
-                pg.wait_for_selector('#quiz-active.active', timeout=10000)
-                shoot(pg, 'quiz-question-light')
-                answer_one_question_correctly(pg)
-                shoot(pg, 'quiz-feedback-light')
-                ctx.close()
-
-                ctx, pg = new_page(browser, 'dark')
-                pg.goto(base + '/quiz.html')
-                pg.wait_for_timeout(200)
-                shoot(pg, 'quiz-start-dark')
-                ctx.close()
-
-                # ---- Quiz: below the pass mark ---- 8/15 (53%), below the 80%
-                # pass mark, so the results screen shows "Keep Studying" and no
-                # certificate — the other real outcome the site can produce, not
-                # just the all-correct case.
-                for scheme, suffix in [('light', 'light'), ('dark', 'dark')]:
-                    ctx, pg = new_page(browser, scheme)
-                    pg.goto(base + '/quiz.html')
-                    pg.fill('#participant-name', 'Sam Rivera')
-                    pg.locator('#begin-quiz').click()
-                    pg.wait_for_selector('#quiz-active.active', timeout=10000)
-                    run_full_quiz(pg, correct_count=8)
-                    pg.wait_for_timeout(150)
-                    shoot(pg, 'quiz-results-fail-%s' % suffix)
-                    ctx.close()
+                # No longer captured here. quiz.js now requires a signed-in
+                # session before the start screen (or any quiz state) will
+                # even render — a plain file server with no backend can never
+                # reach it, only ever the "Sign In Required" gate. Every quiz
+                # screenshot (the gate, the signed-in start/question/feedback
+                # screens, a pass, a below-pass-mark result) is captured by
+                # capture_backend_screenshots.py instead, which stands up a
+                # real disposable backend first. See that script and the
+                # "Accounts, quiz saving, certificates..." section of
+                # README.md for all of them.
 
                 # ---- Contact ----
                 for scheme, suffix in [('light', 'light'), ('dark', 'dark')]:

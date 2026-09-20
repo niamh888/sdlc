@@ -156,13 +156,25 @@ def sign_up(pg, email, name):
     pg.wait_for_timeout(300)
 
 
-def sit_quiz(pg, all_correct=True):
+def sit_quiz(pg, all_correct=True, on_start=None, on_first_question=None, on_first_feedback=None):
+    """Signs the current session through a full attempt, from the start
+    screen to the results screen. The three `on_*` callbacks are each
+    invoked once, at the matching point in the FIRST question only — this
+    is what lets a caller grab a mid-flow screenshot (start screen, a
+    question, its feedback) without duplicating this whole loop just to
+    stop it early. Screenshotting only the first question/feedback is
+    enough; every question screen looks the same shape, the only real
+    variation is which question it happens to be."""
     pg.goto(FRONTEND_BASE + '/quiz.html')
     pg.wait_for_timeout(600)  # let quiz.js's own DOMContentLoaded settle first
+    if on_start:
+        on_start()
     pg.click('#begin-quiz')
     pg.wait_for_selector('#quiz-active.active', timeout=15000)
-    for _ in range(15):
+    for i in range(15):
         pg.wait_for_selector('.option-btn', timeout=15000)
+        if i == 0 and on_first_question:
+            on_first_question()
         if all_correct:
             idx = pg.evaluate("quizState.shuffled[quizState.currentIndex].correct_index")
         else:
@@ -170,6 +182,8 @@ def sit_quiz(pg, all_correct=True):
             idx = (correct + 1) % 4
         pg.query_selector_all('.option-btn')[idx].click()
         pg.wait_for_selector('#next-question:not([disabled])', timeout=15000)
+        if i == 0 and on_first_feedback:
+            on_first_feedback()
         pg.click('#next-question')
         pg.wait_for_timeout(100)
     pg.wait_for_selector('#quiz-results.active', timeout=15000)
@@ -218,7 +232,19 @@ def main():
                 shoot(pg, 'quiz-auth-required-light')
                 ctx.close()
 
-                # ---- Main walkthrough account: sign up, pass, certificate ----
+                # ---- Quiz: signed-in start screen, dark theme, for comparison ----
+                # A separate account and browser context just for this one
+                # image — localStorage (where the session token lives) is
+                # per-context, so there is no cheaper way to show the same
+                # screen in the other colour scheme.
+                ctx, pg = new_page(browser, 'dark')
+                sign_up(pg, 'demo-learner-dark@example.com', 'Ada Lovelace')
+                pg.goto(FRONTEND_BASE + '/quiz.html')
+                pg.wait_for_timeout(500)
+                shoot(pg, 'quiz-start-dark')
+                ctx.close()
+
+                # ---- Main walkthrough account: sign up, sit the quiz, pass, certificate ----
                 ctx, pg = new_page(browser, 'light')
                 sign_up(pg, 'demo-learner@example.com', 'Ada Lovelace')
 
@@ -226,7 +252,16 @@ def main():
                 pg.wait_for_timeout(300)
                 shoot(pg, 'nav-signed-in-light')
 
-                sit_quiz(pg, all_correct=True)
+                # The quiz start/question/feedback screens are only reachable
+                # once signed in now (see the auth-gate screenshot above), so
+                # they're captured here, mid-attempt, rather than by the
+                # static capture_screenshots.py the way they used to be.
+                sit_quiz(
+                    pg, all_correct=True,
+                    on_start=lambda: shoot(pg, 'quiz-start-light'),
+                    on_first_question=lambda: shoot(pg, 'quiz-question-light'),
+                    on_first_feedback=lambda: shoot(pg, 'quiz-feedback-light'),
+                )
                 shoot(pg, 'quiz-results-pass-light')
 
                 # The certificate itself — print-media emulation, same
@@ -258,6 +293,19 @@ def main():
                 pg.wait_for_timeout(1000)
                 shoot(pg, 'verify-not-found-light')
                 ctx.close()
+
+                # ---- Quiz: below the pass mark ---- 8/15 (53%), below the 80%
+                # pass mark, so the results screen shows "Keep Studying" and no
+                # certificate — the other real outcome the site can produce, not
+                # just the all-correct case above. A separate account per run
+                # (email must be unique) and per colour scheme, same reasoning
+                # as the dark start-screen capture above.
+                for scheme, suffix in [('light', 'light'), ('dark', 'dark')]:
+                    ctx, pg = new_page(browser, scheme)
+                    sign_up(pg, 'demo-fail-%s@example.com' % suffix, 'Sam Rivera')
+                    sit_quiz(pg, all_correct=False)
+                    shoot(pg, 'quiz-results-fail-%s' % suffix)
+                    ctx.close()
 
                 # ---- Reviews: signed-out prompt ----
                 ctx, pg = new_page(browser, 'light')

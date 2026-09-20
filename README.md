@@ -81,19 +81,13 @@ Marking a topic studied is blocked until its example document has been opened at
 
 ### Quiz — timed assessment with immediate feedback
 
-| Start screen | Question in progress | Feedback on an answer |
-|---|---|---|
-| ![Quiz start screen, light theme](docs/assets/screenshots/quiz-start-light.png) | ![Quiz question screen](docs/assets/screenshots/quiz-question-light.png) | ![Quiz feedback after answering](docs/assets/screenshots/quiz-feedback-light.png) |
-
-Dark theme, for comparison:
-
-![Quiz start screen, dark theme](docs/assets/screenshots/quiz-start-dark.png)
-
-Scoring below the 80% pass mark shows "Keep Studying" and no certificate offer, rather than the site pretending every attempt is a pass:
-
-| Light | Dark |
-|---|---|
-| ![Quiz results screen below the pass mark, light theme](docs/assets/screenshots/quiz-results-fail-light.png) | ![Quiz results screen below the pass mark, dark theme](docs/assets/screenshots/quiz-results-fail-dark.png) |
+The assessment is gated behind sign-in (see [Backend](#backend)) — a plain
+file server with no account behind it can never reach the start screen or
+any question, only the "Sign In Required" gate. Every quiz screenshot —
+the gate, the signed-in start/question/feedback screens, a pass and its
+certificate, a below-pass-mark result — lives further down under
+[Accounts, quiz saving, certificates, reviews and admin](#accounts-quiz-saving-certificates-reviews-and-admin),
+captured signed in against a real (disposable) backend rather than here.
 
 ### Contact
 
@@ -134,6 +128,19 @@ never be saved:
 
 ![Quiz page's sign-in-required gate, shown instead of the assessment while signed out](docs/assets/screenshots/quiz-auth-required-light.png)
 
+Once signed in, the start screen greets the learner by the name given at
+sign-up instead of asking them to retype it (an account created before this
+field existed falls back to a plain name input — see `quiz.html`'s own
+comment on `#quiz-name-group`):
+
+| Start screen | Question in progress | Feedback on an answer |
+|---|---|---|
+| ![Quiz start screen, signed in and welcomed by name, light theme](docs/assets/screenshots/quiz-start-light.png) | ![Quiz question screen](docs/assets/screenshots/quiz-question-light.png) | ![Quiz feedback after answering](docs/assets/screenshots/quiz-feedback-light.png) |
+
+Dark theme, for comparison:
+
+![Quiz start screen, signed in, dark theme](docs/assets/screenshots/quiz-start-dark.png)
+
 A pass saves the attempt in the background (see the "Result saved to your
 account" line) and offers a certificate — carrying a real Certificate ID
 tied to that saved row, not a decoration:
@@ -141,6 +148,12 @@ tied to that saved row, not a decoration:
 ![Quiz results screen after a 100% pass, with the result-saved status line and a Download Certificate button](docs/assets/screenshots/quiz-results-pass-light.png)
 
 ![Certificate of completion, with the issuer's logo, a Certificate ID, and the site address to verify it at](docs/assets/screenshots/certificate-light.png)
+
+Scoring below the 80% pass mark shows "Keep Studying" and no certificate offer, rather than the site pretending every attempt is a pass:
+
+| Light | Dark |
+|---|---|
+| ![Quiz results screen below the pass mark, light theme](docs/assets/screenshots/quiz-results-fail-light.png) | ![Quiz results screen below the pass mark, dark theme](docs/assets/screenshots/quiz-results-fail-dark.png) |
 
 **My Results** is the other half of that saved data — every attempt a
 signed-in learner has ever made, with the real date it happened, and a

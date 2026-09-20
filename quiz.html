@@ -87,6 +87,33 @@
   <main id="main-content">
     <div class="container">
 
+      <!-- Checking sign-in status — the REAL default screen on page load,
+           shown for however long the session check below takes. Neither
+           the gate nor the start screen used to be marked default/hidden
+           correctly: #quiz-start carried `active` in the static HTML
+           because it's the common case, but confirming a token against the
+           backend is a real network round trip (see getCurrentSession() in
+           auth.js), not an instant local check — so for however long that
+           took, every visitor saw the fallback "Enter your full name" field
+           (its sibling #quiz-welcome starts hidden) regardless of whether
+           they were actually signed in, then watched it get silently
+           replaced. For a returning, signed-in learner that field had no
+           business being there at all; worse, nothing on screen explained
+           why it might change, so someone unfamiliar with the site could
+           easily have started typing into a field about to disappear. This
+           screen (spinner + label, the same .data-status pattern the Learn
+           page uses for its own async load) is the actual honest default:
+           we do not yet know who's signed in, and say so, instead of
+           guessing. quiz.js's DOMContentLoaded handler swaps to whichever
+           real screen applies — #quiz-auth-required, or #quiz-start already
+           fully populated — only once the check has resolved either way. -->
+      <div id="quiz-checking-session" class="quiz-screen active">
+        <div class="data-status" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <p class="data-status-text">Checking your sign-in status&hellip;</p>
+        </div>
+      </div>
+
       <!-- Auth gate — shown instead of everything below when nobody is
            signed in. Quiz results are tied to a real account (see
            backend/app/models.py), so signing in is required before the
@@ -104,8 +131,10 @@
         </div>
       </div>
 
-      <!-- Start screen -->
-      <div id="quiz-start" class="quiz-screen active">
+      <!-- Start screen — no longer `active` by default; see the
+           #quiz-checking-session comment above for why. quiz.js reveals
+           this only once it is already correctly populated. -->
+      <div id="quiz-start" class="quiz-screen">
         <!-- Left-aligned, full-width heading matching every other page's
              .page-header — this used to be an <h1> centred inside the card
              below, which made Quiz the one page whose heading didn't match
@@ -177,9 +206,11 @@
 
       <!-- Active question screen -->
       <div id="quiz-active" class="quiz-screen">
-        <!-- The three quiz screens swap by hiding each other, so the start
-             screen's <h1> is invisible while a question is showing, leaving the
-             page with no level-one heading. Each screen therefore needs its own.
+        <!-- The quiz's screens (checking session, sign-in gate, start,
+             active question, results) swap by hiding each other, so the
+             start screen's <h1> is invisible while a question is showing,
+             leaving the page with no level-one heading. Each screen
+             therefore needs its own.
              This one is visually hidden because the question itself already
              dominates the layout — a second visible heading would just add
              noise for sighted users while screen reader users get the structure

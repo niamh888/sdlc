@@ -748,4 +748,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   // still reading the instructions and typing their name. Nothing awaits this
   // yet; startQuiz() awaits the stored Promise later.
   startQuestionsLoad();
+
+  // Only now — welcome/name-group set correctly, level notice filled in,
+  // listeners wired, questions already loading — does the start screen
+  // actually become visible. Everything above this line ran synchronously
+  // (no further `await` since the session check), so there was never a
+  // moment where the browser could have painted it half-populated; this is
+  // simply the point where it is genuinely ready to show. See the
+  // #quiz-checking-session comment in quiz.html for what this replaced.
+  showQuizScreen('quiz-start');
 });

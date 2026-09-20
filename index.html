@@ -207,7 +207,19 @@
         <div class="review-grid" id="reviews-list" aria-live="polite"></div>
 
         <div class="review-form-wrap">
-          <h3>Leave a review</h3>
+          <!-- "Leave a review" is the default/signed-out heading; once a
+               signed-in visitor already has a review on file,
+               refreshReviewFormState() rewrites this to "Your review" —
+               otherwise this heading stayed "Leave a review" even while the
+               status line right underneath it said the review had already
+               been submitted/approved, which read as the page contradicting
+               itself. There is no "leave another one" state: one review per
+               person per course is enforced at the database level (see
+               backend/app/models.py's uq_user_course_review), and there is
+               no edit endpoint yet either — see this file's own note in
+               DESIGN.md's Home section for why that's future work rather
+               than built here. -->
+          <h3 id="review-form-heading">Leave a review</h3>
 
           <!-- Exactly one of these three is ever visible at a time —
                reviews.js's refreshReviewFormState() decides which, the same

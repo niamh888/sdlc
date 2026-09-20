@@ -100,6 +100,7 @@ async function refreshReviewFormState() {
   const signedOutEl = document.getElementById('review-signed-out');
   const formEl = document.getElementById('review-form');
   const existingEl = document.getElementById('review-existing-status');
+  const headingEl = document.getElementById('review-form-heading');
   if (!formEl) return; // this page has no review form
 
   let session;
@@ -133,6 +134,13 @@ async function refreshReviewFormState() {
 
   if (existingReview) {
     formEl.classList.add('hidden');
+    // The heading otherwise stayed "Leave a review" forever, even directly
+    // above a status line saying the review had already been submitted —
+    // there is nothing left "to leave" once one exists (one review per
+    // person per course, enforced in the database — see models.py), so the
+    // heading should say what this box actually shows, not invite an
+    // action that no longer applies.
+    if (headingEl) headingEl.textContent = 'Your review';
     if (existingEl) {
       existingEl.classList.remove('hidden');
       // "above", not "below" — the approved-reviews grid sits BEFORE this

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
        attribute here, above the first pixel of <body>, avoids that.
        Kept as small as it can be: read the saved choice, fall back to the system
        setting, set one attribute. All the colour values live in style.css. -->
-       
+
   <script>
     (function () {
       try {
@@ -28,6 +29,7 @@
     })();
   </script>
 </head>
+
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
@@ -41,7 +43,7 @@
           <!-- Which version of the standard this course teaches. Shown on every
                page because someone may land directly on the quiz, and because
                Edition 2 is in development — so "IEC 62304" alone is ambiguous. -->
-          <span class="version-chip">Edition&nbsp;1 &middot; 2006+A1:2015</span>
+          <span class="version-chip">Edition&nbsp;1.1 &middot; 2006+A1:2015</span>
         </div>
       </div>
       <!-- Hamburger: hidden entirely above the mobile breakpoint (see
@@ -52,9 +54,15 @@
            expands, the same aria-expanded pattern the Learn page's phase
            cards already use for their own expand/collapse. See nav.js for
            the click/Escape/click-outside handling. -->
-      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu" title="Menu">
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+        aria-label="Menu" title="Menu">
         <span class="nav-toggle-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
         </span>
       </button>
       <nav class="site-nav" id="site-nav" role="navigation" aria-label="Main navigation">
@@ -73,8 +81,22 @@
              whichever a screen reader reads first. -->
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Switch to dark theme">
           <span class="theme-toggle-icon" aria-hidden="true">
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
           </span>
           <span class="theme-toggle-label sr-only">Switch to dark theme</span>
         </button>
@@ -97,7 +119,8 @@
          role="note" (rather than "alert") is correct because the information is
          advisory and present on load — an alert role is for something urgent
          that appears in response to an action. -->
-    <div class="update-banner hidden" id="update-banner" role="note" aria-label="Notice: IEC 62304 Edition 2 is under development">
+    <div class="update-banner hidden" id="update-banner" role="note"
+      aria-label="Notice: IEC 62304 Edition 2 is under development">
       <div class="container">
         <div class="update-banner-card">
 
@@ -105,31 +128,44 @@
           <div class="update-banner-bar">
             <span class="update-banner-icon" aria-hidden="true">&#9888;&#xFE0E;</span>
             <span class="update-banner-label">Important notice</span>
-            <button class="update-banner-close" id="update-banner-close" aria-label="Dismiss this notice">&#10005;</button>
+            <button class="update-banner-close" id="update-banner-close"
+              aria-label="Dismiss this notice">&#10005;</button>
           </div>
 
           <div class="update-banner-content">
-          <strong class="update-banner-heading">IEC 62304 Edition 2 is under active development</strong>
-          <p class="update-banner-intro"><strong>This course covers Edition&nbsp;1</strong> &mdash; IEC&nbsp;62304:2006 with Amendment&nbsp;1:2015, the version currently in force, whose consolidated text carries the designation Edition&nbsp;1.1. The changes listed below are <em>proposed</em> for Edition&nbsp;2 and are not yet confirmed.</p>
-          <ul class="update-banner-list">
-            <li><strong>Expanded scope:</strong> The standard is proposed to cover <em>health software</em> broadly, not just medical device software. This aligns with IEC 82304-1, which applies at product/validation level — a standard more widely applicable than many practitioners realise.</li>
-            <li><strong>Simplified classification:</strong> The three safety classes (A, B, C) are proposed to be replaced by two <em>Software Process Rigor Levels</em> — Level I (software that cannot contribute to a hazardous situation) and Level II (all other software).</li>
-            <li><strong>QMS and risk management references softened:</strong> Explicit normative references to ISO 13485 and ISO 14971 are proposed to become general requirements to follow the applicable product-level standard, with ISO 13485 / ISO 14971 referenced in notes only.</li>
-            <li><strong>Legacy software:</strong> The legacy software provisions are proposed to move from normative requirements to an informative annex.</li>
-          </ul>
-          <a class="update-banner-link" href="https://www.iec.ch/dyn/www/f?p=103:23:::::FSP_ORG_ID,FSP_LANG_ID:1245,25" target="_blank" rel="noopener noreferrer">Follow progress at IEC TC62 &#8599;</a>
+            <strong class="update-banner-heading">IEC 62304 Edition 2 is under active development</strong>
+            <p class="update-banner-intro"><strong>This course covers Edition&nbsp;1</strong> &mdash;
+              IEC&nbsp;62304:2006 with Amendment&nbsp;1:2015, the version currently in force, whose consolidated text
+              carries the designation Edition&nbsp;1.1. The changes listed below are <em>proposed</em> for
+              Edition&nbsp;2 and are not yet confirmed.</p>
+            <ul class="update-banner-list">
+              <li><strong>Expanded scope:</strong> The standard is proposed to cover <em>health software</em> broadly,
+                not just medical device software. This aligns with IEC 82304-1, which applies at product/validation
+                level — a standard more widely applicable than many practitioners realise.</li>
+              <li><strong>Simplified classification:</strong> The three safety classes (A, B, C) are proposed to be
+                replaced by two <em>Software Process Rigor Levels</em> — Level I (software that cannot contribute to a
+                hazardous situation) and Level II (all other software).</li>
+              <li><strong>QMS and risk management references softened:</strong> Explicit normative references to ISO
+                13485 and ISO 14971 are proposed to become general requirements to follow the applicable product-level
+                standard, with ISO 13485 / ISO 14971 referenced in notes only.</li>
+              <li><strong>Legacy software:</strong> The legacy software provisions are proposed to move from normative
+                requirements to an informative annex.</li>
+            </ul>
+            <a class="update-banner-link"
+              href="https://www.iec.ch/dyn/www/f?p=103:23:::::FSP_ORG_ID,FSP_LANG_ID:1245,25" target="_blank"
+              rel="noopener noreferrer">Follow progress at IEC TC62 &#8599;</a>
 
-          <!-- Provenance goes HERE, next to the claim, not only on the privacy
+            <!-- Provenance goes HERE, next to the claim, not only on the privacy
                page. Nobody checks a legal page to find out whether a banner is
                current. The review date is the important half: a dated claim about
                a moving standard can be judged stale, an undated one just quietly
                becomes wrong. -->
-          <p class="update-banner-source">
-            <strong>Source:</strong> IEC TC&nbsp;62 work programme and Edition&nbsp;2 committee drafts.
-            Reviewed <time datetime="2026-07-30">30 July 2026</time>.
-            Edition&nbsp;2 is still in development, so confirm the current stage with IEC
-            before relying on this. <a href="privacy.html#content-sources">Where our content comes from</a>.
-          </p>
+            <p class="update-banner-source">
+              <strong>Source:</strong> IEC TC&nbsp;62 work programme and Edition&nbsp;2 committee drafts.
+              Reviewed <time datetime="2026-07-30">30 July 2026</time>.
+              Edition&nbsp;2 is still in development, so confirm the current stage with IEC
+              before relying on this. <a href="privacy.html#content-sources">Where our content comes from</a>.
+            </p>
           </div>
 
         </div>
@@ -140,7 +176,9 @@
 
       <div class="page-header">
         <h1>Software Lifecycle Process Areas</h1>
-        <p>IEC 62304 ED1 organises software development into defined process areas across Clauses 4&ndash;9. Click any card to expand its requirements. Use <strong>Level</strong> to switch between an overview and detailed clause-referenced content, and filter by safety class to focus on what applies to your software.</p>
+        <p>IEC 62304 ED1 organises software development into defined process areas across Clauses 4&ndash;9. Click any
+          card to expand its requirements. Use <strong>Level</strong> to switch between an overview and detailed
+          clause-referenced content, and filter by safety class to focus on what applies to your software.</p>
       </div>
 
       <!-- Controls start hidden and are revealed by learn.js once the topic
@@ -148,12 +186,14 @@
            is anything to filter would be misleading. -->
       <div class="learn-controls hidden" id="learn-controls">
         <div class="progress-tracker">
-          <span class="progress-label">Study progress: <strong id="progress-count">0</strong> of <strong id="progress-total">0</strong> topics</span>
+          <span class="progress-label">Study progress: <strong id="progress-count">0</strong> of <strong
+              id="progress-total">0</strong> topics</span>
           <!-- role="progressbar" requires an accessible name, otherwise a screen
                reader announces only "50%" with no indication of what is at 50%.
                aria-label supplies it, since the visible "Study progress" text is
                a sibling rather than a label. -->
-          <div class="progress-bar-container" role="progressbar" aria-label="Study progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-bar-container" role="progressbar" aria-label="Study progress" aria-valuemin="0"
+            aria-valuemax="100" aria-valuenow="0">
             <div class="progress-bar" id="progress-bar"></div>
           </div>
         </div>
@@ -210,8 +250,8 @@
           <span class="deliverables-icon" aria-hidden="true">&#128203;</span>
           <h2 class="deliverables-heading" id="deliverables-heading">Deliverables</h2>
           <span class="deliverables-count" id="deliverables-count"></span>
-          <button class="deliverables-btn" id="deliverables-toggle"
-                  aria-expanded="false" aria-controls="deliverables-body">Show list</button>
+          <button class="deliverables-btn" id="deliverables-toggle" aria-expanded="false"
+            aria-controls="deliverables-body">Show list</button>
           <button class="deliverables-btn" id="deliverables-download">Download CSV</button>
         </div>
         <div class="deliverables-body hidden" id="deliverables-body"></div>
@@ -248,7 +288,8 @@
     <div class="container">
       <p>IEC 62304 Training &mdash; Based on IEC 62304:2006+AMD1:2015 (ED1)</p>
       <p class="footer-meta">
-        <span>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch &amp; Co Ltd</a></span>
+        <span>Developed by <a href="https://stjohnlynch.com" target="_blank" rel="noopener noreferrer">St John Lynch
+            &amp; Co Ltd</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
         <span class="footer-links"><a href="privacy.html">Privacy &amp; Data Protection</a></span>
         <span class="footer-sep" aria-hidden="true">&middot;</span>
@@ -269,4 +310,5 @@
   <script src="async-utils.js" defer></script>
   <script src="learn.js" defer></script>
 </body>
+
 </html>

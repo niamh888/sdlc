@@ -136,6 +136,17 @@ only exists here in prose. It's also why the home page's review box only
 ever shows one of "leave a review" or "your review" (with its status) —
 there is no "leave another one" state to design for.
 
+**`QUIZ_ATTEMPTS` deliberately carries no equivalent constraint — the
+absence is the design, not a gap.** Nothing stops the same user attempting
+the same course version any number of times, on purpose: a review represents
+your *current* opinion of the course, so a second one should replace the
+first rather than sit alongside it, but a quiz attempt represents one
+sitting on one date, and every sitting is worth keeping. That's what "My
+Results" actually is — `GET /attempts/me` returns every row for the
+signed-in user, most recent first, not just the latest — and it's what a
+certificate and its date are vouching for: this specific attempt, on this
+specific day, not "the current state of this person's knowledge."
+
 **Delete cascades are not symmetric, and the diagram can't show that
 either.** `QUIZ_QUESTIONS.course_version_id` and `COURSE_VERSIONS.course_id`
 / `COURSE_REVIEWS.course_id` all specify `ondelete="CASCADE"` — delete the

@@ -2,7 +2,8 @@
 
 Tables within this project and their relationships are presented.  These are generated
 using SQLAlchemy models in [`app/models.py`](app/models.py). This is done so that as we amend 
-or add tables to the design changes, we can amend the diagrams and also testing and screenshots:
+or add tables during design changes, we can amend the diagrams relatively easily.
+This is the process we use for testing and screenshots also:
 [`tests/capture_backend_screenshots.py`](../tests/capture_backend_screenshots.py)
 The content is checked against the current version of the application.  
 

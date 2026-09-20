@@ -333,25 +333,41 @@ every visitor's IP address to IEC and falsify two separate statements in the not
 ## Data Protection
 
 Because the contact form sends real personal data (name, email, message) to a
-third-party processor outside the EEA, the site carries a privacy notice at
-[privacy.html](privacy.html), linked from the footer of every page and summarised
-at the point of collection beneath the Send button.
+third-party processor outside the EEA, and creating an account now stores real
+personal data of its own (see [Backend](#backend)), the site carries a privacy
+notice at [privacy.html](privacy.html), linked from the footer of every page
+and summarised at the point of collection beneath the Send button and beneath
+the quiz's sign-in form.
+
+**This table used to say quiz results go "Nowhere — browser memory only,
+discarded when the tab closes".** That was true before this project had a
+backend; it has not been true since accounts, saved quiz attempts and
+certificate verification were built, and the table below was rewritten to
+match rather than left describing an earlier version of the site — the same
+correction `privacy.html`'s own "Accounts, quiz results and certificates"
+section explains in full, including legal basis, retention and how to ask for
+your data to be deleted.
 
 What the site actually processes, in full:
 
 | Data | Where it goes |
 |---|---|
-| Name, email, role, message | Formspree (United States), then email to the site owner |
-| IP address, user agent | GitHub Pages server logs; Formspree on submission |
-| Quiz name, answers, score | **Nowhere** — browser memory only, discarded when the tab closes |
-| `62304_trainingLevel`, `62304_bannerDismissed`, `62304_theme` | **Nowhere** — browser localStorage only |
-| `62304_studiedPhases`, `62304_previewedDocs` | **Nowhere** — browser localStorage only, shared across tabs so Learn progress survives following a link to an example document and back |
+| Name, email, role, message (contact form) | Formspree (United States), then email to the site owner |
+| IP address, user agent | GitHub Pages / Render server logs; Formspree on submission |
+| Account: email, a securely hashed password, optional full name | Postgres on Neon, via this project's own FastAPI backend on Render — both pinned to the EU (Frankfurt, Germany); **never leaves the EEA** |
+| Each quiz attempt: participant name, score, pass/fail, level, start/finish timestamps | Same Neon/Render backend, EU-hosted, tied to the signed-in account that sat it |
+| Course review: name, star rating, comment | Same Neon/Render backend, EU-hosted; visible on the home page only once approved by an admin |
+| `62304_trainingLevel`, `62304_bannerDismissed`, `62304_theme`, `62304_studiedPhases`, `62304_previewedDocs` | **Nowhere** — browser `localStorage` only |
+| `62304_authToken` | Sent to this project's own backend as a bearer token on every request that needs to know who is signed in; lives in `localStorage`, removed the moment you log out |
 
-No cookies, no analytics, no tracking, and no external fonts or CDNs — every file
-a page loads is served from this site. That is why no cookie consent banner is
-required: the localStorage values above exist solely to honour a preference or
-remember progress you have asked the site to track, which is exempt as strictly
-necessary.
+No cookies for a visitor or learner, no analytics, no tracking, and no
+external fonts or CDNs — every file a page loads is served from this site or
+its own backend, and account/quiz/review data never leaves the EU. That is
+why no cookie consent banner is required: the localStorage values above exist
+solely to honour a preference, remember progress, or keep a session you asked
+for by signing in, which is exempt as strictly necessary. (The single cookie
+this project sets at all lives on the separate `/admin` review-moderation
+tool — not something a learner or visitor ever encounters.)
 
 ---
 

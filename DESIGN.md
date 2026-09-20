@@ -115,6 +115,18 @@ A `.version-chip` in the site header on every page reads `Edition 1 · 2006+A1:2
 
 It is site-wide rather than home-page-only because a learner can arrive directly on the quiz from a link or a bookmark and would otherwise never be told which edition they are being assessed on. It sits in the header rather than in a strip below it to avoid spending vertical space on every page, and rather than in the footer because a version people need *before* they start studying should not be below the fold. White on the navy header measures 11.6:1, so it stays legible at 0.68rem.
 
+**Three forms of the same fact, used for different jobs — not an inconsistency, but easy to mistake for one.** The site refers to the standard three different ways, and each is deliberate:
+
+1. **Bare "IEC 62304"** — the product/brand name (page titles, the nav logo, casual sentences like "Test your understanding of IEC 62304"). No version claim is intended here, the same way a textbook's spine doesn't repeat its edition number in every sentence about the book.
+2. **"Edition 1"** (the header chip, the footer's "(ED1)") — UI chrome, always paired with the amendment note ("· 2006+A1:2015") rather than standing alone, so it is never *just* "Edition 1" with nothing to say which amendment state that means.
+3. **"IEC 62304:2006+AMD1:2015 (Edition 1.1)"** — the one fully correct designation, IEC's own term for the consolidated 2006-plus-Amendment-1 text. Used the *first* time a page makes a real, substantive claim about which version it covers: the home page's hero, the Learn page's Edition 2 notice, and the certificate — not repeated in every passing mention, the same restraint applied to the class-A/B/C mapping's own provenance notes elsewhere in this document.
+
+The gap this closes: for a while, only the home page's hero actually said "Edition 1.1" — every other page making the identical kind of claim (most notably the Learn page's Edition 2 notice, which explains the exact same fact in almost the same sentence) stopped at "Edition 1" and never landed on the precise designation at all. That is not wrong, exactly — "Edition 1" is a legitimate shorthand — but it meant a reader only ever encountered the fully correct term in one place on the whole site, easy to read once and forget. The three-tier rule above is what closes that gap; a `learn.html` header logo that had drifted to reading "IEC 62304 ED1 Training" (every other page just says "IEC 62304 Training") was fixed at the same time as a related but separate bug, not a version-of-the-standard issue.
+
+**Deliberately out of scope for this pass, recorded rather than silently left:**
+- **`backend/seed.py`'s `version_label`** (`"Edition 1 - 2006+A1:2015"`, stored in the database and shown wherever a certificate or result references its course version) was not touched, nor was the auto-generated `docs/` reflexive lifecycle documentation set (14 files, rendered from `docs/render.py` — editing the rendered HTML directly would just be overwritten on the next render). Both use "Edition 1" the same shorthand way the site's chip does; bringing them in line with the three-tier rule above is future work, not a correctness bug requiring urgent action.
+- **Offering Edition 1.1 content alongside Edition 2, not replacing it.** Edition 2 is still in development (see the Learn page notice), and the transition when it does land will not be immediate — some learners will reasonably want to keep studying Edition 1.1 for a period after Edition 2 exists. The site is not built for that today (one course version, swapped wholesale would mean Edition 1.1 content simply disappears). Worth designing for before Edition 2 actually ships, not after.
+
 ---
 
 ### Learn (learn.html)

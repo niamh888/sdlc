@@ -4,7 +4,11 @@
 
 An interactive, self-paced training course covering the IEC 62304 medical device software development lifecycle standard. The site is aimed at software developers, quality engineers, and regulatory affairs professionals who need working knowledge of the standard — either for day-to-day compliance or to prepare for audits and assessments.
 
-The project serves a dual purpose: it satisfies the UCD JavaScript module brief (HTML/CSS/JS, interactivity, DOM manipulation, GitHub Pages), and it is a useful domain-specific tool that could be expanded into a full certification prep platform.
+The project serves a multi-purpose: it satisfies the UCD JavaScript module brief (HTML/CSS/JS, interactivity, DOM manipulation, GitHub Pages), which was made available 
+under www.stjohnlynch.com as part a real-world training as an additional aid to understanding, when classroom time limits the amount that one can go through.  It is a 
+useful domain-specific tool that can be expanded into a full certification prep platform.  It also serves as the UCD Database module brief in the most recent change; transfer to 
+use with backend using neon-tech.  Allowing users to log in and receive their certificates with results maintained.  This will be important when making available as part of a full 
+certification platform.
 
 This document explains *design* decisions — layout, interaction, visual,
 JavaScript and backend/database architecture. For a demonstration of the

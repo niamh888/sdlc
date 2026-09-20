@@ -1,13 +1,10 @@
 # Database Entity-Relationship Diagram
 
-Every table this project's backend owns, and how they relate — generated
-directly from the SQLAlchemy models in [`app/models.py`](app/models.py), not
-drawn separately by hand. That matters for the same reason
+Tables within this project and their relationships are presented.  These are generated
+using SQLAlchemy models in [`app/models.py`](app/models.py). This is done so that as we amend 
+or add tables to the design changes, we can amend the diagrams and also testing and screenshots:
 [`tests/capture_backend_screenshots.py`](../tests/capture_backend_screenshots.py)
-photographs the real running site instead of a mockup: a hand-drawn diagram
-can silently drift out of sync with the actual schema the moment a column
-changes, and nothing would ever say so. This one is checked against the real
-models below.
+The content is checked against the current version of the application.  
 
 ```mermaid
 erDiagram
@@ -92,7 +89,7 @@ erDiagram
 ```
 
 GitHub renders the block above as an actual diagram wherever this file is
-viewed on github.com — nothing to install or export separately.
+viewed on github.com with nothing to install or export separately.
 
 ## Notes that don't fit in a box
 
@@ -106,7 +103,7 @@ globally unique and still validated as a real UUID at the API boundary by
 Pydantic (`app/schemas.py`) — only the database column's own type is
 simpler than the "obvious" choice.
 
-**`QUIZ_ATTEMPTS.id` is usually chosen by the browser, not the database.**
+**`QUIZ_ATTEMPTS.id` is chosen by the browser, not the database.**
 `quiz.js` generates it via `crypto.randomUUID()` the moment the quiz starts,
 specifically so a certificate can display a real, working Certificate ID
 the instant someone passes — before the save to this table has even begun,

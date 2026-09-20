@@ -124,6 +124,29 @@ and versions. Right now exactly one of each exists (seeded by
 reasoning `supabase/schema.sql`'s own comments gave for the equivalent
 tables before this backend replaced it.
 
+**`COURSE_REVIEWS` carries a composite unique constraint the diagram can't
+show.** `uq_user_course_review` (`UniqueConstraint("user_id", "course_id")`
+in `app/models.py`) means one review per person per course, enforced at the
+database level — a second `POST /reviews` from the same user for the same
+course fails at the database with a 409, not merely discouraged in the UI.
+Mermaid's ER notation can mark a single column `UK`, as `USERS.email` is
+above, but has no way to show a constraint spanning two columns, so this one
+only exists here in prose. It's also why the home page's review box only
+ever shows one of "leave a review" or "your review" (with its status) —
+there is no "leave another one" state to design for.
+
+**Delete cascades are not symmetric, and the diagram can't show that
+either.** `QUIZ_QUESTIONS.course_version_id` and `COURSE_VERSIONS.course_id`
+/ `COURSE_REVIEWS.course_id` all specify `ondelete="CASCADE"` — delete the
+parent and those rows go with it. `QUIZ_ATTEMPTS.course_version_id` and
+`QUIZ_ATTEMPT_ANSWERS.question_id` deliberately do not: deleting a course
+version or a question is *blocked* while an attempt or answer still
+references it, rather than quietly taking someone's completed quiz history
+down with it. A learner's own record should outlive an edit to the course
+content that produced it. (`QUIZ_ATTEMPTS.user_id` and every `_id` on
+`COURSE_REVIEWS` do cascade, deliberately in the other direction — deleting
+an account is what should remove its data, not the reverse.)
+
 **Row Level Security is gone, and that is a real trade-off, not a wash.**
 The Supabase-era schema (`supabase/schema.sql`) enforced "a user may only
 read their own attempts" as a database policy — impossible to bypass even

@@ -678,7 +678,7 @@ Knowing when *not* to use a tool matters as much as knowing how.
 
 ## Testing
 
-The site ships with an automated test suite: **795 checks** covering content
+The site ships with an automated test suite: **797 checks** covering content
 integrity, every interactive feature, the asynchronous success *and* failure
 paths, accessibility, and responsive layout.
 
@@ -709,6 +709,35 @@ so it can be wired into CI later.
 python tests/test_site.py --headed          # watch it run in a visible browser
 python tests/test_site.py --group quiz      # run one group only
 python tests/test_site.py --group data --group a11y   # or several
+```
+
+### If a script gets killed mid-run
+
+`test_site.py` and `capture_screenshots.py` bind an OS-assigned free port each
+time, so even if one is interrupted there is nothing fixed left to collide
+with next run. `tests/capture_backend_screenshots.py` is the one exception
+worth knowing about: it stands up a real disposable backend on **fixed**
+ports (8001 for the API, 8175 for the frontend — see its own `FRONTEND_PORT`
+/ `BACKEND_PORT`, pinned because `api-config.js` hardcodes 8001 for local
+traffic), and shuts both down in a `finally` block when it finishes normally.
+Let it run to completion or press Ctrl+C and wait for it to exit — killing
+the terminal itself (closing the window, `Stop-Process` on the wrong PID)
+can skip that cleanup and leave the backend still listening.
+
+If a later run then fails oddly, or `http://127.0.0.1:8001/health` answers
+when you didn't expect anything running, check what's actually bound to the
+port and clear it:
+
+```powershell
+# Windows PowerShell — see what's listening on 8001 (swap in 8175 for the frontend)
+Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess
+Stop-Process -Id <the PID from above> -Force
+```
+
+```bash
+# macOS/Linux equivalent
+lsof -i :8001
+kill <the PID from above>
 ```
 
 ### What it covers
@@ -838,7 +867,7 @@ Being honest about the limits matters more than a green tick:
 | `data/applicability.json` | **Regulatory mapping** — every sub-clause of Clauses 4–9, the safety classes it applies to, and the `output` field recording what the standard requires you to produce, and a `seeAlso` field for the two requirements 62304 satisfies by pointing at another standard |
 | `data/questions-intro.json` | **Content** — 15 introductory quiz questions |
 | `data/questions-advanced.json` | **Content** — 15 advanced, clause-referenced quiz questions |
-| `tests/test_site.py` | Automated test suite — 795 checks; starts its own server |
+| `tests/test_site.py` | Automated test suite — 797 checks; starts its own server |
 | `tests/requirements.txt` | Test-only dependency (Playwright); the site itself has none |
 | `tests/anomaly_log.csv` | **Generated, committed** — the standing anomaly/problem log described under [Anomaly log](#anomaly-log); updated by every test run |
 | `tests/capture_screenshots.py` | Generates the PNGs under `docs/assets/screenshots/` used in [Screenshots](#screenshots) above |

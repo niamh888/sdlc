@@ -508,6 +508,14 @@ static site with no server never had to think about any of it.
 - **Dependency scanning** (e.g. `pip-audit`, or enabling GitHub's Dependabot
   alerts) to catch a known vulnerability in a backend dependency before it
   ships.
+- **Dedicated security-property tests.** The existing backend tests
+  (`backend/tests/test_auth.py` and friends) exercise login/signup and so
+  touch bcrypt hashing and JWT issuing along the way, but nothing currently
+  asserts the security properties themselves directly — e.g. that a request
+  from an origin not in `CORS_ORIGINS` is actually rejected, or that a
+  stored `User` row never contains a plaintext password. Worth adding once
+  the items above are built, so the new behaviour ships with a test rather
+  than being verified by hand once and never again.
 
 ---
 

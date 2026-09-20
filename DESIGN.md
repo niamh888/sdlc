@@ -453,6 +453,62 @@ because Render's own free Postgres expires after 30–90 days and Neon's does
 not) — see [GitHub and Deployment](#github-and-deployment) below and
 `backend/render.yaml` for the concrete configuration.
 
+### Security
+
+Several of the decisions above are themselves security decisions and are
+described where they're made rather than repeated here — JWT bearer tokens
+instead of cookies, per-route filtering by `current_user.id` in place of
+database-level Row Level Security, and certificate verification staying a
+narrow public lookup rather than an open table. This section gathers what
+else the backend does specifically to protect the data it now owns, since a
+static site with no server never had to think about any of it.
+
+- **Passwords are never stored.** Only a bcrypt hash of one is
+  (`backend/app/security.py`). bcrypt is deliberately slow — cheap enough to
+  check one password at login, slow enough that brute-forcing a stolen hash
+  takes meaningfully long. A fast hash (MD5, SHA-256) would be the wrong
+  tool for exactly that reason: speed is the whole threat.
+- **SQL injection.** Every query goes through SQLAlchemy's query builder,
+  which parameterises values rather than concatenating them into SQL text.
+  No route builds a query from a raw string.
+- **Encrypted in transit.** `DATABASE_URL` requires `sslmode=require`
+  (`backend/.env.example`), so the connection between the API and Neon is
+  TLS, the same as any connection between a browser and this site.
+- **CORS is an allow-list, not a wildcard.** Only the origins named in
+  `CORS_ORIGINS` (`config.py`, `main.py`) may call the API from a browser at
+  all — a page served from anywhere else is refused before it reaches a
+  route.
+- **Secrets live only in `.env` / Render's dashboard, never in git.**
+  `DATABASE_URL`, `JWT_SECRET`, `ADMIN_PASSWORD` and `SESSION_SECRET` are
+  excluded from `render.yaml` on purpose and entered by hand in each
+  environment; `.env` is gitignored. `JWT_SECRET` and `SESSION_SECRET` are
+  two independently generated values, not one secret reused for two
+  purposes, so a compromise of one signing use doesn't also forge the other.
+- **The admin panel is a separate account system entirely** — its own
+  session-cookie login, its own secret, no relationship to a learner's JWT —
+  so a compromised learner account can never reach review moderation, and
+  vice versa.
+
+**Future work — considered but not yet built:**
+
+- **Rate limiting on `/auth/login`.** bcrypt makes each individual guess
+  slow, but nothing currently caps the *number* of attempts against one
+  account or one IP — a scripted attacker can still work around it. Would
+  need something like `slowapi` or a Redis-backed limiter in front of the
+  route.
+- **An explicit statement on encryption at rest.** Neon encrypts data at
+  rest as part of its managed service, but this project doesn't currently
+  assert or document that anywhere (`privacy.html` states the region —
+  Frankfurt — but not this).
+- **Account lockout / anomaly detection** after repeated failed logins,
+  beyond what rate limiting alone would provide.
+- **A secret rotation policy.** There's no documented process or schedule
+  for rotating `JWT_SECRET` or `SESSION_SECRET` if either were ever
+  suspected of leaking — today that would be a manual, undocumented step.
+- **Dependency scanning** (e.g. `pip-audit`, or enabling GitHub's Dependabot
+  alerts) to catch a known vulnerability in a backend dependency before it
+  ships.
+
 ---
 
 ## JavaScript Architecture

@@ -75,6 +75,26 @@ alembic upgrade head
 Always read the generated migration file before applying it — autogenerate
 is a good first draft, not something to trust blindly.
 
+## Security
+
+The reasoning behind these lives in [../DESIGN.md](../DESIGN.md#security) —
+this is just the practical checklist for anyone setting the project up:
+
+- Never commit `.env`. It's gitignored already; keep it that way.
+- Generate `JWT_SECRET` and `SESSION_SECRET` as two **separate** values with
+  `python -c "import secrets; print(secrets.token_hex(32))"` — don't reuse
+  one for both, and don't keep the placeholder values from `.env.example`.
+- Change `ADMIN_PASSWORD` from the placeholder before deploying anywhere
+  real — it's the entire admin account system, there's no sign-up flow to
+  fall back on.
+- Keep `CORS_ORIGINS` to real frontend origins only, never `*`.
+- Your Neon `DATABASE_URL` should keep `?sslmode=require` — it's already in
+  the connection string Neon's dashboard gives you; don't strip it.
+
+**Known gaps, not yet built** (see DESIGN.md's Security section for the
+full list): no rate limiting on `/auth/login`, no documented secret-rotation
+process, no dependency-vulnerability scanning configured.
+
 ## Deploying
 
 See `render.yaml` — Render's dashboard can read this file directly
